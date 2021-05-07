@@ -1,22 +1,20 @@
 require("dotenv").config();
 
 import * as RxO from "rxjs/operators";
-import { createClient, Events, Intents } from "../";
+import { createClient, Intents } from "../src/mod";
 
 const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
   intents: Intents.GUILD_MESSAGES,
 });
 
-client
-  .dispatch$(Events.MessageCreate)
+const command$ = client.command$("!");
+
+command$({ name: "ping" })
   .pipe(
-    RxO.filter((m) => m.content === "!ping"),
-    RxO.flatMap((m) =>
-      client.postChannelMessages([m.channel_id], {
-        message_reference: {
-          message_id: m.id,
-        },
+    RxO.flatMap(({ message }) =>
+      client.postChannelMessages([message.channel_id], {
+        message_reference: { message_id: message.id },
         content: "Pong!",
       }),
     ),

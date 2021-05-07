@@ -1,11 +1,17 @@
 import * as Guilds from "./gateway-utils/guilds";
 import * as GatewayClient from "./gateway/client";
 import * as RestClient from "./rest/client";
+import * as Commands from "./gateway-utils/commands";
+import { GatewayDispatchEvents } from "discord-api-types";
 
 export function create(opts: GatewayClient.Options) {
   const gateway = GatewayClient.create(opts);
   const rest = RestClient.create(opts.token);
   const guilds$ = Guilds.watch$(gateway.dispatch$);
+  const command$ = Commands.command$(
+    guilds$,
+    gateway.dispatch$(GatewayDispatchEvents.MessageCreate),
+  );
 
   function close() {
     gateway.close();
@@ -16,6 +22,7 @@ export function create(opts: GatewayClient.Options) {
     guilds$,
     all: gateway.all$,
     dispatch$: gateway.dispatch$,
+    command$,
     close,
 
     delete: rest.delete.bind(rest),

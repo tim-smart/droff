@@ -25,7 +25,7 @@ A simple `!ping` command example :)
 
 ```typescript
 import * as RxO from "rxjs/operators";
-import { createClient, Events, Intents } from "../";
+import { createClient, Events, Intents } from "droff";
 
 const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,

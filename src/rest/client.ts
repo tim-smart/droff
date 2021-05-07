@@ -102,14 +102,13 @@ export const routes = (client: AxiosInstance) => {
     getChannelMessage: get(
       Routes.channelMessage,
     )<Types.RESTGetAPIChannelMessageResult>(),
-    postChannelMessage: post(Routes.channelMessage)<
-      Types.RESTPostAPIChannelMessageResult,
-      Types.RESTPostAPIChannelMessageJSONBody
-    >(),
     patchChannelMessage: patch(Routes.channelMessage)<
       Types.RESTPatchAPIChannelMessageResult,
       Types.RESTPatchAPIChannelMessageJSONBody
     >(),
+    deleteChannelMessage: del(
+      Routes.channelMessage,
+    )<Types.RESTDeleteAPIChannelMessageResult>(),
 
     postChannelMessageCrosspost: post(
       Routes.channelMessageCrosspost,

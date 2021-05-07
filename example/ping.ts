@@ -1,29 +1,5 @@
-# droff
+require("dotenv").config();
 
-A Discord client powered by RxJS and `discord-api-types`
-
-## Goals
-
-- Lightweight - Simple Axios wrapper for the REST API with a lean Gateway API
-  wrapper powered by RxJS.
-
-## Install
-
-```
-yarn add droff discord-api-types
-```
-
-If you want more performance:
-
-```
-yarn add bufferutil
-```
-
-## Usage
-
-A simple `!ping` command example :)
-
-```typescript
 import * as RxO from "rxjs/operators";
 import { createClient, Events, Intents } from "../";
 
@@ -46,4 +22,3 @@ client
     ),
   )
   .subscribe();
-```

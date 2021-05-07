@@ -41,7 +41,7 @@ const postRoute = (client: AxiosInstance) => <
   fn: F,
 ) => <T, D = any>() => (
   args: Parameters<F>,
-  data: D,
+  data?: D,
   config?: AxiosRequestConfig,
 ) => client.post<T>(fn(...args), data, config).then((r) => r.data);
 
@@ -51,15 +51,15 @@ const patchRoute = (client: AxiosInstance) => <
   fn: F,
 ) => <T, D = any>() => (
   args: Parameters<F>,
-  data: D,
+  data?: D,
   config?: AxiosRequestConfig,
 ) => client.patch<T>(fn(...args), data, config).then((r) => r.data);
 
 const putRoute = (client: AxiosInstance) => <F extends (...args: any[]) => any>(
   fn: F,
-) => <T, D = any>() => (
+) => <T, D = undefined>() => (
   args: Parameters<F>,
-  data: D,
+  data?: D,
   config?: AxiosRequestConfig,
 ) => client.put<T>(fn(...args), data, config).then((r) => r.data);
 

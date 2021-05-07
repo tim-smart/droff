@@ -3,9 +3,9 @@ require("dotenv").config();
 import { RESTGetAPIGuildInvitesResult, Routes } from "discord-api-types/v8";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import { Client, Events, Intents } from "../";
+import { createClient, Events, Intents } from "../";
 
-const client = Client.create({
+const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
   intents: Intents.GUILDS | Intents.GUILD_MEMBERS | Intents.GUILD_INVITES,
 });

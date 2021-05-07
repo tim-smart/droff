@@ -1,7 +1,7 @@
-export * as GatewayClient from "./gateway/client";
-export * as GatewayCommands from "./gateway/commands";
-export * as RestClient from "./rest/client";
-export * as Client from "./client";
+export * as Gateway from "./gateway/client";
+export * as Commands from "./gateway/commands";
+export * as Rest from "./rest/client";
+export { create as createClient, Client } from "./client";
 
 export {
   GatewayDispatchEvents as Events,

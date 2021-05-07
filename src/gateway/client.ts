@@ -57,9 +57,11 @@ export function create({ token, intents, shard = [0, 1] }: Options) {
 
   return {
     conn,
+    send: conn.send,
     raw$: conn.raw$,
     dispatch$,
     close: () => conn.close(),
+    reconnect: () => conn.reconnect(),
   };
 }
 

@@ -17,6 +17,7 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
+    "axios": "^0.21.1",
     "erlpack": "^0.1.3",
     "fp-ts": "^2.10.5",
     "immutable": "^4.0.0-rc.12",

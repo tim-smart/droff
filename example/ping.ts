@@ -20,3 +20,5 @@ command$({ name: "ping" })
     ),
   )
   .subscribe();
+
+setTimeout(() => client.gateway.reconnect(), 10000);

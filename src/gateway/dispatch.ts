@@ -3,6 +3,8 @@ import { GatewayDispatchEvents } from "discord-api-types/gateway/v8";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import * as O from "fp-ts/Option";
+import { memoize } from "fp-ts-std/Function";
+import { eqString } from "fp-ts/lib/Eq";
 
 export interface EventMap {
   [GatewayDispatchEvents.ApplicationCommandCreate]: GT.GatewayApplicationCommandCreateDispatch;
@@ -53,10 +55,13 @@ export type Dispatch = <E extends keyof EventMap>(
   event: E,
 ) => Rx.Observable<EventMap[E]["d"]>;
 
-export const listen$ = (source$: Rx.Observable<any>): Dispatch => (event) =>
-  source$.pipe(
-    RxO.filter((p) => p.t === event),
-    RxO.map((p) => p.d),
+export const listen$ = (source$: Rx.Observable<any>): Dispatch =>
+  memoize(eqString)((event) =>
+    source$.pipe(
+      RxO.filter((p) => p.t === event),
+      RxO.map((p) => p.d),
+      RxO.share(),
+    ),
   );
 
 export const latest$ = (dispatch$: Dispatch) => <E extends keyof EventMap>(

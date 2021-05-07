@@ -335,6 +335,11 @@ follow-redirects@^1.10.0:
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.14.0.tgz#f5d260f95c5f8c105894491feee5dc8993b402fe"
   integrity sha512-0vRwd7RKQBTt+mgu87mtYeofLFZpTas2S9zY+jIeuLJMNvudIgF52nr19q40HOwH5RrhWIPuj9puybzSJiRrVg==
 
+fp-ts-std@^0.10.0:
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/fp-ts-std/-/fp-ts-std-0.10.0.tgz#6041a1a961b8909f7da912d1f4ec0eab52cb27ff"
+  integrity sha512-SNgtUwJckLLRaEoB8WGQ9rAfjMCwnGfktz7Z6E26kpITmkczMLZuSGfa8zv0ye+mvmVTCyq7b48T4dDmmcDNSA==
+
 fp-ts@^2.10.5:
   version "2.10.5"
   resolved "https://registry.yarnpkg.com/fp-ts/-/fp-ts-2.10.5.tgz#7c77868fe8bd9b229743303c1bec505b959f631b"

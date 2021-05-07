@@ -20,7 +20,10 @@ export interface GatewayConnectionOptions {
 }
 
 const opCode = <T extends GatewayReceivePayload>(code: T["op"]) =>
-  RxO.filter((p: GatewayReceivePayload): p is T => p.op === code);
+  F.flow(
+    RxO.filter((p: GatewayReceivePayload): p is T => p.op === code),
+    RxO.share(),
+  );
 
 export function create({
   version = 9,
@@ -43,7 +46,7 @@ export function create({
   }
 
   const messageSubject = new Rx.Subject<GatewayReceivePayload>();
-  const raw$ = messageSubject.asObservable();
+  const raw$ = messageSubject;
   ws.on("message", (data) => {
     messageSubject.next(Erl.unpack(data as Buffer));
   });

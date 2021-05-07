@@ -1,21 +1,13 @@
 require("dotenv").config();
 
-import {
-  GatewayDispatchEvents as Events,
-  GatewayIntentBits,
-  RESTGetAPIGuildInvitesResult,
-  Routes,
-} from "discord-api-types/v8";
+import { RESTGetAPIGuildInvitesResult, Routes } from "discord-api-types/v8";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import { Client } from "../";
+import { Client, Events, Intents } from "../";
 
 const client = Client.create({
   token: process.env.DISCORD_BOT_TOKEN!,
-  intents:
-    GatewayIntentBits.GUILDS |
-    GatewayIntentBits.GUILD_MEMBERS |
-    GatewayIntentBits.GUILD_INVITES,
+  intents: Intents.GUILDS | Intents.GUILD_MEMBERS | Intents.GUILD_INVITES,
 });
 
 client

@@ -17,9 +17,7 @@ client
       Rx.zip(
         Rx.of(data),
         Rx.of(client.guilds$.value.get(data.guild_id)),
-        client
-          .get<RESTGetAPIGuildInvitesResult>(Routes.guildInvites(data.guild_id))
-          .then((r) => r.data),
+        client.getGuildInvites([data.guild_id]),
       ),
     ),
   )

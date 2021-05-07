@@ -23,6 +23,8 @@ export function create(opts: GatewayClient.Options) {
     patch: rest.patch.bind(rest),
     post: rest.post.bind(rest),
     put: rest.put.bind(rest),
+
+    ...RestClient.routes(rest),
   };
 }
 

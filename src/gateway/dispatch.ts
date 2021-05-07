@@ -37,7 +37,6 @@ export interface EventMap {
   [GatewayDispatchEvents.MessageDeleteBulk]: GT.GatewayMessageDeleteBulkDispatch;
   [GatewayDispatchEvents.MessageReactionAdd]: GT.GatewayMessageReactionAddDispatch;
   [GatewayDispatchEvents.MessageReactionRemove]: GT.GatewayMessageReactionRemoveDispatch;
-  [GatewayDispatchEvents.MessageReactionRemoveAll]: GT.GatewayMessageReactionRemoveAllDispatch;
   [GatewayDispatchEvents.MessageReactionRemoveEmoji]: GT.GatewayMessageReactionRemoveEmojiDispatch;
   [GatewayDispatchEvents.MessageUpdate]: GT.GatewayMessageUpdateDispatch;
   [GatewayDispatchEvents.PresenceUpdate]: GT.GatewayPresenceUpdateDispatch;
@@ -60,8 +59,7 @@ export const listen$ = (source$: Rx.Observable<any>): Dispatch => (event) =>
     RxO.map((p) => p.d),
   );
 
-export const latest$ = <E extends keyof EventMap>(
-  dispatch$: Dispatch,
+export const latest$ = (dispatch$: Dispatch) => <E extends keyof EventMap>(
   event: E,
 ) => {
   const data$ = new Rx.BehaviorSubject<O.Option<EventMap[E]["d"]>>(O.none);

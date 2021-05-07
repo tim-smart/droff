@@ -1,67 +1,48 @@
-import * as F from "fp-ts/function";
-import * as RxO from "rxjs/operators";
-import * as Conn from "./connection";
-import * as Internal from "./internal";
+import * as Shard from "./shard";
+import * as Rx from "rxjs";
 import * as Dispatch from "./dispatch";
-import * as O from "fp-ts/Option";
-import { GatewayDispatchEvents } from "discord-api-types/gateway/v8";
 
 export interface Options {
   token: string;
   intents: number;
-  shard?: [number, number];
+  shardIDs?: number[];
+  shardCount?: number;
 }
 
-export function create({ token, intents, shard = [0, 1] }: Options) {
-  const conn = Conn.create();
-
-  const dispatch$ = Dispatch.listen$(conn.dispatch$);
-  const sequenceNumber = Internal.latestSequenceNumber(conn.dispatch$);
-  const latestReady = Dispatch.latest$(dispatch$, GatewayDispatchEvents.Ready);
-
-  // Identify
-  F.pipe(
-    Internal.identify$(
-      conn,
-      latestReady,
-      sequenceNumber,
-    )(token, {
+/** A client is one or more shards */
+export function create({
+  token,
+  intents,
+  shardIDs = [0],
+  shardCount = 1,
+}: Options) {
+  const shards = shardIDs.map((id) =>
+    Shard.create({
+      token,
       intents,
-      shard,
+      shard: [id, shardCount],
     }),
-    RxO.tap((p) => conn.send(p)),
-  ).subscribe();
+  );
 
-  // Heartbeats
-  F.pipe(
-    Internal.heartbeats$(conn, sequenceNumber),
-    RxO.tap((p) => conn.send(p)),
-  ).subscribe({
-    // Error when ACK isn't recieved
-    error: () => conn.reconnect(),
-  });
+  function close() {
+    shards.forEach((s) => s.close());
+  }
 
-  // Reconnects
-  conn.reconnect$.subscribe(() => {
-    conn.reconnect();
-  });
+  function reconnect() {
+    shards.forEach((s) => s.reconnect());
+  }
 
-  // Invalid session
-  conn.invalidSession$.subscribe((data) => {
-    // Removing the latest ready state forces a new identify
-    if (!data.d) {
-      latestReady.next(O.none);
-    }
-    conn.reconnect();
-  });
+  const dispatch$ = Rx.merge(...shards.map((s) => s.dispatch$));
+  const dispatchListen = Dispatch.listen$(dispatch$);
+  const dispatchLatest = Dispatch.latest$(dispatchListen);
 
   return {
-    conn,
-    send: conn.send,
-    raw$: conn.raw$,
-    dispatch$,
-    close: () => conn.close(),
-    reconnect: () => conn.reconnect(),
+    all$: dispatch$,
+    dispatch$: dispatchListen,
+    latest$: dispatchLatest,
+    shards,
+    close,
+    reconnect,
   };
 }
 

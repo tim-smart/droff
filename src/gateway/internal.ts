@@ -12,7 +12,7 @@ import * as O from "fp-ts/Option";
 import * as OS from "os";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import { Options } from "./client";
+import { Options } from "./shard";
 import * as Commands from "./commands";
 import { Connection } from "./connection";
 

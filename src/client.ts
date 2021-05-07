@@ -14,7 +14,7 @@ export function create(opts: GatewayClient.Options) {
   return {
     gateway,
     guilds$,
-    raw$: gateway.raw$,
+    all: gateway.all$,
     dispatch$: gateway.dispatch$,
     close,
 

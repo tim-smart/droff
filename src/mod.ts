@@ -6,4 +6,4 @@ export { create as createClient, Client } from "./client";
 export {
   GatewayDispatchEvents as Events,
   GatewayIntentBits as Intents,
-} from "discord-api-types";
+} from "discord-api-types/v8";

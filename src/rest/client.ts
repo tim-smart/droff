@@ -1,8 +1,8 @@
 const Pkg = require("../../package.json");
 
 import Axios, { AxiosInstance, AxiosRequestConfig } from "axios";
-import { Routes } from "discord-api-types";
-import * as Types from "discord-api-types";
+import { Routes } from "discord-api-types/v8";
+import * as Types from "discord-api-types/v8";
 
 export interface Options {
   version?: number;

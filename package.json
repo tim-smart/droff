@@ -1,6 +1,6 @@
 {
   "name": "droff",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "main": "dist/mod.js",
   "author": "Tim Smart <tim.smart@arisechurch.com>",
   "license": "MIT",
@@ -8,7 +8,7 @@
     "dist/"
   ],
   "scripts": {
-    "prepublish": "rm -rf dist && tsc"
+    "prepare": "rm -rf dist && tsc"
   },
   "devDependencies": {
     "@types/node": "^15.0.2",

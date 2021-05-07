@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": true,
+    "lib": ["ESNext"],
+    "target": "es2018",
+    "moduleResolution": "node",
+    "module": "CommonJS",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+
+  "include": ["src/**/*"]
+}

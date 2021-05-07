@@ -1,0 +1,33 @@
+{
+  "name": "droff",
+  "version": "0.1.0",
+  "main": "dist/mod.js",
+  "author": "Tim Smart <tim.smart@arisechurch.com>",
+  "license": "MIT",
+  "scripts": {
+    "prepublish": "rm -rf dist && tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^15.0.2",
+    "@types/ws": "^7.4.2",
+    "discord-api-types": "^0.18.1",
+    "dotenv": "^9.0.0",
+    "nodemon": "^2.0.7",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.4"
+  },
+  "dependencies": {
+    "erlpack": "^0.1.3",
+    "fp-ts": "^2.10.5",
+    "immutable": "^4.0.0-rc.12",
+    "reconnecting-ws": "^2.0.4",
+    "rxjs": "^7.0.0",
+    "ws": "^7.4.5"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.3"
+  },
+  "peerDependencies": {
+    "discord-api-types": "^0.18.1"
+  }
+}

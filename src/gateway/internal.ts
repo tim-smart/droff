@@ -61,23 +61,14 @@ export const heartbeats$ = (
   const interval$ = heartbeatsFromHello(conn.hello$);
 
   // Heartbeat counters
-  let diff = heartbeatDiff(interval$, conn.heartbeatAck$);
+  const diff$ = heartbeatDiff(interval$, conn.heartbeatAck$, conn.hello$);
 
-  // Reset counters on hello
-  conn.hello$.pipe(RxO.skip(1)).subscribe(() => {
-    diff.complete();
-    diff = heartbeatDiff(interval$, conn.heartbeatAck$);
-  });
-
-  // Make sure ACK is received before sending another heartbeat
-  return F.pipe(
-    interval$,
-    RxO.tap(() => {
-      if (diff.value > 0) {
-        throw new Error("Missing heartbeat ACK");
-      }
-    }),
-    RxO.map(() => Commands.heartbeat(sequenceNumber.value)),
+  return F.tuple(
+    F.pipe(
+      interval$,
+      RxO.map(() => Commands.heartbeat(sequenceNumber.value)),
+    ),
+    diff$,
   );
 };
 
@@ -87,8 +78,8 @@ const latest = <T, V>(
   initialValue: V,
 ) => {
   const sequenceNumber = new Rx.BehaviorSubject(initialValue);
-  F.pipe(dispatch$, RxO.map(selector)).subscribe(sequenceNumber);
-  return sequenceNumber;
+  const sub = F.pipe(dispatch$, RxO.map(selector)).subscribe(sequenceNumber);
+  return F.tuple(sequenceNumber, () => sub.unsubscribe());
 };
 
 export const latestSequenceNumber = (
@@ -98,27 +89,32 @@ export const latestSequenceNumber = (
 export const heartbeatsFromHello = (hello$: Rx.Observable<GatewayHello>) =>
   F.pipe(
     hello$,
-    RxO.switchMap((hello) =>
-      F.pipe(
-        Rx.timer(hello.d.heartbeat_interval * Math.random()),
-        RxO.expand(() => Rx.timer(hello.d.heartbeat_interval)),
-      ),
-    ),
+    RxO.switchMap((hello) => {
+      const initialDelay = hello.d.heartbeat_interval * Math.random();
+      return Rx.merge(
+        Rx.timer(initialDelay),
+        Rx.timer(initialDelay).pipe(
+          RxO.flatMap(() => Rx.interval(hello.d.heartbeat_interval)),
+        ),
+      );
+    }),
     RxO.share(),
   );
 
 export const heartbeatDiff = (
-  heartbeats$: Rx.Observable<0>,
+  heartbeats$: Rx.Observable<number>,
   heartbeatAck$: Rx.Observable<GatewayHeartbeatAck>,
-) => {
-  const subject = new Rx.BehaviorSubject(0);
-
+  hello$: Rx.Observable<GatewayHello>,
+) =>
   Rx.merge(
     heartbeats$.pipe(RxO.map(() => 1)),
     heartbeatAck$.pipe(RxO.map(() => -1)),
-  )
-    .pipe(RxO.scan((count, diff) => count + diff, 0))
-    .subscribe(subject);
-
-  return subject;
-};
+    hello$.pipe(RxO.map(() => null)),
+  ).pipe(
+    RxO.scan((count, diff) => (diff === null ? 0 : count + diff), 0),
+    RxO.tap((diff) => {
+      if (diff > 1) {
+        throw new Error("Heartbeat ACK not received");
+      }
+    }),
+  );

@@ -16,7 +16,7 @@ export function create({ token, intents, shard = [0, 1] }: Options) {
   const conn = Conn.create();
 
   const dispatch$ = Dispatch.listen$(conn.dispatch$);
-  const sequenceNumber = Internal.latestSequenceNumber(conn.dispatch$);
+  const [sequenceNumber] = Internal.latestSequenceNumber(conn.dispatch$);
   const latestReady = Dispatch.latest$(dispatch$)(GatewayDispatchEvents.Ready);
 
   // Identify
@@ -33,11 +33,17 @@ export function create({ token, intents, shard = [0, 1] }: Options) {
   ).subscribe();
 
   // Heartbeats
+  const [heartbeats$, heartbeatDiff$] = Internal.heartbeats$(
+    conn,
+    sequenceNumber,
+  );
+
   F.pipe(
-    Internal.heartbeats$(conn, sequenceNumber),
+    heartbeats$,
     RxO.tap((p) => conn.send(p)),
-  ).subscribe({
-    // Error when ACK isn't recieved
+  ).subscribe();
+
+  heartbeatDiff$.subscribe({
     error: () => conn.reconnect(),
   });
 

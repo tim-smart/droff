@@ -13,10 +13,11 @@ const client = createClient({
 client
   .dispatch$(Events.GuildMemberAdd)
   .pipe(
-    RxO.flatMap((data) =>
+    RxO.withLatestFrom(client.guilds$),
+    RxO.flatMap(([data, guilds]) =>
       Rx.zip(
         Rx.of(data),
-        Rx.of(client.guilds$.value.get(data.guild_id)),
+        Rx.of(guilds.get(data.guild_id)),
         client.getGuildInvites([data.guild_id]),
       ),
     ),

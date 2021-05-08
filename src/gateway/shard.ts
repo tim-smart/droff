@@ -1,10 +1,8 @@
 import * as F from "fp-ts/function";
 import * as RxO from "rxjs/operators";
 import * as Conn from "./connection";
-import * as Internal from "./internal";
 import * as Dispatch from "./dispatch";
-import * as O from "fp-ts/Option";
-import { GatewayDispatchEvents } from "discord-api-types/gateway/v8";
+import * as Internal from "./internal";
 
 export interface Options {
   token: string;
@@ -16,8 +14,8 @@ export function create({ token, intents, shard = [0, 1] }: Options) {
   const conn = Conn.create();
 
   const dispatch$ = Dispatch.listen$(conn.dispatch$);
-  const [sequenceNumber] = Internal.latestSequenceNumber(conn.dispatch$);
-  const latestReady = Dispatch.latest$(dispatch$)(GatewayDispatchEvents.Ready);
+  const sequenceNumber = Internal.latestSequenceNumber(conn.dispatch$);
+  const latestReady = Internal.latestReady(dispatch$, conn.invalidSession$);
 
   // Identify
   F.pipe(
@@ -53,11 +51,7 @@ export function create({ token, intents, shard = [0, 1] }: Options) {
   });
 
   // Invalid session
-  conn.invalidSession$.subscribe((data) => {
-    // Removing the latest ready state forces a new identify
-    if (!data.d) {
-      latestReady.next(O.none);
-    }
+  conn.invalidSession$.subscribe(() => {
     conn.reconnect();
   });
 

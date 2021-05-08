@@ -1,8 +1,10 @@
 import {
+  GatewayDispatchEvents,
   GatewayDispatchPayload,
   GatewayHeartbeatAck,
   GatewayHello,
   GatewayIdentify,
+  GatewayInvalidSession,
   GatewayReadyDispatchData,
   GatewayResume,
 } from "discord-api-types/gateway/v8";
@@ -12,23 +14,22 @@ import * as O from "fp-ts/Option";
 import * as OS from "os";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import { Options } from "./shard";
 import * as Commands from "./commands";
 import { Connection } from "./connection";
+import * as Dispatch from "./dispatch";
+import { Options } from "./shard";
 
 export const identify$ = (
   conn: Connection,
-  latestReady: Rx.BehaviorSubject<O.Option<GatewayReadyDispatchData>>,
-  latestSequence: Rx.BehaviorSubject<number | null>,
+  latestReady: Rx.Observable<O.Option<GatewayReadyDispatchData>>,
+  latestSequence: Rx.Observable<number | null>,
 ) => (token: string, { intents, shard }: Pick<Options, "intents" | "shard">) =>
   F.pipe(
     conn.hello$,
-    RxO.map(() =>
+    RxO.withLatestFrom(latestReady, latestSequence),
+    RxO.map(([_, ready, sequence]) =>
       F.pipe(
-        sequenceT(O.option)(
-          latestReady.value,
-          O.fromNullable(latestSequence.value),
-        ),
+        sequenceT(O.option)(ready, O.fromNullable(sequence)),
         O.fold(
           () =>
             Commands.identify({
@@ -55,7 +56,7 @@ export const identify$ = (
 
 export const heartbeats$ = (
   conn: Connection,
-  sequenceNumber: Rx.BehaviorSubject<number | null>,
+  sequenceNumber: Rx.Observable<number | null>,
 ) => {
   // Heartbeat
   const interval$ = heartbeatsFromHello(conn.hello$);
@@ -66,7 +67,8 @@ export const heartbeats$ = (
   return F.tuple(
     F.pipe(
       interval$,
-      RxO.map(() => Commands.heartbeat(sequenceNumber.value)),
+      RxO.withLatestFrom(sequenceNumber),
+      RxO.map(([_, sequence]) => Commands.heartbeat(sequence)),
     ),
     diff$,
   );
@@ -76,15 +78,25 @@ const latest = <T, V>(
   dispatch$: Rx.Observable<T>,
   selector: (d: T) => V,
   initialValue: V,
-) => {
-  const sequenceNumber = new Rx.BehaviorSubject(initialValue);
-  const sub = F.pipe(dispatch$, RxO.map(selector)).subscribe(sequenceNumber);
-  return F.tuple(sequenceNumber, () => sub.unsubscribe());
-};
+) =>
+  Rx.merge(Rx.of(initialValue), dispatch$.pipe(RxO.map(selector))).pipe(
+    RxO.shareReplay(1),
+  );
 
 export const latestSequenceNumber = (
   dispatch$: Rx.Observable<GatewayDispatchPayload>,
 ) => latest(dispatch$, (p) => p.s, null);
+
+export const latestReady = (
+  dispatch$: Dispatch.Dispatch,
+  invalidSession$: Rx.Observable<GatewayInvalidSession>,
+): Rx.Observable<O.Option<GatewayReadyDispatchData>> =>
+  Rx.merge(
+    Dispatch.latest$(dispatch$)(GatewayDispatchEvents.Ready),
+    invalidSession$.pipe(
+      RxO.flatMap((data) => (data.d ? Rx.EMPTY : Rx.of(O.none))),
+    ),
+  ).pipe(RxO.shareReplay(1));
 
 export const heartbeatsFromHello = (hello$: Rx.Observable<GatewayHello>) =>
   F.pipe(

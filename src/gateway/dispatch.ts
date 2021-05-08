@@ -66,8 +66,5 @@ export const listen$ = (source$: Rx.Observable<any>): Dispatch =>
 
 export const latest$ = (dispatch$: Dispatch) => <E extends keyof EventMap>(
   event: E,
-) => {
-  const data$ = new Rx.BehaviorSubject<O.Option<EventMap[E]["d"]>>(O.none);
-  dispatch$(event).subscribe((d) => data$.next(O.some(d)));
-  return data$;
-};
+): Rx.Observable<O.Option<EventMap[E]["d"]>> =>
+  Rx.merge(Rx.of(O.none), dispatch$(event).pipe(RxO.map(O.some)));

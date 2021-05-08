@@ -1,7 +1,5 @@
 import { GatewayMessageCreateDispatchData, Snowflake } from "discord-api-types";
 import { APIGuild, APIMessage } from "discord-api-types/payloads/v8";
-import * as F from "fp-ts/function";
-import * as O from "fp-ts/Option";
 import { Map } from "immutable";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
@@ -26,12 +24,13 @@ function escapeRegex(string: string) {
 }
 
 export const command$ = (
-  guilds$: Rx.BehaviorSubject<Map<Snowflake, APIGuild>>,
+  guilds$: Rx.Observable<Map<Snowflake, APIGuild>>,
   message$: Rx.Observable<GatewayMessageCreateDispatchData>,
 ) => (prefix: CommandPrefix) => ({ name }: CommandOptions) =>
   message$.pipe(
-    RxO.flatMap((message) => {
-      const guild = guilds$.value.get(message.guild_id!);
+    RxO.withLatestFrom(guilds$),
+    RxO.flatMap(([message, guilds]) => {
+      const guild = guilds.get(message.guild_id!);
       const ctx = {
         guild,
         message,

@@ -46,7 +46,7 @@ export function create({
   }
 
   const messageSubject = new Rx.Subject<GatewayReceivePayload>();
-  const raw$ = messageSubject;
+  const raw$ = messageSubject.asObservable();
   ws.on("message", (data) => {
     messageSubject.next(Erl.unpack(data as Buffer));
   });

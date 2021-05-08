@@ -7,8 +7,10 @@ import { GatewayDispatchEvents } from "discord-api-types";
 export function create(opts: GatewayClient.Options) {
   const gateway = GatewayClient.create(opts);
   const rest = RestClient.create(opts.token);
+  const restRoutes = RestClient.routes(rest);
   const guilds$ = Guilds.watch$(gateway.dispatch$);
   const command$ = Commands.command$(
+    restRoutes,
     guilds$,
     gateway.dispatch$(GatewayDispatchEvents.MessageCreate),
   );
@@ -31,7 +33,7 @@ export function create(opts: GatewayClient.Options) {
     post: rest.post.bind(rest),
     put: rest.put.bind(rest),
 
-    ...RestClient.routes(rest),
+    ...restRoutes,
   };
 }
 

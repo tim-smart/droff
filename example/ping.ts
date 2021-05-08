@@ -11,14 +11,7 @@ const client = createClient({
 const command$ = client.command$("!");
 
 command$({ name: "ping" })
-  .pipe(
-    RxO.flatMap(({ message }) =>
-      client.postChannelMessages([message.channel_id], {
-        message_reference: { message_id: message.id },
-        content: "Pong!",
-      }),
-    ),
-  )
+  .pipe(RxO.flatMap(({ reply }) => reply("Pong!")))
   .subscribe();
 
 setTimeout(() => client.gateway.reconnect(), 10000);

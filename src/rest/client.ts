@@ -539,3 +539,5 @@ export const routes = (client: AxiosInstance) => {
     >(),
   };
 };
+
+export type Routes = ReturnType<typeof routes>;

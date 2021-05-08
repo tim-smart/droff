@@ -1,6 +1,5 @@
 require("dotenv").config();
 
-import { RESTGetAPIGuildInvitesResult, Routes } from "discord-api-types/v8";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { createClient, Events, Intents } from "../";

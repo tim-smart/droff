@@ -44,28 +44,24 @@ command$({ name: "ping" })
 Without using the `command$` function:
 
 ```typescript
-import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { createClient, Events, Intents } from "droff";
 
 const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
-  intents: Intents.GUILDS | Intents.GUILD_MEMBERS | Intents.GUILD_INVITES,
+  intents: Intents.GUILD_MESSAGES,
 });
 
 client
-  .dispatch$(Events.GuildMemberAdd)
+  .dispatch$(Events.MessageCreate)
   .pipe(
-    RxO.withLatestFrom(client.guilds$),
-    RxO.flatMap(([data, guilds]) =>
-      Rx.zip(
-        Rx.of(data),
-        Rx.of(guilds.get(data.guild_id)),
-        client.getGuildInvites([data.guild_id]),
-      ),
+    RxO.filter((msg) => msg.content === "!ping"),
+    RxO.flatMap((msg) =>
+      client.postChannelMessages([msg.channel_id], {
+        message_reference: { message_id: msg.id },
+        content: "Pong!",
+      }),
     ),
   )
-  .subscribe(([data, guild, invites]) => {
-    console.log(data, guild, invites);
-  });
+  .subscribe();
 ```

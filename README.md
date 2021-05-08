@@ -1,6 +1,6 @@
 # droff
 
-A Discord client powered by RxJS and `discord-api-types`
+Simple Discord client powered by RxJS and Axios
 
 ## Goals
 

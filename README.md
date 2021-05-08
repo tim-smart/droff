@@ -39,8 +39,6 @@ const command$ = client.command$("!");
 command$({ name: "ping" })
   .pipe(RxO.flatMap(({ reply }) => reply("Pong!")))
   .subscribe();
-
-setTimeout(() => client.gateway.reconnect(), 10000);
 ```
 
 Without using the `command$` function:

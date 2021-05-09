@@ -122,11 +122,4 @@ export const heartbeatDiff = (
     heartbeats$.pipe(RxO.map(() => 1)),
     heartbeatAck$.pipe(RxO.map(() => -1)),
     hello$.pipe(RxO.map(() => null)),
-  ).pipe(
-    RxO.scan((count, diff) => (diff === null ? 0 : count + diff), 0),
-    RxO.tap((diff) => {
-      if (diff > 1) {
-        throw new Error("Heartbeat ACK not received");
-      }
-    }),
-  );
+  ).pipe(RxO.scan((count, diff) => (diff === null ? 0 : count + diff), 0));

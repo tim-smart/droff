@@ -1,4 +1,5 @@
 import * as F from "fp-ts/function";
+import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import * as Conn from "./connection";
 import * as Dispatch from "./dispatch";
@@ -41,17 +42,15 @@ export function create({ token, intents, shard = [0, 1] }: Options) {
     RxO.tap((p) => conn.send(p)),
   ).subscribe();
 
-  heartbeatDiff$.subscribe({
-    error: () => conn.reconnect(),
-  });
-
-  // Reconnects
-  conn.reconnect$.subscribe(() => {
-    conn.reconnect();
-  });
-
-  // Invalid session
-  conn.invalidSession$.subscribe(() => {
+  // Reconnect when:
+  // * heartbeats get out of sync
+  // * reconnect is requested
+  // * invalid session
+  Rx.merge(
+    heartbeatDiff$.pipe(RxO.filter((diff) => diff > 1)),
+    conn.reconnect$,
+    conn.invalidSession$,
+  ).subscribe(() => {
     conn.reconnect();
   });
 

@@ -22,14 +22,14 @@ import { Options } from "./shard";
 export const identify$ = (
   conn: Connection,
   latestReady: Rx.Observable<O.Option<GatewayReadyDispatchData>>,
-  latestSequence: Rx.Observable<number | null>,
+  latestSequence: Rx.Observable<O.Option<number>>,
 ) => (token: string, { intents, shard }: Pick<Options, "intents" | "shard">) =>
   F.pipe(
     conn.hello$,
     RxO.withLatestFrom(latestReady, latestSequence),
     RxO.map(([_, ready, sequence]) =>
       F.pipe(
-        sequenceT(O.option)(ready, O.fromNullable(sequence)),
+        sequenceT(O.option)(ready, sequence),
         O.fold(
           () =>
             Commands.identify({
@@ -56,7 +56,7 @@ export const identify$ = (
 
 export const heartbeats$ = (
   conn: Connection,
-  sequenceNumber: Rx.Observable<number | null>,
+  sequenceNumber: Rx.Observable<O.Option<number>>,
 ) => {
   // Heartbeat
   const interval$ = heartbeatsFromHello(conn.hello$);
@@ -68,7 +68,7 @@ export const heartbeats$ = (
     F.pipe(
       interval$,
       RxO.withLatestFrom(sequenceNumber),
-      RxO.map(([_, sequence]) => Commands.heartbeat(sequence)),
+      RxO.map(([_, sequence]) => Commands.heartbeat(O.toNullable(sequence))),
     ),
     diff$,
   );
@@ -85,7 +85,7 @@ const latest = <T, V>(
 
 export const latestSequenceNumber = (
   dispatch$: Rx.Observable<GatewayDispatchPayload>,
-) => latest(dispatch$, (p) => p.s, null);
+) => latest(dispatch$, (p) => O.fromNullable(p.s), O.none);
 
 export const latestReady = (
   dispatch$: Dispatch.Dispatch,
@@ -119,7 +119,19 @@ export const heartbeatDiff = (
   hello$: Rx.Observable<GatewayHello>,
 ) =>
   Rx.merge(
-    heartbeats$.pipe(RxO.map(() => 1)),
-    heartbeatAck$.pipe(RxO.map(() => -1)),
-    hello$.pipe(RxO.map(() => null)),
-  ).pipe(RxO.scan((count, diff) => (diff === null ? 0 : count + diff), 0));
+    heartbeats$.pipe(RxO.map(() => O.some(1))),
+    heartbeatAck$.pipe(RxO.map(() => O.some(-1))),
+    hello$.pipe(RxO.map(() => O.none as O.Option<number>)),
+  ).pipe(
+    RxO.scan(
+      (count, diff) =>
+        F.pipe(
+          diff,
+          O.fold(
+            () => 0,
+            (diff) => count + diff,
+          ),
+        ),
+      0,
+    ),
+  );

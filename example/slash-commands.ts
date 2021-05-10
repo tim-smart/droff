@@ -1,6 +1,5 @@
 require("dotenv").config();
 
-import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { createClient, Intents } from "../src/mod";
 

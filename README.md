@@ -21,47 +21,41 @@ yarn add bufferutil
 
 ## Usage
 
-A simple `!ping` command example :)
-
-Using the `command$` function:
+This example creates a couple of slash commands:
 
 ```typescript
-import * as RxO from "rxjs/operators";
 import { createClient, Intents } from "droff";
-
-const client = createClient({
-  token: process.env.DISCORD_BOT_TOKEN!,
-  intents: Intents.GUILD_MESSAGES,
-});
-
-const command$ = client.command$("!");
-
-command$({ name: "ping" })
-  .pipe(RxO.flatMap(({ reply }) => reply("Pong!")))
-  .subscribe();
-```
-
-Without using the `command$` function:
-
-```typescript
 import * as RxO from "rxjs/operators";
-import { createClient, Events, Intents } from "droff";
 
 const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
-  intents: Intents.GUILD_MESSAGES,
+  intents: Intents.GUILDS,
 });
 
-client
-  .dispatch$(Events.MessageCreate)
+const commands = client.useSlashCommands();
+
+// Global slash commands are enabled for every guild
+commands
+  .global({
+    name: "hello",
+    description: "A simple hello command",
+  })
   .pipe(
-    RxO.filter((msg) => msg.content === "!ping"),
-    RxO.flatMap((msg) =>
-      client.postChannelMessages([msg.channel_id], {
-        message_reference: { message_id: msg.id },
-        content: "Pong!",
-      }),
+    RxO.flatMap(({ respond, member }) =>
+      respond({ content: `Hi there ${member!.user.username}` }),
     ),
   )
   .subscribe();
+
+// Guild commands can be enabled / disabled per guild
+commands
+  .guild({
+    name: "ping",
+    description: "A simple ping command",
+    enabled: async () => true,
+  })
+  .pipe(RxO.flatMap(({ respond }) => respond({ content: "Pong!" })))
+  .subscribe();
+
+commands.start();
 ```

@@ -9,22 +9,12 @@ const client = createClient({
   intents: Intents.GUILDS,
 });
 
-// Debug mode. Trigger with `kill -SIGUSR2 {pid}`
-Rx.fromEvent(process, "SIGUSR2")
-  .pipe(RxO.first())
-  .subscribe(() => {
-    client.gateway.shards.forEach((shard) => {
-      shard.raw$.subscribe(console.log);
-    });
-  });
-
 const commands = client.useSlashCommands();
 
 commands
-  .guild({
+  .global({
     name: "hello",
     description: "A simple hello command",
-    enabled: async () => true,
   })
   .pipe(
     RxO.flatMap(({ respond, member }) =>

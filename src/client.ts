@@ -2,6 +2,7 @@ import * as Guilds from "./gateway-utils/guilds";
 import * as GatewayClient from "./gateway/client";
 import * as RestClient from "./rest/client";
 import * as Commands from "./gateway-utils/commands";
+import * as SlashCommands from "./slash-commands";
 import { GatewayDispatchEvents } from "discord-api-types";
 
 export function create(opts: GatewayClient.Options) {
@@ -24,8 +25,14 @@ export function create(opts: GatewayClient.Options) {
     guilds$,
     all: gateway.all$,
     dispatch$: gateway.dispatch$,
-    command$,
     close,
+
+    command$,
+    useSlashCommands: SlashCommands.factory(
+      gateway.dispatch$,
+      restRoutes,
+      guilds$,
+    ),
 
     delete: rest.delete.bind(rest),
     get: rest.get.bind(rest),

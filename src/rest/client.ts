@@ -1,14 +1,14 @@
 const Pkg = require("../../package.json");
 
-import Axios, { AxiosInstance, AxiosRequestConfig } from "axios";
-import { Routes } from "discord-api-types/v8";
+import Axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
+import { APIApplicationCommand, Routes, Snowflake } from "discord-api-types/v8";
 import * as Types from "discord-api-types/v8";
 
 export interface Options {
   version?: number;
 }
 
-export function create(token: string, { version = 9 }: Options = {}) {
+export function create(token: string, { version = 8 }: Options = {}) {
   return Axios.create({
     baseURL: `https://discord.com/api/v${version}`,
     headers: {
@@ -24,7 +24,7 @@ const getRoute = (client: AxiosInstance) => <F extends (...args: any[]) => any>(
   args: Parameters<F>,
   params?: Q,
   config?: AxiosRequestConfig,
-) =>
+): Promise<T> =>
   client
     .get<T>(fn(...args), {
       ...config,
@@ -472,9 +472,11 @@ export const routes = (client: AxiosInstance) => {
     >(),
     deleteApplicationCommand: del(Routes.applicationCommand)(),
 
-    getApplicationGuildCommands: get(
-      Routes.applicationGuildCommands,
-    )<Types.RESTGetAPIApplicationGuildCommandsResult>(),
+    getApplicationGuildCommands: get(Routes.applicationGuildCommands)<
+      /** Types.RESTGetAPIApplicationGuildCommandsResult */ (APIApplicationCommand & {
+        guild_id: Snowflake;
+      })[]
+    >(),
     postApplicationGuildCommands: post(Routes.applicationGuildCommands)<
       Types.RESTPostAPIApplicationGuildCommandsResult,
       Types.RESTPostAPIApplicationGuildCommandsJSONBody

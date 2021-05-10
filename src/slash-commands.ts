@@ -34,10 +34,7 @@ const isCommandEnabled = (commands: Map<string, GuildCommand>) => (
 ) =>
   F.pipe(
     O.fromNullable(commands.get(apiCommand.name)),
-    O.fold(
-      () => Promise.resolve(false),
-      (opts) => opts.enabled(guild),
-    ),
+    O.map((opts) => opts.enabled(guild)),
   );
 
 const interactionRespond = <D extends { data?: any }>(
@@ -130,10 +127,9 @@ export const factory = (
     RxO.filter((command) => !globalCommands.has(command.name)),
     RxO.withLatestFrom(app$),
     RxO.flatMap(([command, app]) =>
-      rest.deleteApplicationCommand([app.id, command.id]).catch(() => {
-        console.log("Error removing global command", command);
-      }),
+      rest.deleteApplicationCommand([app.id, command.id]),
     ),
+    RxO.catchError(() => Rx.EMPTY),
   );
 
   // Common guild command observables
@@ -163,22 +159,25 @@ export const factory = (
   const removeGuildCommands$ = guildCommand$.pipe(
     RxO.filter(([_guild, _app, command]) => !guildCommands.has(command.name)),
     RxO.flatMap(([guild, app, command]) =>
-      rest
-        .deleteApplicationGuildCommand([app.id, guild.id, command.id])
-        .catch(() => {
-          console.log("Error removing guild command", command);
-        }),
+      rest.deleteApplicationGuildCommand([app.id, guild.id, command.id]),
     ),
+    RxO.catchError(() => Rx.EMPTY),
   );
 
   // Remove guild commands that are now disabled
   const guildCommandWithEnabled$ = guildCommand$.pipe(
     RxO.flatMap(([guild, app, command]) =>
-      Rx.zip(
-        Rx.of(guild),
-        Rx.of(app),
-        Rx.of(command),
+      F.pipe(
         isCommandEnabled(guildCommands)(guild, command),
+        O.fold(
+          () => Rx.EMPTY,
+          (isEnabled) =>
+            Rx.from(
+              isEnabled.then(
+                (enabled) => [guild, app, command, enabled] as const,
+              ),
+            ),
+        ),
       ),
     ),
   );
@@ -188,6 +187,7 @@ export const factory = (
     RxO.flatMap(([guild, app, command]) =>
       rest.deleteApplicationGuildCommand([app.id, guild.id, command.id]),
     ),
+    RxO.catchError(() => Rx.EMPTY),
   );
 
   // Add guild commands that have been enabled
@@ -207,7 +207,9 @@ export const factory = (
 
     // Check if they should be enabled
     RxO.flatMap(([guild, app, command]) =>
-      Rx.zip(Rx.of(guild), Rx.of(app), Rx.of(command), command.enabled(guild)),
+      command
+        .enabled(guild)
+        .then((enabled) => [guild, app, command, enabled] as const),
     ),
     RxO.filter(([_guild, _app, _command, enabled]) => enabled),
 

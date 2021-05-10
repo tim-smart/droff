@@ -18,6 +18,11 @@ export function create(token: string, { version = 8 }: Options = {}) {
   });
 }
 
+const handleError = (err: AxiosError) => {
+  err.message = `REST error: ${err.code} ${err.config.url} ${err.message}`;
+  throw err;
+};
+
 const getRoute = (client: AxiosInstance) => <F extends (...args: any[]) => any>(
   fn: F,
 ) => <T, Q = any>() => (
@@ -33,7 +38,7 @@ const getRoute = (client: AxiosInstance) => <F extends (...args: any[]) => any>(
         ...(config?.params || {}),
       },
     })
-    .then((r) => r.data);
+    .then((r) => r.data, handleError);
 
 const postRoute = (client: AxiosInstance) => <
   F extends (...args: any[]) => any
@@ -43,7 +48,7 @@ const postRoute = (client: AxiosInstance) => <
   args: Parameters<F>,
   data?: D,
   config?: AxiosRequestConfig,
-) => client.post<T>(fn(...args), data, config).then((r) => r.data);
+) => client.post<T>(fn(...args), data, config).then((r) => r.data, handleError);
 
 const patchRoute = (client: AxiosInstance) => <
   F extends (...args: any[]) => any
@@ -53,7 +58,8 @@ const patchRoute = (client: AxiosInstance) => <
   args: Parameters<F>,
   data?: D,
   config?: AxiosRequestConfig,
-) => client.patch<T>(fn(...args), data, config).then((r) => r.data);
+) =>
+  client.patch<T>(fn(...args), data, config).then((r) => r.data, handleError);
 
 const putRoute = (client: AxiosInstance) => <F extends (...args: any[]) => any>(
   fn: F,
@@ -61,14 +67,14 @@ const putRoute = (client: AxiosInstance) => <F extends (...args: any[]) => any>(
   args: Parameters<F>,
   data?: D,
   config?: AxiosRequestConfig,
-) => client.put<T>(fn(...args), data, config).then((r) => r.data);
+) => client.put<T>(fn(...args), data, config).then((r) => r.data, handleError);
 
 const deleteRoute = (client: AxiosInstance) => <
   F extends (...args: any[]) => any
 >(
   fn: F,
 ) => <T = never>() => (args: Parameters<F>, config?: AxiosRequestConfig) =>
-  client.delete<T>(fn(...args), config);
+  client.delete<T>(fn(...args), config).catch(handleError);
 
 export const routes = (client: AxiosInstance) => {
   const get = getRoute(client);

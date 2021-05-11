@@ -89,7 +89,7 @@ export const factory =
         ([interaction, guilds]): SlashCommandContext => ({
           interaction,
           member: (interaction as any).member,
-          user: (interaction as any).member,
+          user: (interaction as any).user,
           guild: guilds.get((interaction as any).guild_id),
           respond: respond(interaction),
           deferred: respondDeferred(interaction),

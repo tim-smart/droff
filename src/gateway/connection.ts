@@ -8,7 +8,7 @@ import {
   GatewayReceivePayload,
   GatewayReconnect,
   GatewaySendPayload,
-} from "discord-api-types/gateway/v8";
+} from "discord-api-types/v8";
 import * as Erl from "erlpack";
 import * as F from "fp-ts/function";
 import { WebSocketClient } from "reconnecting-ws";

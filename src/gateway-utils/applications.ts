@@ -1,4 +1,4 @@
-import { GatewayDispatchEvents as E } from "discord-api-types/gateway/v8";
+import { GatewayDispatchEvents as E } from "discord-api-types/v8";
 import * as RxO from "rxjs/operators";
 import * as GatewayClient from "../gateway/client";
 

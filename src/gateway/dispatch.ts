@@ -1,10 +1,10 @@
-import * as GT from "discord-api-types/gateway/v8";
-import { GatewayDispatchEvents } from "discord-api-types/gateway/v8";
-import * as Rx from "rxjs";
-import * as RxO from "rxjs/operators";
-import * as O from "fp-ts/Option";
+import * as GT from "discord-api-types/v8";
+import { GatewayDispatchEvents } from "discord-api-types/v8";
 import { memoize } from "fp-ts-std/Function";
 import { eqString } from "fp-ts/lib/Eq";
+import * as O from "fp-ts/Option";
+import * as Rx from "rxjs";
+import * as RxO from "rxjs/operators";
 
 export interface EventMap {
   [GatewayDispatchEvents.ApplicationCommandCreate]: GT.GatewayApplicationCommandCreateDispatch;

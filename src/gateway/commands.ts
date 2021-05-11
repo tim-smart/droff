@@ -6,7 +6,7 @@ import {
   GatewayResume,
   GatewayUpdatePresence,
   GatewayVoiceStateUpdate,
-} from "discord-api-types/gateway/v8";
+} from "discord-api-types/v8";
 
 export const heartbeat = (d: GatewayHeartbeat["d"]): GatewayHeartbeat => ({
   op: GatewayOPCodes.Heartbeat,

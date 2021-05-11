@@ -1,6 +1,8 @@
-import { GatewayDispatchEvents as E } from "discord-api-types/gateway/v8";
-import { Snowflake } from "discord-api-types/globals";
-import { APIGuild } from "discord-api-types/payloads/v8";
+import {
+  APIGuild,
+  GatewayDispatchEvents as E,
+  Snowflake,
+} from "discord-api-types/v8";
 import { Map } from "immutable";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";

@@ -1,5 +1,9 @@
-import { GatewayMessageCreateDispatchData, Snowflake } from "discord-api-types";
-import { APIGuild, APIMessage } from "discord-api-types/payloads/v8";
+import {
+  APIGuild,
+  APIMessage,
+  GatewayMessageCreateDispatchData,
+  Snowflake,
+} from "discord-api-types/v8";
 import { Map } from "immutable";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";

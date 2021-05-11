@@ -1,9 +1,9 @@
+import { GatewayDispatchEvents } from "discord-api-types/v8";
+import * as Commands from "./gateway-utils/commands";
 import * as Guilds from "./gateway-utils/guilds";
 import * as GatewayClient from "./gateway/client";
 import * as RestClient from "./rest/client";
-import * as Commands from "./gateway-utils/commands";
 import * as SlashCommands from "./slash-commands";
-import { GatewayDispatchEvents } from "discord-api-types";
 
 export function create(opts: GatewayClient.Options) {
   const gateway = GatewayClient.create(opts);

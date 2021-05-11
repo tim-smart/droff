@@ -7,7 +7,7 @@ import {
   GatewayInvalidSession,
   GatewayReadyDispatchData,
   GatewayResume,
-} from "discord-api-types/gateway/v8";
+} from "discord-api-types/v8";
 import * as F from "fp-ts/function";
 import { sequenceT } from "fp-ts/lib/Apply";
 import * as O from "fp-ts/Option";

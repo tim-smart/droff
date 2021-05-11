@@ -25,45 +25,48 @@ function escapeRegex(string: string) {
   return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
 }
 
-export const command$ = (
-  client: Routes,
-  guilds$: Rx.Observable<Map<Snowflake, APIGuild>>,
-  message$: Rx.Observable<GatewayMessageCreateDispatchData>,
-) => (prefix: CommandPrefix) => ({ name }: CommandOptions) =>
-  message$.pipe(
-    RxO.withLatestFrom(guilds$),
-    RxO.flatMap(([message, guilds]) => {
-      const guild = guilds.get(message.guild_id!);
-      const ctx = {
-        guild,
-        message,
-        command: name,
-        reply: reply(client)(message),
-      };
+export const command$ =
+  (
+    client: Routes,
+    guilds$: Rx.Observable<Map<Snowflake, APIGuild>>,
+    message$: Rx.Observable<GatewayMessageCreateDispatchData>,
+  ) =>
+  (prefix: CommandPrefix) =>
+  ({ name }: CommandOptions) =>
+    message$.pipe(
+      RxO.withLatestFrom(guilds$),
+      RxO.flatMap(([message, guilds]) => {
+        const guild = guilds.get(message.guild_id!);
+        const ctx = {
+          guild,
+          message,
+          command: name,
+          reply: reply(client)(message),
+        };
 
-      return Rx.zip(
-        Rx.of(ctx),
-        typeof prefix === "string" ? Rx.of(prefix) : prefix(guild),
-      );
-    }),
-
-    RxO.filter(([ctx, prefix]) =>
-      new RegExp(`^${escapeRegex(prefix)}${escapeRegex(name)}\\b`).test(
-        ctx.message.content,
-      ),
-    ),
-
-    RxO.map(
-      ([ctx, prefix]): CommandContext => ({
-        ...ctx,
-        args: ctx.message.content
-          .slice(prefix.length + name.length)
-          .trim()
-          .replace(/\s+/g, " ")
-          .split(" "),
+        return Rx.zip(
+          Rx.of(ctx),
+          typeof prefix === "string" ? Rx.of(prefix) : prefix(guild),
+        );
       }),
-    ),
-  );
+
+      RxO.filter(([ctx, prefix]) =>
+        new RegExp(`^${escapeRegex(prefix)}${escapeRegex(name)}\\b`).test(
+          ctx.message.content,
+        ),
+      ),
+
+      RxO.map(
+        ([ctx, prefix]): CommandContext => ({
+          ...ctx,
+          args: ctx.message.content
+            .slice(prefix.length + name.length)
+            .trim()
+            .replace(/\s+/g, " ")
+            .split(" "),
+        }),
+      ),
+    );
 
 const reply = (client: Routes) => (message: APIMessage) => (content: string) =>
   client.postChannelMessages([message.channel_id], {

@@ -6,8 +6,10 @@ import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import * as GatewayClient from "../gateway/client";
 
-const withOp = <K extends string>(key: K) => <T>(data: T) =>
-  [key, data] as const;
+const withOp =
+  <K extends string>(key: K) =>
+  <T>(data: T) =>
+    [key, data] as const;
 
 export const watch$ = (dispatch$: GatewayClient.Client["dispatch$"]) =>
   Rx.merge(

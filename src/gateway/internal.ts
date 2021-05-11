@@ -19,40 +19,42 @@ import { Connection } from "./connection";
 import * as Dispatch from "./dispatch";
 import { Options } from "./shard";
 
-export const identify$ = (
-  conn: Connection,
-  latestReady: Rx.Observable<O.Option<GatewayReadyDispatchData>>,
-  latestSequence: Rx.Observable<O.Option<number>>,
-) => (token: string, { intents, shard }: Pick<Options, "intents" | "shard">) =>
-  F.pipe(
-    conn.hello$,
-    RxO.withLatestFrom(latestReady, latestSequence),
-    RxO.map(([_, ready, sequence]) =>
-      F.pipe(
-        sequenceT(O.option)(ready, sequence),
-        O.fold(
-          () =>
-            Commands.identify({
-              token,
-              intents,
-              properties: {
-                $os: OS.platform(),
-                $browser: "droff",
-                $device: "droff",
-              },
-              shard,
-            }),
+export const identify$ =
+  (
+    conn: Connection,
+    latestReady: Rx.Observable<O.Option<GatewayReadyDispatchData>>,
+    latestSequence: Rx.Observable<O.Option<number>>,
+  ) =>
+  (token: string, { intents, shard }: Pick<Options, "intents" | "shard">) =>
+    F.pipe(
+      conn.hello$,
+      RxO.withLatestFrom(latestReady, latestSequence),
+      RxO.map(([_, ready, sequence]) =>
+        F.pipe(
+          sequenceT(O.option)(ready, sequence),
+          O.fold(
+            () =>
+              Commands.identify({
+                token,
+                intents,
+                properties: {
+                  $os: OS.platform(),
+                  $browser: "droff",
+                  $device: "droff",
+                },
+                shard,
+              }),
 
-          ([ready, seq]) =>
-            Commands.resume({
-              token,
-              session_id: ready.session_id,
-              seq,
-            }) as GatewayIdentify | GatewayResume,
+            ([ready, seq]) =>
+              Commands.resume({
+                token,
+                session_id: ready.session_id,
+                seq,
+              }) as GatewayIdentify | GatewayResume,
+          ),
         ),
       ),
-    ),
-  );
+    );
 
 export const heartbeats$ = (
   conn: Connection,

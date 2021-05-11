@@ -64,9 +64,11 @@ export const listen$ = (source$: Rx.Observable<any>): Dispatch =>
     ),
   );
 
-export const latest$ = (dispatch$: Dispatch) => <E extends keyof EventMap>(
-  event: E,
-): Rx.Observable<O.Option<EventMap[E]["d"]>> =>
-  Rx.merge(Rx.of(O.none), dispatch$(event).pipe(RxO.map(O.some))).pipe(
-    RxO.shareReplay(1),
-  );
+export const latest$ =
+  (dispatch$: Dispatch) =>
+  <E extends keyof EventMap>(
+    event: E,
+  ): Rx.Observable<O.Option<EventMap[E]["d"]>> =>
+    Rx.merge(Rx.of(O.none), dispatch$(event).pipe(RxO.map(O.some))).pipe(
+      RxO.shareReplay(1),
+    );

@@ -39,11 +39,6 @@
   "peerDependencies": {
     "discord-api-types": "^0.18.1"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
   "lint-staged": {
     "*.{ts,md}": "prettier --write"
   }

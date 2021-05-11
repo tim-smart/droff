@@ -1,7 +1,8 @@
 require("dotenv").config();
 
+import { ApplicationCommandPermissionType } from "discord-api-types/v8";
 import * as RxO from "rxjs/operators";
-import { createClient, Intents } from "../src/mod";
+import { createClient, Intents, Permissions } from "../src/mod";
 
 const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
@@ -26,9 +27,27 @@ commands
   .guild({
     name: "ping",
     description: "A simple ping command",
-    enabled: async () => true,
   })
   .pipe(RxO.flatMap(({ respond }) => respond({ content: "Pong!" })))
+  .subscribe();
+
+commands
+  .guild({
+    name: "admin-only",
+    description: "A restricted command",
+    default_permission: false,
+    permissions: async (guild) =>
+      guild.roles
+        .filter((role) => BigInt(role.permissions) & Permissions.ADMINISTRATOR)
+        .map((role) => ({
+          id: role.id,
+          type: ApplicationCommandPermissionType.ROLE,
+          permission: true,
+        })),
+  })
+  .pipe(
+    RxO.flatMap(({ respond }) => respond({ content: "You are the special." })),
+  )
   .subscribe();
 
 commands.start();

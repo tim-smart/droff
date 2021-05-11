@@ -35,6 +35,7 @@ const client = createClient({
 
 const commands = client.useSlashCommands();
 
+// Global commands are for every guild
 commands
   .global({
     name: "hello",
@@ -47,6 +48,7 @@ commands
   )
   .subscribe();
 
+// Guild commands can be enabled / disabled per guild
 commands
   .guild({
     name: "ping",
@@ -55,6 +57,16 @@ commands
   .pipe(RxO.flatMap(({ respond }) => respond({ content: "Pong!" })))
   .subscribe();
 
+commands
+  .guild({
+    name: "disabled",
+    description: "A disabled command. Will not show up in Discord.",
+    enabled: async (_guild) => false,
+  })
+  .pipe(RxO.flatMap(({ respond }) => respond({ content: "Pong!" })))
+  .subscribe();
+
+// You can set role or user level permissions
 commands
   .guild({
     name: "admin-only",

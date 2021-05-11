@@ -1,6 +1,7 @@
 import * as Shard from "./shard";
 import * as Rx from "rxjs";
 import * as Dispatch from "./dispatch";
+import { GatewayIntentBits } from "discord-api-types/v8";
 
 export interface Options {
   token: string;
@@ -19,7 +20,7 @@ export function create({
   const shards = shardIDs.map((id) =>
     Shard.create({
       token,
-      intents,
+      intents: intents | GatewayIntentBits.GUILDS,
       shard: [id, shardCount],
     }),
   );

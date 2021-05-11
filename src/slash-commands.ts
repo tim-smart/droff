@@ -103,6 +103,7 @@ export const factory =
       RxO.shareReplay(1),
     );
 
+    // Command creation functions
     let globalCommands = Map<string, RESTPostAPIApplicationCommandsJSONBody>();
     const global = (command: RESTPostAPIApplicationCommandsJSONBody) => {
       globalCommands = globalCommands.set(command.name, command);
@@ -195,18 +196,13 @@ export const factory =
 
     // Add guild commands that have been enabled
     const enableGuildCommands$ = guildCommands$.pipe(
-      // Get the commands that are currently disabled
-      RxO.flatMap(([guild, app, commands]) =>
-        guildCommands
-          .reduce(
-            (currentlyDisabled, command) =>
-              commands.find((apiCommand) => apiCommand.name === command.name)
-                ? currentlyDisabled
-                : [...currentlyDisabled, command],
-            [] as GuildCommand[],
-          )
-          .map((command) => [guild, app, command] as const),
+      RxO.flatMap(([guild, app]) =>
+        Rx.from(guildCommands.values()).pipe(
+          RxO.map((command) => [guild, app, command] as const),
+        ),
       ),
+
+      RxO.tap((d) => console.log(d)),
 
       // Check if they should be enabled
       RxO.flatMap(([guild, app, command]) =>

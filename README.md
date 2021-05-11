@@ -35,7 +35,8 @@ const client = createClient({
 
 const commands = client.useSlashCommands();
 
-// Global commands are for every guild
+// Global commands are for every guild.
+// They can take up to an hour to show up.
 commands
   .global({
     name: "hello",
@@ -48,7 +49,8 @@ commands
   )
   .subscribe();
 
-// Guild commands can be enabled / disabled per guild
+// Guild commands can be enabled / disabled per guild.
+// They show up instantly.
 commands
   .guild({
     name: "ping",

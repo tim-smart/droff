@@ -9,7 +9,7 @@ export function create(opts: GatewayClient.Options) {
   const gateway = GatewayClient.create(opts);
   const rest = RestClient.create(opts.token);
   const restRoutes = RestClient.routes(rest);
-  const guilds$ = Guilds.watch$(gateway.dispatch$);
+  const guilds$ = Guilds.watch$(gateway.dispatch$, restRoutes);
   const command$ = Commands.command$(
     restRoutes,
     guilds$,

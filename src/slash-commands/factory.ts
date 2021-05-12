@@ -1,6 +1,7 @@
 import {
   APIApplicationCommandInteraction,
   APIApplicationCommandPermission,
+  APIChannel,
   APIGuild,
   APIInteractionGuildMember,
   APIInteractionResponseChannelMessageWithSource,
@@ -45,7 +46,7 @@ export interface SlashCommandContext {
   interaction: APIApplicationCommandInteraction;
   member?: APIInteractionGuildMember;
   user?: APIUser;
-  guild?: APIGuild;
+
   respond: (
     data: APIInteractionResponseChannelMessageWithSource["data"],
   ) => Promise<never>;
@@ -83,13 +84,11 @@ export const factory =
       GatewayDispatchEvents.InteractionCreate,
     ).pipe(
       RxO.filter((i) => i.type === InteractionType.ApplicationCommand),
-      RxO.withLatestFrom(guilds$),
       RxO.map(
-        ([interaction, guilds]): SlashCommandContext => ({
+        (interaction): SlashCommandContext => ({
           interaction,
           member: (interaction as any).member,
           user: (interaction as any).user,
-          guild: guilds.get((interaction as any).guild_id),
           respond: respond(interaction),
           deferred: respondDeferred(interaction),
         }),

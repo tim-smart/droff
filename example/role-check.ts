@@ -1,6 +1,5 @@
 require("dotenv").config();
 
-import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { createClient, Intents } from "../src/mod";
 
@@ -17,12 +16,9 @@ command$({ name: "role-check" })
     client.withLatest({
       roles: client.roles$,
     })(({ message }) => message.guild_id),
+    client.onlyWithGuild(),
 
-    RxO.flatMap(([{ message, reply }, guildCtx]) => {
-      // The message was not associated with a guild
-      if (!guildCtx) return Rx.EMPTY;
-
-      const { roles } = guildCtx;
+    RxO.flatMap(([{ message, reply }, { roles }]) => {
       const memberRoles = message.member!.roles.map((id) => roles.get(id)!);
       const isAdmin = memberRoles.some((role) => role.name === "Admin");
 

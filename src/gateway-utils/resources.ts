@@ -109,3 +109,10 @@ export const withLatest =
           }),
         );
   };
+
+export const onlyWithGuild =
+  () =>
+  <T, M>(source$: Rx.Observable<readonly [T, M | undefined]>) =>
+    source$.pipe(RxO.filter(([_, map]) => !!map)) as Rx.Observable<
+      readonly [T, M]
+    >;

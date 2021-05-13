@@ -60,6 +60,20 @@ export function create(opts: GatewayClient.Options) {
      */
     withLatest,
 
+    /**
+     * Use this operator in combination with withLatest.
+     * It will filter out any direct messages etc.
+     *
+     * ```typescript
+     * client.dispatch$(Events.GuildMemberAdd).pipe(
+     *   client.withLatest({
+     *     roles: client.roles$,
+     *   })(({ message }) => message.guild_id),
+     *   client.onlyWithGuild(),
+     * );
+     */
+    onlyWithGuild: Resources.onlyWithGuild,
+
     /** Observable of all the dispatch events */
     all: gateway.all$,
     /** Helper function to listen to an individual dispatch event */

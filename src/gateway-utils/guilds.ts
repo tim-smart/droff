@@ -33,7 +33,8 @@ export const watch$ = (
 
       const guild: APIGuild = { ...op[1] };
 
-      // Un-reference some data that might be garbage collected later
+      // Un-reference some data that might be garbage collected later.
+      // We collect these in the other `watch$` methods.
       guild.roles = [];
       guild.emojis = [];
       delete guild.channels;

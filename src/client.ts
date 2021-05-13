@@ -1,15 +1,14 @@
-import { GatewayDispatchEvents, Snowflake } from "discord-api-types/v8";
-import * as Commands from "./gateway-utils/commands";
-import * as Guilds from "./gateway-utils/guilds";
+import { GatewayDispatchEvents } from "discord-api-types/v8";
 import * as Channels from "./gateway-utils/channels";
-import * as Roles from "./gateway-utils/roles";
+import * as Commands from "./gateway-utils/commands";
 import * as Emojis from "./gateway-utils/emojis";
+import * as Guilds from "./gateway-utils/guilds";
 import * as Members from "./gateway-utils/members";
+import * as Resources from "./gateway-utils/resources";
+import * as Roles from "./gateway-utils/roles";
 import * as GatewayClient from "./gateway/client";
 import * as RestClient from "./rest/client";
 import * as SlashCommands from "./slash-commands/factory";
-import * as Rx from "rxjs";
-import * as RxO from "rxjs/operators";
 
 export function create(opts: GatewayClient.Options) {
   const gateway = GatewayClient.create(opts);
@@ -23,27 +22,7 @@ export function create(opts: GatewayClient.Options) {
   const emojis$ = Emojis.watch$(gateway.dispatch$);
   const members$ = Members.watch$(gateway.dispatch$);
 
-  const withLatest =
-    <T>(guildID: (resource: T) => Snowflake | undefined) =>
-    (source$: Rx.Observable<T>) =>
-      source$.pipe(
-        RxO.withLatestFrom(guilds$, channels$, roles$, emojis$, members$),
-        RxO.map(([resource, guilds, channels, roles, emojis, members]) => {
-          const guild = guilds.get(guildID(resource)!);
-          if (!guild) return [resource, undefined] as const;
-
-          return [
-            resource,
-            {
-              guild,
-              channels: channels.get(guild.id)!,
-              roles: roles.get(guild.id)!,
-              emojis: emojis.get(guild.id)!,
-              members: members.get(guild.id)!,
-            },
-          ] as const;
-        }),
-      );
+  const withLatest = Resources.withLatest(guilds$);
 
   const command$ = Commands.command$(
     restRoutes,
@@ -58,15 +37,34 @@ export function create(opts: GatewayClient.Options) {
   return {
     gateway,
 
+    /** Keeps track of the latest guilds */
     guilds$,
+    /** Keeps track of the latest channels for each guild */
     channels$,
+    /** Keeps track of the latest roles for each guild */
     roles$,
+    /** Keeps track of the latest members for each guild */
     members$,
+    /** Keeps track of the latest emojis for each guild */
     emojis$,
-    withLatest: withLatest,
+    /**
+     * RxJS operator that appends guild data to the stream. E.g.
+     *
+     * ```typescript
+     * client.dispatch$(Events.GuildMemberAdd).pipe(
+     *   client.withLatest({
+     *     roles: client.roles$,
+     *   })(({ message }) => message.guild_id),
+     * );
+     * ```
+     */
+    withLatest,
 
+    /** Observable of all the dispatch events */
     all: gateway.all$,
+    /** Helper function to listen to an individual dispatch event */
     dispatch$: gateway.dispatch$,
+    /** Close all the client connections */
     close,
 
     command$,

@@ -7,7 +7,7 @@ import { Map } from "immutable";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { Dispatch } from "../gateway/dispatch";
-import { withOp } from "./guilds";
+import { GuildMap, withOp } from "./guilds";
 
 export type SnowflakeMap<T> = Map<Snowflake, T>;
 export type GuildSnowflakeMap<T> = Map<Snowflake, SnowflakeMap<T>>;
@@ -66,3 +66,46 @@ export const watch$ = <T>(
 
     RxO.shareReplay(1),
   );
+
+export const withLatest =
+  (guilds$: Rx.Observable<GuildMap>) =>
+  <M extends { [key: string]: Rx.Observable<GuildSnowflakeMap<any>> }>(
+    obserables: M,
+  ) => {
+    const obEntries = Object.entries(obserables);
+    const obKeys = obEntries.map((e) => e[0]);
+    const obValues = obEntries.map((e) => e[1]);
+
+    return <T>(guildID: (resource: T) => Snowflake | undefined) =>
+      (source$: Rx.Observable<T>) =>
+        source$.pipe(
+          RxO.withLatestFrom(guilds$),
+          RxO.withLatestFrom(...obValues),
+          RxO.map(([[resource, guilds], ...results]) => {
+            const guild = guilds.get(guildID(resource)!);
+            if (!guild) return [resource, undefined] as const;
+
+            const resultMap = obKeys.reduce(
+              (map, key, index) => ({
+                ...map,
+                [key]: results[index].get(guild.id),
+              }),
+              {} as {
+                [K in keyof M]: M[K] extends Rx.Observable<
+                  GuildSnowflakeMap<infer V>
+                >
+                  ? SnowflakeMap<V>
+                  : never;
+              },
+            );
+
+            return [
+              resource,
+              {
+                guild,
+                ...resultMap,
+              },
+            ] as const;
+          }),
+        );
+  };

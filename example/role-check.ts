@@ -13,8 +13,10 @@ const command$ = client.command$("!");
 
 command$({ name: "role-check" })
   .pipe(
-    // Append the guild context to message
-    client.withLatest((data) => data.message.guild_id),
+    // Append the guild and roles to the message
+    client.withLatest({
+      roles: client.roles$,
+    })(({ message }) => message.guild_id),
 
     RxO.flatMap(([{ message, reply }, guildCtx]) => {
       // The message was not associated with a guild

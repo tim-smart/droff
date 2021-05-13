@@ -170,8 +170,14 @@ export const factory =
     }
 
     return {
+      /** Create a global slash command */
       global,
+      /** Create a guild slash command */
       guild,
+      /**
+       * Start syncing the commands to Discord. It returns a function that stops
+       * the syncing service.
+       */
       start,
     };
   };

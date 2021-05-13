@@ -22,7 +22,7 @@ export function create(opts: GatewayClient.Options) {
   const emojis$ = Emojis.watch$(gateway.dispatch$);
   const members$ = Members.watch$(gateway.dispatch$);
 
-  const withLatest = Resources.withLatest(guilds$);
+  const withCaches = Resources.withCaches(guilds$);
 
   const command$ = Commands.command$(
     restRoutes,
@@ -37,36 +37,36 @@ export function create(opts: GatewayClient.Options) {
   return {
     gateway,
 
-    /** Keeps track of the latest guilds */
+    /** Cache of the latest guilds */
     guilds$,
-    /** Keeps track of the latest channels for each guild */
+    /** Cache of the latest channels for each guild */
     channels$,
-    /** Keeps track of the latest roles for each guild */
+    /** Cache of the latest roles for each guild */
     roles$,
-    /** Keeps track of the latest members for each guild */
+    /** Cache of the latest members for each guild */
     members$,
-    /** Keeps track of the latest emojis for each guild */
+    /** Cache of the latest emojis for each guild */
     emojis$,
     /**
-     * RxJS operator that appends guild data to the stream. E.g.
+     * RxJS operator that appends cached guild data to the stream. E.g.
      *
      * ```typescript
      * client.dispatch$(Events.GuildMemberAdd).pipe(
-     *   client.withLatest({
+     *   client.withCaches({
      *     roles: client.roles$,
      *   })(({ message }) => message.guild_id),
      * );
      * ```
      */
-    withLatest,
+    withCaches,
 
     /**
-     * Use this operator in combination with withLatest.
+     * Use this operator in combination with withCaches.
      * It will filter out any direct messages etc.
      *
      * ```typescript
      * client.dispatch$(Events.GuildMemberAdd).pipe(
-     *   client.withLatest({
+     *   client.withCaches({
      *     roles: client.roles$,
      *   })(({ message }) => message.guild_id),
      *   client.onlyWithGuild(),

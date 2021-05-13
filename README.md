@@ -19,6 +19,35 @@ If you want more performance:
 yarn add bufferutil
 ```
 
+## Caching
+
+Droff will only activate the caches that you use. So by default nothing is
+cached.
+
+Here are the caches available to use right now:
+
+```typescript
+import { createClient, Intents } from "../src/mod";
+
+const client = createClient({
+  token: process.env.DISCORD_BOT_TOKEN!,
+  // You will need to enable some intents for the caches to work
+  intents: Intents.GUILD_EMOJIS | Intents.GUILD_MEMBERS,
+});
+
+// Here are the different caches that you can use. Each cache is an Observable
+// which emits maps with the following structure:
+//
+// Map<GuildID, Map<ResourceID, Resource>>
+//
+// Where the `Resource` is the actual API object i.e. channel, role, member etc.
+client.guilds$;
+client.roles$;
+client.channels$;
+client.members$;
+client.emojis$;
+```
+
 ## Usage
 
 This example creates a couple of slash commands:

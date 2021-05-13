@@ -13,7 +13,7 @@ const command$ = client.command$("!");
 command$({ name: "role-check" })
   .pipe(
     // Append the guild and roles to the message
-    client.withLatest({
+    client.withCaches({
       roles: client.roles$,
     })(({ message }) => message.guild_id),
     client.onlyWithGuild(),

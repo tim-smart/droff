@@ -67,7 +67,7 @@ export const watch$ = <T>(
     RxO.shareReplay(1),
   );
 
-export const withLatest =
+export const withCaches =
   (guilds$: Rx.Observable<GuildMap>) =>
   <M extends { [key: string]: Rx.Observable<GuildSnowflakeMap<any>> }>(
     obserables: M,

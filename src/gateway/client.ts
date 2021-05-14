@@ -1,7 +1,8 @@
 import * as Shard from "./shard";
 import * as Rx from "rxjs";
+import * as RxO from "rxjs/operators";
 import * as Dispatch from "./dispatch";
-import { GatewayIntentBits } from "discord-api-types/v8";
+import { GatewayIntentBits, GatewaySendPayload } from "discord-api-types/v8";
 
 export interface Options {
   token: string;
@@ -25,6 +26,10 @@ export function create({
     }),
   );
 
+  function send(data: GatewaySendPayload) {
+    shards.forEach((shard) => shard.send(data));
+  }
+
   function close() {
     shards.forEach((s) => s.close());
   }
@@ -34,14 +39,20 @@ export function create({
   }
 
   const dispatch$ = Rx.merge(...shards.map((s) => s.dispatch$));
+  const dispatchWithShard$ = Rx.merge(
+    ...shards.map((s) => s.dispatch$.pipe(RxO.map((p) => [p, s] as const))),
+  );
   const dispatchListen = Dispatch.listen$(dispatch$);
+  const dispatchWithShardListen = Dispatch.listenWithShard$(dispatchWithShard$);
   const dispatchLatest = Dispatch.latest$(dispatchListen);
 
   return {
     all$: dispatch$,
     dispatch$: dispatchListen,
+    dispatchWithShard$: dispatchWithShardListen,
     latest$: dispatchLatest,
     shards,
+    send,
     close,
     reconnect,
   };

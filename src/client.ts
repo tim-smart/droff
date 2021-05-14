@@ -78,6 +78,11 @@ export function create(opts: GatewayClient.Options) {
     all: gateway.all$,
     /** Helper function to listen to an individual dispatch event */
     dispatch$: gateway.dispatch$,
+    /**
+     * Helper function to listen to an individual dispatch event, along with
+     * the shard
+     */
+    dispatchWithShard$: gateway.dispatchWithShard$,
     /** Close all the client connections */
     close,
 

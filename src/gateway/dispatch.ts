@@ -1,10 +1,15 @@
 import * as GT from "discord-api-types/v8";
-import { GatewayDispatchEvents } from "discord-api-types/v8";
+import {
+  GatewayDispatchEvents,
+  GatewayDispatchPayload,
+} from "discord-api-types/v8";
 import { memoize } from "fp-ts-std/Function";
 import { eqString } from "fp-ts/lib/Eq";
 import * as O from "fp-ts/Option";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
+import * as F from "fp-ts/function";
+import { Shard } from "./shard";
 
 export interface EventMap {
   [GatewayDispatchEvents.ApplicationCommandCreate]: GT.GatewayApplicationCommandCreateDispatch;
@@ -55,11 +60,26 @@ export type Dispatch = <E extends keyof EventMap>(
   event: E,
 ) => Rx.Observable<EventMap[E]["d"]>;
 
+export type DispatchWithShard = <E extends keyof EventMap>(
+  event: E,
+) => Rx.Observable<readonly [EventMap[E]["d"], Shard]>;
+
 export const listen$ = (source$: Rx.Observable<any>): Dispatch =>
   memoize(eqString)((event) =>
     source$.pipe(
       RxO.filter((p) => p.t === event),
       RxO.map((p) => p.d),
+      RxO.share(),
+    ),
+  );
+
+export const listenWithShard$ = (
+  source$: Rx.Observable<readonly [GatewayDispatchPayload, Shard]>,
+): DispatchWithShard =>
+  memoize(eqString)((event) =>
+    source$.pipe(
+      RxO.filter(([p]) => p.t === event),
+      RxO.map(([p, shard]) => [p.d, shard] as const),
       RxO.share(),
     ),
   );

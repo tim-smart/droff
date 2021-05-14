@@ -1,7 +1,6 @@
 import {
   APIApplicationCommandInteraction,
   APIApplicationCommandPermission,
-  APIChannel,
   APIGuild,
   APIInteractionGuildMember,
   APIInteractionResponseChannelMessageWithSource,

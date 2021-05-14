@@ -50,14 +50,30 @@ commands
     name: "admin-only",
     description: "A restricted command",
     default_permission: false,
-    permissions: async (guild) =>
-      guild.roles
-        .filter((role) => BigInt(role.permissions) & Permissions.ADMINISTRATOR)
-        .map((role) => ({
-          id: role.id,
-          type: ApplicationCommandPermissionType.ROLE,
-          permission: true,
-        })),
+    permissions: (guild) =>
+      client
+        .getGuildRoles([guild.id])
+        // Allow any role with the ADMINISTRATOR permission
+        .then((roles) =>
+          roles
+            .filter(
+              (role) => BigInt(role.permissions) & Permissions.ADMINISTRATOR,
+            )
+            .map((role) => ({
+              id: role.id,
+              type: ApplicationCommandPermissionType.ROLE,
+              permission: true,
+            })),
+        )
+        // Also allow the owner
+        .then((permissions) => [
+          ...permissions,
+          {
+            id: guild.owner_id,
+            type: ApplicationCommandPermissionType.USER,
+            permission: true,
+          },
+        ]),
   })
   .pipe(
     RxO.flatMap(({ respond }) => respond({ content: "You are the special." })),

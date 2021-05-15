@@ -15,9 +15,7 @@ import { WebSocketClient } from "reconnecting-ws";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 
-export interface GatewayConnectionOptions {
-  version: number;
-}
+const VERSION = 8;
 
 const opCode = <T extends GatewayReceivePayload>(code: T["op"]) =>
   F.flow(
@@ -25,11 +23,9 @@ const opCode = <T extends GatewayReceivePayload>(code: T["op"]) =>
     RxO.share(),
   );
 
-export function create({
-  version = 9,
-}: Partial<GatewayConnectionOptions> = {}) {
+export function create() {
   const ws = new WebSocketClient();
-  ws.connect(`wss://gateway.discord.gg/?v=${version}&encoding=etf`);
+  ws.connect(`wss://gateway.discord.gg/?v=${VERSION}&encoding=etf`);
 
   function send(data: GatewaySendPayload) {
     return ws.sendData(Erl.pack(data));

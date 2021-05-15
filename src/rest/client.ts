@@ -3,19 +3,33 @@ const Pkg = require("../../package.json");
 import Axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import { APIApplicationCommand, Routes, Snowflake } from "discord-api-types/v8";
 import * as Types from "discord-api-types/v8";
+import * as RateLimits from "./rate-limits";
+
+const VERSION = 8;
 
 export interface Options {
-  version?: number;
+  /** Global rate limit in requests per second */
+  rateLimit?: number;
 }
 
-export function create(token: string, { version = 8 }: Options = {}) {
-  return Axios.create({
-    baseURL: `https://discord.com/api/v${version}`,
+export function create(token: string, { rateLimit = 50 }: Options = {}) {
+  const client = Axios.create({
+    baseURL: `https://discord.com/api/v${VERSION}`,
     headers: {
       Authorization: `Bot ${token}`,
       UserAgent: `DiscordBot (https://github.com/tim-smart/droff, ${Pkg.version})`,
     },
   });
+
+  const { request, response, error } = RateLimits.interceptors(
+    rateLimit,
+    1000,
+  )(client);
+
+  client.interceptors.request.use(request);
+  client.interceptors.response.use(response, error);
+
+  return client;
 }
 
 const handleError = (err: AxiosError) => {

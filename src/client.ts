@@ -10,7 +10,7 @@ import * as GatewayClient from "./gateway/client";
 import * as RestClient from "./rest/client";
 import * as SlashCommands from "./slash-commands/factory";
 
-export function create(opts: GatewayClient.Options) {
+export function create(opts: GatewayClient.Options & RestClient.Options) {
   const gateway = GatewayClient.create(opts);
   const rest = RestClient.create(opts.token);
   const restRoutes = RestClient.routes(rest);

@@ -10,26 +10,34 @@ const VERSION = 8;
 export interface Options {
   /** Global rate limit in requests per second */
   rateLimit?: number;
+  /** Turn on debug logging */
+  debug?: boolean;
 }
 
-export function create(token: string, { rateLimit = 50 }: Options = {}) {
+export function create(
+  token: string,
+  { rateLimit = 50, debug = false }: Options = {},
+) {
   const client = Axios.create({
     baseURL: `https://discord.com/api/v${VERSION}`,
     headers: {
       Authorization: `Bot ${token}`,
       UserAgent: `DiscordBot (https://github.com/tim-smart/droff, ${Pkg.version})`,
     },
+    timeout: 10000,
   });
 
-  const { request, response, error } = RateLimits.interceptors(
+  const { request, response, error, start } = RateLimits.interceptors(
     rateLimit,
     1000,
+    debug,
   )(client);
 
   client.interceptors.request.use(request);
   client.interceptors.response.use(response, error);
 
-  return client;
+  const stop = start();
+  return [client, stop] as const;
 }
 
 const handleError = (err: AxiosError) => {

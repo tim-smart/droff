@@ -12,7 +12,7 @@ import * as SlashCommands from "./slash-commands/factory";
 
 export function create(opts: GatewayClient.Options & RestClient.Options) {
   const gateway = GatewayClient.create(opts);
-  const rest = RestClient.create(opts.token);
+  const [rest, restClose] = RestClient.create(opts.token, opts);
   const restRoutes = RestClient.routes(rest);
 
   // Cached resources
@@ -32,6 +32,11 @@ export function create(opts: GatewayClient.Options & RestClient.Options) {
 
   function close() {
     gateway.close();
+    restClose();
+  }
+
+  if (opts.debug) {
+    gateway.raw$.subscribe((p) => console.error("[GATEWAY]", p));
   }
 
   return {

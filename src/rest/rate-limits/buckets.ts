@@ -17,7 +17,7 @@ export const createCounters = (
     processedRequests$.next(request);
   }
 
-  const rateLimits$ = Rx.merge(responses$).pipe(
+  const rateLimits$ = responses$.pipe(
     RxO.flatMap(({ route, rateLimit }) =>
       F.pipe(
         rateLimit,
@@ -51,11 +51,14 @@ export const createCounters = (
     })),
   );
 
-  const bucketReset = new Rx.Subject<string>();
   const resetting = new Set<string>();
   const resets$ = rateLimits$.pipe(
     RxO.filter(({ bucket }) => !resetting.has(bucket)),
     RxO.tap(({ bucket }) => resetting.add(bucket)),
+    RxO.flatMap((reset) =>
+      Rx.of(reset).pipe(RxO.delay(reset.resetAfter * 1.1)),
+    ),
+    RxO.tap(({ bucket }) => resetting.delete(bucket)),
     RxO.share(),
   );
 
@@ -99,12 +102,7 @@ export const createCounters = (
       ),
     ),
     resets$.pipe(
-      RxO.flatMap(({ bucket, resetAfter, limit }) =>
-        Rx.timer(resetAfter * 1.1).pipe(
-          RxO.tap(() => resetting.delete(bucket)),
-          RxO.map(() => ["reset", bucket, limit] as const),
-        ),
-      ),
+      RxO.map(({ bucket, limit }) => ["reset", bucket, limit] as const),
     ),
     timeouts$.pipe(RxO.map(({ bucket }) => ["timeout", bucket] as const)),
   ).pipe(
@@ -134,7 +132,6 @@ export const createCounters = (
     routeToBucket$,
     complete: () => {
       processedRequests$.complete();
-      bucketReset.complete();
     },
   };
 };

@@ -98,20 +98,22 @@ export const interceptors =
     // Trigger requests
     const triggerRequests$ = requests$.pipe(
       RxO.withLatestFrom(routeToBucket$, bucketCounters$),
-      RxO.concatMap(([request, routes, counts]) => {
-        const { route } = request;
-        const bucket = routes.get(route);
-        if (!bucket) return Rx.of(request);
-
-        const count = counts.get(bucket, Infinity);
-        if (count > 0) return Rx.of(request);
-
-        return bucketCounters$.pipe(
-          RxO.map((counts) => counts.get(bucket, Infinity)),
-          RxO.first((count) => count > 0),
-          RxO.map(() => request),
-        );
-      }),
+      RxO.concatMap(([request, routes, counts]) =>
+        F.pipe(
+          O.fromNullable(routes.get(request.route)),
+          O.map((bucket) => [bucket, counts.get(bucket, Infinity)] as const),
+          O.filter(([_, count]) => count > 0),
+          O.fold(
+            () => Rx.of(request),
+            ([bucket]) =>
+              bucketCounters$.pipe(
+                RxO.map((counts) => counts.get(bucket, Infinity)),
+                RxO.first((count) => count > 0),
+                RxO.map(() => request),
+              ),
+          ),
+        ),
+      ),
 
       // Global rate limit
       RxO.withLatestFrom(globalCount$),

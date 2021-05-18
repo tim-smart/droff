@@ -50,7 +50,7 @@ export const rateLimit =
     let resolve: (() => void) | undefined;
 
     const reset = () => {
-      if (timeout) clearTimeout(timeout);
+      if (timeout) return;
       timeout = setTimeout(() => {
         remaining = limit;
         timeout = undefined;
@@ -89,25 +89,15 @@ export const rateLimitBy = (
    * `window` would be 1000.
    */
   window: number,
-  /**
-   * If a key is inactive for this amount of time in milliseconds, the rate
-   * limiter will get garbage collected.
-   */
-  expires?: number,
 ) => {
   const limiter = rateLimit(limit, window);
 
   return <T>(key: (item: T) => string) =>
     (source$: Rx.Observable<T>) =>
       source$.pipe(
-        RxO.groupBy(
-          key,
-          undefined,
-          expires
-            ? (group$) => group$.pipe(RxO.debounceTime(expires))
-            : undefined,
+        RxO.groupBy(key, undefined, (group$) =>
+          group$.pipe(RxO.debounceTime(window)),
         ),
-
         RxO.mergeMap((group$) => group$.pipe(limiter)),
       );
 };

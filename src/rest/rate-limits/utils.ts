@@ -25,12 +25,14 @@ export const rateLimitFromHeaders = (headers: any) =>
     sequenceT(O.Apply)(
       numberHeader(headers)("x-ratelimit-reset-after"),
       numberHeader(headers)("x-ratelimit-limit"),
+      numberHeader(headers)("x-ratelimit-remaining"),
       O.fromNullable(headers["x-ratelimit-bucket"] as string),
     ),
-    O.map(([resetAfter, limit, bucket]) => ({
+    O.map(([resetAfter, limit, remaining, bucket]) => ({
       bucket,
       resetAfter: resetAfter * 1000,
       limit,
+      remaining,
     })),
   );
 export type RateLimitDetails = ReturnType<typeof rateLimitFromHeaders>;

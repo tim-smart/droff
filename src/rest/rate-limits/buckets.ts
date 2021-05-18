@@ -7,16 +7,16 @@ import * as RxO from "rxjs/operators";
 import { Request, Response } from "../rate-limits";
 import * as Utils from "./utils";
 
+export type BucketDetails = {
+  key: string;
+  resetAfter: number;
+  limit: number;
+};
+
 export const createLimiter = (
   responses$: Rx.Observable<Response>,
-  errors$: Rx.Observable<AxiosError>,
   whenDebug: <T>(fn: (d: T) => void) => Rx.MonoTypeOperatorFunction<T>,
 ) => {
-  const processedRequests$ = new Rx.Subject<Request>();
-  function sent(request: Request) {
-    processedRequests$.next(request);
-  }
-
   const rateLimits$ = responses$.pipe(
     RxO.flatMap(({ route, rateLimit }) =>
       F.pipe(
@@ -39,147 +39,57 @@ export const createLimiter = (
     RxO.shareReplay(1),
   );
 
-  const errorsWithBucket$ = errors$.pipe(
-    RxO.map((error) => ({
-      route: Utils.routeFromConfig(error.config),
-      error,
-    })),
-    RxO.withLatestFrom(routeToBucket$),
-    RxO.filter(([error, routes]) => routes.has(error.route)),
-    RxO.map(([error, routes]) => ({
-      ...error,
-      bucket: routes.get(error.route)!,
-    })),
-  );
+  const buckets$ = rateLimits$.pipe(
+    RxO.startWith("init" as const),
+    RxO.scan((buckets, op) => {
+      if (op === "init") return buckets;
 
-  const resetting = new Set<string>();
-  const resets$ = rateLimits$.pipe(
-    RxO.filter(({ bucket }) => !resetting.has(bucket)),
-    RxO.tap(({ bucket }) => resetting.add(bucket)),
-    RxO.flatMap((reset) =>
-      Rx.of(reset).pipe(RxO.delay(reset.resetAfter * 1.1)),
-    ),
-    RxO.tap(({ bucket }) => resetting.delete(bucket)),
-    RxO.share(),
-  );
+      const { bucket, remaining, limit, resetAfter } = op;
 
-  const newRoutes$ = rateLimits$.pipe(
-    RxO.withLatestFrom(routeToBucket$),
-    RxO.filter(([{ route }, routes]) => !routes.has(route)),
-    RxO.map(([data]) => data),
-  );
-
-  const routeCounters$ = processedRequests$.pipe(
-    RxO.scan(
-      (counts, { route }) => counts.update(route, 0, (count) => count - 1),
-      Im.Map<string, number>(),
-    ),
-    RxO.shareReplay(1),
-  );
-
-  const timeouts$ = errorsWithBucket$.pipe(
-    RxO.filter(({ error }) => error.code === "ECONNABORTED"),
-  );
-
-  const bucketCounters$ = Rx.merge(
-    newRoutes$.pipe(
-      RxO.withLatestFrom(routeCounters$),
-      RxO.map(
-        ([{ route, bucket }, routeCounts]) =>
-          ["new-route", bucket, routeCounts.get(route, 0)] as const,
-      ),
-    ),
-    processedRequests$.pipe(
-      RxO.withLatestFrom(routeToBucket$),
-      RxO.flatMap(([{ route }, routes]) =>
-        F.pipe(
-          O.fromNullable(routes.get(route)),
-          O.fold(
-            () => Rx.EMPTY,
-            (bucket) => Rx.of(["request", bucket] as const),
-          ),
-        ),
-      ),
-    ),
-    resets$.pipe(
-      RxO.map(({ bucket, limit }) => ["reset", bucket, limit] as const),
-    ),
-    timeouts$.pipe(RxO.map(({ bucket }) => ["timeout", bucket] as const)),
-  ).pipe(
-    RxO.startWith(["init"] as const),
-    whenDebug((op) =>
-      console.error("[rate-limits/buckets.ts]", "bucketCounters$", op),
-    ),
-    RxO.scan((counts, op) => {
-      switch (op[0]) {
-        case "init":
-          return counts;
-        case "new-route":
-          return counts.update(op[1], 0, (value) => value + op[2]);
-        case "reset":
-          return counts.set(op[1], op[2]);
-        case "request":
-          return counts.update(op[1], 0, (value) => value - 1);
-        case "timeout":
-          return counts.delete(op[1]);
+      if (!buckets.has(bucket)) {
+        return buckets.set(bucket, { key: bucket, resetAfter, limit });
+      } else if (limit - 1 === remaining) {
+        return buckets.set(bucket, { key: bucket, resetAfter, limit });
       }
-    }, Im.Map<string, number>()),
+
+      return buckets;
+    }, Im.Map<string, BucketDetails>()),
     RxO.shareReplay(1),
   );
 
-  const bucketCountersSub = bucketCounters$.subscribe();
-
-  return {
-    limit: maybeLimitBucket(routeToBucket$, bucketCounters$, sent),
-    complete: () => {
-      bucketCountersSub.unsubscribe();
-      processedRequests$.complete();
-    },
-  };
-};
-
-const maybeLimitBucket = (
-  routeToBucket$: Rx.Observable<Im.Map<string, string>>,
-  counters$: Rx.Observable<Im.Map<string, number>>,
-  sent: (request: Request) => void,
-) => {
-  const bucketLimiter = createBucketLimiter(counters$, sent);
   return () => (requests$: Rx.Observable<Request>) =>
     requests$.pipe(
-      // Group by bucket
-      RxO.withLatestFrom(routeToBucket$),
+      RxO.withLatestFrom(routeToBucket$, buckets$),
+      RxO.map(
+        ([request, routes, buckets]) =>
+          [request, buckets.get(routes.get(request.route)!)] as const,
+      ),
+
       RxO.groupBy(
-        ([{ route }, routes]) => routes.get(route),
-        ([request]) => request,
+        ([_, bucket]) => bucket?.key,
+        undefined,
         (requests$) =>
           requests$.key
-            ? // Remove bucket stream after 1 minute of inactivity
-              requests$.pipe(RxO.debounceTime(1000 * 60 * 1))
-            : // Never remove the global stream
-              Rx.NEVER,
+            ? requests$.pipe(
+                RxO.debounce(([_, bucket]) => Rx.timer(bucket!.resetAfter * 2)),
+              )
+            : Rx.NEVER,
       ),
 
-      // Maybe apply bucket-level rate limits
-      RxO.mergeMap((requests$) =>
-        requests$.key ? bucketLimiter(requests$.key)(requests$) : requests$,
+      RxO.withLatestFrom(buckets$),
+      RxO.map(
+        ([requests$, buckets]) =>
+          [requests$, buckets.get(requests$.key!)] as const,
       ),
+
+      RxO.mergeMap(([requests$, bucket]) =>
+        bucket
+          ? requests$.pipe(
+              Utils.rateLimit(bucket.limit, bucket.resetAfter * 1.1),
+            )
+          : requests$,
+      ),
+
+      RxO.map(([request]) => request),
     );
 };
-
-const createBucketLimiter =
-  (
-    counters$: Rx.Observable<Im.Map<string, number>>,
-    sent: (request: Request) => void,
-  ) =>
-  (bucket: string) =>
-  (requests$: Rx.Observable<Request>) =>
-    requests$.pipe(
-      RxO.concatMap((request) =>
-        counters$.pipe(
-          RxO.map((counts) => counts.get(bucket, Infinity)),
-          RxO.first((count) => count > 0),
-          RxO.map(() => request),
-          RxO.tap(sent),
-        ),
-      ),
-    );

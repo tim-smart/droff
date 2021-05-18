@@ -89,11 +89,7 @@ export const interceptors =
       );
     }
 
-    const { limit: limitRequestBuckets, complete } = Buckets.createLimiter(
-      responses$,
-      errors$,
-      whenDebug,
-    );
+    const limitRequestBuckets = Buckets.createLimiter(responses$, whenDebug);
 
     // Trigger requests
     const triggerRequests$ = requests$.pipe(
@@ -128,7 +124,6 @@ export const interceptors =
           requests$.complete();
           responses$.complete();
           errors$.complete();
-          complete();
         };
       },
     };

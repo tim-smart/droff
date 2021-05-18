@@ -93,7 +93,7 @@ export const rateLimitBy = (
     (source$: Rx.Observable<T>) =>
       source$.pipe(
         RxO.groupBy(key, undefined, (group$) =>
-          group$.pipe(RxO.debounceTime(window)),
+          group$.pipe(RxO.debounceTime(window * 1.5)),
         ),
         RxO.mergeMap((group$) => group$.pipe(limiter)),
       );

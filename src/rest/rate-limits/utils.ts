@@ -62,14 +62,12 @@ export const rateLimit =
       }, window);
     };
 
-    const waitForToken = () => {
+    const waitForToken = async () => {
       if (remaining === 0) {
-        return new Promise<void>((r) => (resolve = r));
+        await new Promise<void>((r) => (resolve = r));
       }
-
       reset();
       remaining = remaining - 1;
-      return Promise.resolve();
     };
 
     return source$.pipe(

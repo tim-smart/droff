@@ -49,24 +49,23 @@ export const rateLimit =
     let timeout: NodeJS.Timeout | undefined;
     let resolve: (() => void) | undefined;
 
-    const reset = () => {
-      if (timeout) return;
-      timeout = setTimeout(() => {
-        remaining = limit;
-        timeout = undefined;
-
-        if (resolve) {
-          resolve();
-          resolve = undefined;
-        }
-      }, window);
-    };
-
     const waitForToken = async () => {
       if (remaining === 0) {
         await new Promise<void>((r) => (resolve = r));
       }
-      reset();
+
+      if (!timeout) {
+        timeout = setTimeout(() => {
+          remaining = limit;
+          timeout = undefined;
+
+          if (resolve) {
+            resolve();
+            resolve = undefined;
+          }
+        }, window);
+      }
+
       remaining = remaining - 1;
     };
 

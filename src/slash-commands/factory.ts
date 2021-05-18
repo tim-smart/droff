@@ -23,11 +23,15 @@ import * as Commands from "./commands";
 import * as Sync from "./sync";
 
 interface CommandOptions {
-  permissions?: (guild: APIGuild) => Promise<APIApplicationCommandPermission[]>;
+  permissions?: (
+    guild: APIGuild,
+  ) =>
+    | Promise<APIApplicationCommandPermission[]>
+    | Rx.Observable<APIApplicationCommandPermission[]>;
 }
 
 interface GuildCommandOptions {
-  enabled?: (guild: APIGuild) => Promise<boolean>;
+  enabled?: (guild: APIGuild) => Promise<boolean> | Rx.Observable<boolean>;
 }
 
 export type GlobalCommand = RESTPostAPIApplicationCommandsJSONBody &

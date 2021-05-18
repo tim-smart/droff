@@ -112,9 +112,12 @@ export const guild =
 
       // Check if they should be enabled
       RxO.flatMap(([guild, app, command]) =>
-        command
-          .enabled(guild)
-          .then((enabled) => [guild, app, command, enabled] as const),
+        Rx.zip(
+          Rx.of(guild),
+          Rx.of(app),
+          Rx.of(command),
+          command.enabled(guild),
+        ),
       ),
       RxO.filter(([_guild, _app, _command, enabled]) => enabled),
 

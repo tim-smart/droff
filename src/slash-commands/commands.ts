@@ -9,13 +9,16 @@ import * as O from "fp-ts/Option";
 import { Map } from "immutable";
 import { Routes } from "../rest/client";
 import { GlobalCommand, GuildCommand } from "./factory";
+import * as Rx from "rxjs";
+import * as RxO from "rxjs/operators";
 
 export const enabled =
   (commands: Map<string, GuildCommand>) =>
   (guild: APIGuild, apiCommand: APIApplicationCommand) =>
     F.pipe(
       O.fromNullable(commands.get(apiCommand.name)),
-      O.map((opts) => opts.enabled(guild)),
+      O.map((opts) => Rx.from(opts.enabled(guild))),
+      O.map((ob) => Rx.lastValueFrom(ob)),
     );
 
 export const respond =
@@ -39,14 +42,18 @@ export const setPermissions =
       O.fold(
         () => Promise.resolve(apiCommand),
         (permissions) =>
-          permissions(guild)
-            .then((permissions) =>
+          F.pipe(
+            Rx.from(permissions(guild)),
+            RxO.first(),
+            RxO.flatMap((permissions) =>
               rest.putApplicationCommandPermissions(
                 [apiCommand.application_id, guild.id, apiCommand.id],
                 { permissions },
               ),
-            )
-            .then(() => apiCommand),
+            ),
+            RxO.map(() => apiCommand),
+            Rx.lastValueFrom,
+          ),
       ),
     );
 

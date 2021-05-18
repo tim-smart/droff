@@ -1,11 +1,10 @@
-import { AxiosError } from "axios";
 import * as F from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import * as Im from "immutable";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
+import * as RxU from "../../utils/rxjs";
 import { Request, Response } from "../rate-limits";
-import * as Utils from "./utils";
 
 export type BucketDetails = {
   key: string;
@@ -48,6 +47,9 @@ export const createLimiter = (
 
       if (!buckets.has(bucket)) {
         return buckets.set(bucket, { key: bucket, resetAfter, limit });
+
+        // For authoritative (remaining is one less than the limit) details,
+        // update the bucket.
       } else if (limit - 1 === remaining) {
         return buckets.set(bucket, { key: bucket, resetAfter, limit });
       }
@@ -65,27 +67,40 @@ export const createLimiter = (
           [request, buckets.get(routes.get(request.route)!)] as const,
       ),
 
+      // Group by bucket or undefined
       RxO.groupBy(
         ([_, bucket]) => bucket?.key,
         undefined,
         (requests$) =>
           requests$.key
-            ? requests$.pipe(
+            ? // Garbage collect bucket rate limiters after inactivity
+              requests$.pipe(
                 RxO.debounce(([_, bucket]) => Rx.timer(bucket!.resetAfter * 2)),
               )
-            : Rx.NEVER,
+            : // Never garbage collect the global pass-through
+              Rx.NEVER,
       ),
 
+      // Add the bucket details
       RxO.withLatestFrom(buckets$),
       RxO.map(
         ([requests$, buckets]) =>
           [requests$, buckets.get(requests$.key!)] as const,
       ),
 
+      // Apply rate limits
       RxO.mergeMap(([requests$, bucket]) =>
         bucket
           ? requests$.pipe(
-              Utils.rateLimit(bucket.limit, bucket.resetAfter * 1.1),
+              whenDebug(([request, bucket]) =>
+                console.log(
+                  "[rate-limits/buckets.ts]",
+                  "rate limiting request",
+                  request.route,
+                  bucket,
+                ),
+              ),
+              RxU.rateLimit(bucket.limit, bucket.resetAfter * 1.1),
             )
           : requests$,
       ),

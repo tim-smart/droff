@@ -8,7 +8,6 @@ import * as Resources from "./gateway-utils/resources";
 import * as Roles from "./gateway-utils/roles";
 import * as GatewayClient from "./gateway/client";
 import * as RestClient from "./rest/client";
-import { rateLimit, rateLimitBy } from "./rest/rate-limits/utils";
 import * as SlashCommands from "./slash-commands/factory";
 
 export function create(opts: GatewayClient.Options & RestClient.Options) {

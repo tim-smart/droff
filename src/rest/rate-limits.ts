@@ -9,7 +9,8 @@ import * as O from "fp-ts/Option";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import * as Buckets from "./rate-limits/buckets";
-import * as Utils from "./rate-limits/utils";
+import * as Helpers from "./rate-limits/helpers";
+import * as RxU from "../utils/rxjs";
 
 const debugTap =
   (enabled: boolean) =>
@@ -27,7 +28,7 @@ export type Response = {
   route: string;
   config: AxiosRequestConfig;
   response: AxiosResponse;
-  rateLimit: Utils.RateLimitDetails;
+  rateLimit: Helpers.RateLimitDetails;
 };
 
 export const interceptors =
@@ -41,7 +42,7 @@ export const interceptors =
       return new Promise((resolve) => {
         requests$.next({
           config,
-          route: Utils.routeFromConfig(config),
+          route: Helpers.routeFromConfig(config),
           resolve: () => resolve(config),
         });
       });
@@ -52,8 +53,8 @@ export const interceptors =
       responses$.next({
         response,
         config: response.config,
-        route: Utils.routeFromConfig(response.config),
-        rateLimit: Utils.rateLimitFromHeaders(response.headers),
+        route: Helpers.routeFromConfig(response.config),
+        rateLimit: Helpers.rateLimitFromHeaders(response.headers),
       });
       return response;
     }
@@ -78,7 +79,7 @@ export const interceptors =
       // Maybe attempt retry
       if (err.response.status !== 429) return Promise.reject(err);
       return F.pipe(
-        Utils.retryAfter(err.response.headers),
+        Helpers.retryAfter(err.response.headers),
         O.fold(
           () => Promise.reject(err),
           (retryMs) =>
@@ -96,7 +97,7 @@ export const interceptors =
       limitRequestBuckets(),
 
       // Global rate limit
-      Utils.rateLimit(limit, window),
+      RxU.rateLimit(limit, window),
 
       whenDebug(({ config }) =>
         console.error(

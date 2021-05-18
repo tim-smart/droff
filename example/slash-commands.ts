@@ -3,6 +3,7 @@ require("dotenv").config();
 import { ApplicationCommandPermissionType } from "discord-api-types/v8";
 import * as RxO from "rxjs/operators";
 import { createClient, Intents, Permissions } from "../src/mod";
+import * as Rx from "rxjs";
 
 const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
@@ -51,10 +52,10 @@ commands
     description: "A restricted command",
     default_permission: false,
     permissions: (guild) =>
-      client
-        .getGuildRoles([guild.id])
-        // Allow any role with the ADMINISTRATOR permission
-        .then((roles) =>
+      Rx.of(guild).pipe(
+        // Permissions for roles with ADMINISTRATOR enabled
+        client.withCaches({ roles: client.roles$ })((guild) => guild.id),
+        RxO.flatMap(([_guild, { roles }]) =>
           roles
             .filter(
               (role) => BigInt(role.permissions) & Permissions.ADMINISTRATOR,
@@ -63,17 +64,19 @@ commands
               id: role.id,
               type: ApplicationCommandPermissionType.ROLE,
               permission: true,
-            })),
-        )
-        // Also allow the owner
-        .then((permissions) => [
-          ...permissions,
-          {
-            id: guild.owner_id,
-            type: ApplicationCommandPermissionType.USER,
-            permission: true,
-          },
-        ]),
+            }))
+            .values(),
+        ),
+
+        // Add permissions for the guild owner
+        RxO.startWith({
+          id: guild.owner_id,
+          type: ApplicationCommandPermissionType.USER,
+          permission: true,
+        }),
+
+        RxO.toArray(),
+      ),
   })
   .pipe(
     RxO.flatMap(({ respond }) => respond({ content: "You are the special." })),

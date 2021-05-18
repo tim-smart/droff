@@ -9,7 +9,6 @@ import * as O from "fp-ts/Option";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import * as Buckets from "./rate-limits/buckets";
-import * as Global from "./rate-limits/global";
 import * as Utils from "./rate-limits/utils";
 
 const debugTap =
@@ -90,41 +89,18 @@ export const interceptors =
       );
     }
 
-    // Create counters
-    const globalCount$ = Global.counter$(limit, window)(requests$);
-    const { sent, complete, routeToBucket$, bucketCounters$ } =
-      Buckets.createCounters(responses$, errors$, whenDebug);
+    const { limit: limitRequestBuckets, complete } = Buckets.createLimiter(
+      responses$,
+      errors$,
+      whenDebug,
+    );
 
     // Trigger requests
     const triggerRequests$ = requests$.pipe(
-      RxO.withLatestFrom(routeToBucket$, bucketCounters$),
-      RxO.concatMap(([request, routes, counts]) =>
-        F.pipe(
-          O.fromNullable(routes.get(request.route)),
-          O.map((bucket) => [bucket, counts.get(bucket, Infinity)] as const),
-          O.filter(([_, count]) => count > 0),
-          O.fold(
-            () => Rx.of(request),
-            ([bucket]) =>
-              bucketCounters$.pipe(
-                RxO.map((counts) => counts.get(bucket, Infinity)),
-                RxO.first((count) => count > 0),
-                RxO.map(() => request),
-              ),
-          ),
-        ),
-      ),
+      limitRequestBuckets(),
 
       // Global rate limit
-      RxO.withLatestFrom(globalCount$),
-      RxO.concatMap(([request, count]) =>
-        count > 0
-          ? Rx.of(request)
-          : globalCount$.pipe(
-              RxO.first((count) => count > 0),
-              RxO.map(() => request),
-            ),
-      ),
+      Utils.rateLimit(limit, window),
 
       whenDebug(({ config }) =>
         console.error(
@@ -138,7 +114,6 @@ export const interceptors =
       ),
 
       // Trigger the request
-      RxO.tap(sent),
       RxO.tap(({ resolve }) => resolve()),
     );
 

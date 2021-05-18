@@ -2,6 +2,8 @@ import { AxiosRequestConfig } from "axios";
 import * as F from "fp-ts/function";
 import { sequenceT } from "fp-ts/lib/Apply";
 import * as O from "fp-ts/Option";
+import * as Rx from "rxjs";
+import * as RxO from "rxjs/operators";
 
 export const routeFromConfig = ({ url, method }: AxiosRequestConfig) => {
   if (!url) return "";
@@ -39,3 +41,73 @@ export const retryAfter = (headers: any) =>
     O.chainNullableK((seconds) => parseInt(seconds, 10)),
     O.map((secs) => secs * 1000),
   );
+
+export const rateLimit =
+  (limit: number, window: number) =>
+  <T>(source$: Rx.Observable<T>) => {
+    let remaining = limit;
+    let timeout: NodeJS.Timeout | undefined;
+    let resolve: (() => void) | undefined;
+
+    const reset = () => {
+      if (timeout) clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        remaining = limit;
+        timeout = undefined;
+
+        if (resolve) {
+          resolve();
+          resolve = undefined;
+        }
+      }, window);
+    };
+
+    const waitForToken = () => {
+      if (remaining === 0) {
+        return new Promise<void>((r) => (resolve = r));
+      }
+
+      reset();
+      remaining = remaining - 1;
+      return Promise.resolve();
+    };
+
+    return source$.pipe(
+      RxO.concatMap((item) => waitForToken().then(() => item)),
+    );
+  };
+
+export const rateLimitBy = (
+  /**
+   * The maximum number of items to emit per `window` of time.
+   */
+  limit: number,
+  /**
+   * How often the rate limiter resets in milliseconds.
+   *
+   * If you wants to rate items 5 times per seconds, `limit` would by 5, and
+   * `window` would be 1000.
+   */
+  window: number,
+  /**
+   * If a key is inactive for this amount of time in milliseconds, the rate
+   * limiter will get garbage collected.
+   */
+  expires?: number,
+) => {
+  const limiter = rateLimit(limit, window);
+
+  return <T>(key: (item: T) => string) =>
+    (source$: Rx.Observable<T>) =>
+      source$.pipe(
+        RxO.groupBy(
+          key,
+          undefined,
+          expires
+            ? (group$) => group$.pipe(RxO.debounceTime(expires))
+            : undefined,
+        ),
+
+        RxO.mergeMap((group$) => group$.pipe(limiter)),
+      );
+};

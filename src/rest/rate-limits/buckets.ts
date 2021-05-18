@@ -7,7 +7,7 @@ import * as RxO from "rxjs/operators";
 import { Request, Response } from "../rate-limits";
 import * as Utils from "./utils";
 
-export const createCounters = (
+export const createLimiter = (
   responses$: Rx.Observable<Response>,
   errors$: Rx.Observable<AxiosError>,
   whenDebug: <T>(fn: (d: T) => void) => Rx.MonoTypeOperatorFunction<T>,
@@ -30,7 +30,8 @@ export const createCounters = (
     RxO.share(),
   );
 
-  const routeToBucket$ = Rx.merge(Rx.of("init" as const), rateLimits$).pipe(
+  const routeToBucket$ = rateLimits$.pipe(
+    RxO.startWith("init" as const),
     RxO.scan(
       (map, op) => (op === "init" ? map : map.set(op.route, op.bucket)),
       Im.Map<string, string>(),
@@ -81,7 +82,6 @@ export const createCounters = (
   );
 
   const bucketCounters$ = Rx.merge(
-    Rx.of(["init"] as const),
     newRoutes$.pipe(
       RxO.withLatestFrom(routeCounters$),
       RxO.map(
@@ -106,6 +106,7 @@ export const createCounters = (
     ),
     timeouts$.pipe(RxO.map(({ bucket }) => ["timeout", bucket] as const)),
   ).pipe(
+    RxO.startWith(["init"] as const),
     whenDebug((op) =>
       console.error("[rate-limits/buckets.ts]", "bucketCounters$", op),
     ),
@@ -126,12 +127,59 @@ export const createCounters = (
     RxO.shareReplay(1),
   );
 
+  const bucketCountersSub = bucketCounters$.subscribe();
+
   return {
-    sent,
-    bucketCounters$,
-    routeToBucket$,
+    limit: maybeLimitBucket(routeToBucket$, bucketCounters$, sent),
     complete: () => {
+      bucketCountersSub.unsubscribe();
       processedRequests$.complete();
     },
   };
 };
+
+const maybeLimitBucket = (
+  routeToBucket$: Rx.Observable<Im.Map<string, string>>,
+  counters$: Rx.Observable<Im.Map<string, number>>,
+  sent: (request: Request) => void,
+) => {
+  const bucketLimiter = createBucketLimiter(counters$, sent);
+  return () => (requests$: Rx.Observable<Request>) =>
+    requests$.pipe(
+      // Group by bucket
+      RxO.withLatestFrom(routeToBucket$),
+      RxO.groupBy(
+        ([{ route }, routes]) => routes.get(route),
+        ([request]) => request,
+        (requests$) =>
+          requests$.key
+            ? // Remove bucket stream after 1 minute of inactivity
+              requests$.pipe(RxO.debounceTime(1000 * 60 * 1))
+            : // Never remove the global stream
+              Rx.NEVER,
+      ),
+
+      // Maybe apply bucket-level rate limits
+      RxO.mergeMap((requests$) =>
+        requests$.key ? bucketLimiter(requests$.key)(requests$) : requests$,
+      ),
+    );
+};
+
+const createBucketLimiter =
+  (
+    counters$: Rx.Observable<Im.Map<string, number>>,
+    sent: (request: Request) => void,
+  ) =>
+  (bucket: string) =>
+  (requests$: Rx.Observable<Request>) =>
+    requests$.pipe(
+      RxO.concatMap((request) =>
+        counters$.pipe(
+          RxO.map((counts) => counts.get(bucket, Infinity)),
+          RxO.first((count) => count > 0),
+          RxO.map(() => request),
+          RxO.tap(sent),
+        ),
+      ),
+    );

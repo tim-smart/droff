@@ -33,6 +33,19 @@ export const rateLimit =
     );
   };
 
+export const groupByTime =
+  <T>(op: (time: number) => Rx.MonoTypeOperatorFunction<T>) =>
+  (window: number) => {
+    const operator = op(window);
+    return (key: (item: T) => string) => (source$: Rx.Observable<T>) =>
+      source$.pipe(
+        RxO.groupBy(key, undefined, (group$) =>
+          group$.pipe(RxO.debounceTime(window * 2)),
+        ),
+        RxO.mergeMap((group$) => group$.pipe(operator)),
+      );
+  };
+
 export const rateLimitBy = (
   /**
    * The maximum number of items to emit per `window` of time.
@@ -47,24 +60,8 @@ export const rateLimitBy = (
   window: number,
 ) => {
   const limiter = rateLimit(limit, window);
-
-  return <T>(key: (item: T) => string) =>
-    (source$: Rx.Observable<T>) =>
-      source$.pipe(
-        RxO.groupBy(key, undefined, (group$) =>
-          group$.pipe(RxO.debounceTime(window * 1.5)),
-        ),
-        RxO.mergeMap((group$) => group$.pipe(limiter)),
-      );
+  return groupByTime(() => limiter)(window);
 };
 
-export const debounceBy =
-  (time: number) =>
-  <T>(key: (item: T) => string) =>
-  (source$: Rx.Observable<T>) =>
-    source$.pipe(
-      RxO.groupBy(key, undefined, (group$) =>
-        group$.pipe(RxO.debounceTime(time * 2)),
-      ),
-      RxO.mergeMap((group$) => group$.pipe(RxO.debounceTime(time))),
-    );
+export const debounceBy = groupByTime(RxO.debounceTime);
+export const throttleBy = groupByTime(RxO.throttleTime);

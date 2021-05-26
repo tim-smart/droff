@@ -2,7 +2,7 @@ require("dotenv").config();
 
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import { createClient, Events, Intents } from "../";
+import { createClient, Intents } from "../";
 
 const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
@@ -10,14 +10,14 @@ const client = createClient({
 });
 
 client
-  .dispatch$(Events.GuildMemberAdd)
+  .dispatch$("GUILD_MEMBER_ADD")
   .pipe(
     RxO.withLatestFrom(client.guilds$),
     RxO.flatMap(([data, guilds]) =>
       Rx.zip(
         Rx.of(data),
         Rx.of(guilds.get(data.guild_id)),
-        client.getGuildInvites([data.guild_id]),
+        client.getGuildInvites(data.guild_id),
       ),
     ),
   )

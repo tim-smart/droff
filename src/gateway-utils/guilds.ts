@@ -1,28 +1,24 @@
-import {
-  APIGuild,
-  GatewayDispatchEvents as E,
-  Snowflake,
-} from "discord-api-types/v8";
 import { Map } from "immutable";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import * as GatewayClient from "../gateway/client";
+import { Guild, Snowflake } from "../types";
 
 export const withOp =
   <K extends string>(key: K) =>
   <T>(data: T) =>
     [key, data] as const;
 
-export type GuildMap = Map<Snowflake, APIGuild>;
+export type GuildMap = Map<Snowflake, Guild>;
 
 export const watch$ = (
   dispatch$: GatewayClient.Client["dispatch$"],
 ): Rx.Observable<GuildMap> =>
   Rx.merge(
     Rx.of(["init"] as const),
-    dispatch$(E.GuildCreate).pipe(RxO.map(withOp("create"))),
-    dispatch$(E.GuildUpdate).pipe(RxO.map(withOp("update"))),
-    dispatch$(E.GuildDelete).pipe(RxO.map(withOp("delete"))),
+    dispatch$("GUILD_CREATE").pipe(RxO.map(withOp("create"))),
+    dispatch$("GUILD_UPDATE").pipe(RxO.map(withOp("update"))),
+    dispatch$("GUILD_DELETE").pipe(RxO.map(withOp("delete"))),
   ).pipe(
     RxO.scan((map, op) => {
       if (op[0] === "init") {
@@ -31,7 +27,7 @@ export const watch$ = (
         return map.delete(op[1].id);
       }
 
-      const guild: APIGuild = { ...op[1] };
+      const guild: Guild = { ...op[1] };
 
       // Un-reference some data that might be garbage collected later.
       // We collect these in the other `watch$` methods.
@@ -41,7 +37,7 @@ export const watch$ = (
       delete guild.members;
 
       return map.set(guild.id, guild);
-    }, Map<Snowflake, APIGuild>()),
+    }, Map<Snowflake, Guild>()),
 
     RxO.shareReplay(1),
   );

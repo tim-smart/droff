@@ -1,4 +1,3 @@
-import { GatewayDispatchEvents } from "discord-api-types/v8";
 import * as Channels from "./gateway-utils/channels";
 import * as Commands from "./gateway-utils/commands";
 import * as Emojis from "./gateway-utils/emojis";
@@ -27,7 +26,7 @@ export function create(opts: GatewayClient.Options & RestClient.Options) {
   const command$ = Commands.command$(
     restRoutes,
     guilds$,
-    gateway.dispatch$(GatewayDispatchEvents.MessageCreate),
+    gateway.dispatch$("MESSAGE_CREATE"),
   );
 
   function close() {

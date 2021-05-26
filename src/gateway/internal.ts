@@ -1,19 +1,17 @@
-import {
-  GatewayDispatchEvents,
-  GatewayDispatchPayload,
-  GatewayHeartbeatAck,
-  GatewayHello,
-  GatewayIdentify,
-  GatewayInvalidSession,
-  GatewayReadyDispatchData,
-  GatewayResume,
-} from "discord-api-types/v8";
 import * as F from "fp-ts/function";
 import { sequenceT } from "fp-ts/lib/Apply";
 import * as O from "fp-ts/Option";
 import * as OS from "os";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
+import {
+  GatewayEvent,
+  GatewayPayload,
+  Heartbeat,
+  HelloEvent,
+  InvalidSessionEvent,
+  ReadyEvent,
+} from "../types";
 import * as Commands from "./commands";
 import { Connection } from "./connection";
 import * as Dispatch from "./dispatch";
@@ -22,7 +20,7 @@ import { Options } from "./shard";
 export const identify$ =
   (
     conn: Connection,
-    latestReady: Rx.Observable<O.Option<GatewayReadyDispatchData>>,
+    latestReady: Rx.Observable<O.Option<ReadyEvent>>,
     latestSequence: Rx.Observable<O.Option<number>>,
   ) =>
   (token: string, { intents, shard }: Pick<Options, "intents" | "shard">) =>
@@ -31,7 +29,7 @@ export const identify$ =
       RxO.withLatestFrom(latestReady, latestSequence),
       RxO.map(([_, ready, sequence]) =>
         F.pipe(
-          sequenceT(O.option)(ready, sequence),
+          sequenceT(O.Apply)(ready, sequence),
           O.fold(
             () =>
               Commands.identify({
@@ -50,7 +48,7 @@ export const identify$ =
                 token,
                 session_id: ready.session_id,
                 seq,
-              }) as GatewayIdentify | GatewayResume,
+              }),
           ),
         ),
       ),
@@ -86,29 +84,31 @@ const latest = <T, V>(
   );
 
 export const latestSequenceNumber = (
-  dispatch$: Rx.Observable<GatewayDispatchPayload>,
+  dispatch$: Rx.Observable<GatewayPayload<GatewayEvent>>,
 ) => latest(dispatch$, (p) => O.fromNullable(p.s), O.none);
 
 export const latestReady = (
   dispatch$: Dispatch.Dispatch,
-  invalidSession$: Rx.Observable<GatewayInvalidSession>,
-): Rx.Observable<O.Option<GatewayReadyDispatchData>> =>
+  invalidSession$: Rx.Observable<GatewayPayload<InvalidSessionEvent>>,
+): Rx.Observable<O.Option<ReadyEvent>> =>
   Rx.merge(
-    Dispatch.latest$(dispatch$)(GatewayDispatchEvents.Ready),
+    Dispatch.latest$(dispatch$)("READY"),
     invalidSession$.pipe(
       RxO.flatMap((data) => (data.d ? Rx.EMPTY : Rx.of(O.none))),
     ),
   ).pipe(RxO.shareReplay(1));
 
-export const heartbeatsFromHello = (hello$: Rx.Observable<GatewayHello>) =>
+export const heartbeatsFromHello = (
+  hello$: Rx.Observable<GatewayPayload<HelloEvent>>,
+) =>
   F.pipe(
     hello$,
     RxO.switchMap((hello) => {
-      const initialDelay = hello.d.heartbeat_interval * Math.random();
+      const initialDelay = hello.d!.heartbeat_interval * Math.random();
       return Rx.merge(
         Rx.timer(initialDelay),
         Rx.timer(initialDelay).pipe(
-          RxO.flatMap(() => Rx.interval(hello.d.heartbeat_interval)),
+          RxO.flatMap(() => Rx.interval(hello.d!.heartbeat_interval)),
         ),
       );
     }),
@@ -117,8 +117,8 @@ export const heartbeatsFromHello = (hello$: Rx.Observable<GatewayHello>) =>
 
 export const heartbeatDiff = (
   heartbeats$: Rx.Observable<number>,
-  heartbeatAck$: Rx.Observable<GatewayHeartbeatAck>,
-  hello$: Rx.Observable<GatewayHello>,
+  heartbeatAck$: Rx.Observable<GatewayPayload>,
+  hello$: Rx.Observable<GatewayPayload<HelloEvent>>,
 ) =>
   Rx.merge(
     heartbeats$.pipe(RxO.map(() => O.some(1))),

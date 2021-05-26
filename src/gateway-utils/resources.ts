@@ -1,12 +1,8 @@
-import {
-  APIGuild,
-  GatewayDispatchEvents as E,
-  Snowflake,
-} from "discord-api-types/v8";
 import { Map } from "immutable";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { Dispatch } from "../gateway/dispatch";
+import { Guild, Snowflake } from "../types";
 import { GuildMap, withOp } from "./guilds";
 
 export type SnowflakeMap<T> = Map<Snowflake, T>;
@@ -22,13 +18,13 @@ export interface CrudObserables<T> {
 
 export const watch$ = <T>(
   dispatch$: Dispatch,
-  guildProp: keyof APIGuild,
+  guildProp: keyof Guild,
   { id, create$ = Rx.EMPTY, update$, delete$ = Rx.EMPTY }: CrudObserables<T>,
 ): Rx.Observable<GuildSnowflakeMap<T>> =>
   Rx.merge(
     Rx.of(["init"] as const),
 
-    dispatch$(E.GuildCreate).pipe(
+    dispatch$("GUILD_CREATE").pipe(
       RxO.flatMap((guild) =>
         Rx.from(((guild[guildProp]! as any[]) || []) as T[]).pipe(
           RxO.map((r) => [guild.id, r] as const),
@@ -36,7 +32,7 @@ export const watch$ = <T>(
       ),
       RxO.map(withOp("create")),
     ),
-    dispatch$(E.GuildDelete).pipe(RxO.map(withOp("guild_delete"))),
+    dispatch$("GUILD_DELETE").pipe(RxO.map(withOp("guild_delete"))),
 
     create$.pipe(RxO.map(withOp("create"))),
     update$.pipe(RxO.map(withOp("update"))),

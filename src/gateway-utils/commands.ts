@@ -1,28 +1,23 @@
-import {
-  APIGuild,
-  APIMessage,
-  GatewayMessageCreateDispatchData,
-  Snowflake,
-} from "discord-api-types/v8";
 import { Map } from "immutable";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { Routes } from "../rest/client";
+import { Guild, Message, MessageCreateEvent, Snowflake } from "../types";
 
 export type CommandPrefix =
   | string
-  | ((guild: APIGuild | undefined) => Promise<string>);
+  | ((guild: Guild | undefined) => Promise<string>);
 
 export interface CommandOptions {
   name: string;
 }
 
 export interface CommandContext {
-  guild: APIGuild | undefined;
-  message: APIMessage;
+  guild: Guild | undefined;
+  message: Message;
   command: string;
   args: string[];
-  reply: (message: string) => Promise<APIMessage>;
+  reply: (message: string) => Promise<Message>;
 }
 
 function escapeRegex(string: string) {
@@ -32,8 +27,8 @@ function escapeRegex(string: string) {
 export const command$ =
   (
     client: Routes,
-    guilds$: Rx.Observable<Map<Snowflake, APIGuild>>,
-    message$: Rx.Observable<GatewayMessageCreateDispatchData>,
+    guilds$: Rx.Observable<Map<Snowflake, Guild>>,
+    message$: Rx.Observable<MessageCreateEvent>,
   ) =>
   (prefix: CommandPrefix) =>
   ({ name }: CommandOptions) =>
@@ -72,8 +67,8 @@ export const command$ =
       ),
     );
 
-const reply = (client: Routes) => (message: APIMessage) => (content: string) =>
-  client.postChannelMessages([message.channel_id], {
+const reply = (client: Routes) => (message: Message) => (content: string) =>
+  client.createMessage(message.channel_id, {
     message_reference: { message_id: message.id },
     content,
   });

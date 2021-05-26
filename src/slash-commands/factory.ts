@@ -1,17 +1,3 @@
-import {
-  APIApplicationCommandInteraction,
-  APIApplicationCommandPermission,
-  APIGuild,
-  APIInteractionGuildMember,
-  APIInteractionResponseChannelMessageWithSource,
-  APIInteractionResponseDeferredChannelMessageWithSource,
-  APIUser,
-  GatewayDispatchEvents,
-  InteractionResponseType,
-  InteractionType,
-  RESTPostAPIApplicationCommandsJSONBody,
-  Snowflake,
-} from "discord-api-types/v8";
 import * as F from "fp-ts/function";
 import { Map } from "immutable";
 import * as Rx from "rxjs";
@@ -19,74 +5,79 @@ import * as RxO from "rxjs/operators";
 import * as App from "../gateway-utils/applications";
 import { Dispatch } from "../gateway/dispatch";
 import { Routes } from "../rest/client";
+import {
+  ApplicationCommandPermission,
+  CreateGlobalApplicationCommandParams,
+  CreateGuildApplicationCommandParams,
+  Guild,
+  GuildMember,
+  Interaction,
+  InteractionApplicationCommandCallbackDatum,
+  InteractionCallbackType,
+  InteractionType,
+  Snowflake,
+  User,
+} from "../types";
 import * as Commands from "./commands";
 import * as Sync from "./sync";
 
 interface CommandOptions {
   permissions?: (
-    guild: APIGuild,
+    guild: Guild,
   ) =>
-    | Promise<APIApplicationCommandPermission[]>
-    | Rx.Observable<APIApplicationCommandPermission[]>;
+    | Promise<ApplicationCommandPermission[]>
+    | Rx.Observable<ApplicationCommandPermission[]>;
 }
 
 interface GuildCommandOptions {
-  enabled?: (guild: APIGuild) => Promise<boolean> | Rx.Observable<boolean>;
+  enabled?: (guild: Guild) => Promise<boolean> | Rx.Observable<boolean>;
 }
 
-export type GlobalCommand = RESTPostAPIApplicationCommandsJSONBody &
+export type GlobalCommand = CreateGlobalApplicationCommandParams &
   CommandOptions;
 
-export type GuildCommand = RESTPostAPIApplicationCommandsJSONBody &
+export type GuildCommand = CreateGuildApplicationCommandParams &
   Required<GuildCommandOptions> &
   CommandOptions;
 
-export type GuildCommandCreate = RESTPostAPIApplicationCommandsJSONBody &
+export type GuildCommandCreate = CreateGuildApplicationCommandParams &
   GuildCommandOptions &
   CommandOptions;
 
 export interface SlashCommandContext {
-  interaction: APIApplicationCommandInteraction;
-  member?: APIInteractionGuildMember;
-  user?: APIUser;
+  interaction: Interaction;
+  member?: GuildMember;
+  user?: User;
 
-  respond: (
-    data: APIInteractionResponseChannelMessageWithSource["data"],
-  ) => Promise<never>;
-  deferred: (
-    data: APIInteractionResponseDeferredChannelMessageWithSource["data"],
-  ) => Promise<never>;
+  respond: (data: InteractionApplicationCommandCallbackDatum) => Promise<any>;
+  deferred: () => Promise<any>;
 }
 
 export const factory =
   (
     dispatch$: Dispatch,
     rest: Routes,
-    guilds$: Rx.Observable<Map<Snowflake, APIGuild>>,
+    guilds$: Rx.Observable<Map<Snowflake, Guild>>,
   ) =>
   () => {
     const app$ = App.watch$(dispatch$).pipe(RxO.first(), RxO.shareReplay(1));
 
     // Response helpers
-    const respond =
-      Commands.respond<APIInteractionResponseChannelMessageWithSource>(
-        rest,
-        InteractionResponseType.ChannelMessageWithSource,
-      );
-    const respondDeferred =
-      Commands.respond<APIInteractionResponseDeferredChannelMessageWithSource>(
-        rest,
-        InteractionResponseType.DeferredChannelMessageWithSource,
-      );
+    const respond = Commands.respond(
+      rest,
+      InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
+    );
+    const respondDeferred = Commands.respond(
+      rest,
+      InteractionCallbackType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+    );
 
     // Set permissions fn
     const setPermissions = Commands.setPermissions(rest);
 
     // Shared command create observable
-    const interactionCreate$ = dispatch$(
-      GatewayDispatchEvents.InteractionCreate,
-    ).pipe(
-      RxO.filter((i) => i.type === InteractionType.ApplicationCommand),
+    const interactionCreate$ = dispatch$("INTERACTION_CREATE").pipe(
+      RxO.filter((i) => i.type === InteractionType.APPLICATION_COMMAND),
       RxO.map(
         (interaction): SlashCommandContext => ({
           interaction,
@@ -100,12 +91,14 @@ export const factory =
     );
 
     // Command creation functions
-    let globalCommands = Map<string, RESTPostAPIApplicationCommandsJSONBody>();
+    let globalCommands = Map<string, CreateGlobalApplicationCommandParams>();
     const global = (command: GlobalCommand) => {
       globalCommands = globalCommands.set(command.name, command);
 
       return app$.pipe(
-        RxO.flatMap((app) => rest.postApplicationCommands([app.id], command)),
+        RxO.flatMap((app) =>
+          rest.createGlobalApplicationCommand(app.id, command),
+        ),
 
         // Update permissions
         RxO.withLatestFrom(guilds$),
@@ -119,7 +112,9 @@ export const factory =
 
         // Switch to emitting the interactions
         RxO.switchMap(() => interactionCreate$),
-        RxO.filter(({ interaction }) => interaction.data.name === command.name),
+        RxO.filter(
+          ({ interaction }) => interaction.data!.name === command.name,
+        ),
       );
     };
 
@@ -131,16 +126,18 @@ export const factory =
       });
 
       return interactionCreate$.pipe(
-        RxO.filter(({ interaction }) => interaction.data.name === command.name),
+        RxO.filter(
+          ({ interaction }) => interaction.data!.name === command.name,
+        ),
       );
     };
 
     // Respond to pings
-    const pingPong$ = dispatch$(GatewayDispatchEvents.InteractionCreate).pipe(
-      RxO.filter((i) => i.type === InteractionType.Ping),
+    const pingPong$ = dispatch$("INTERACTION_CREATE").pipe(
+      RxO.filter((i) => i.type === InteractionType.PING),
       RxO.flatMap((ping) =>
-        rest.postInteractionCallback([ping.id, ping.token], {
-          type: InteractionResponseType.Pong,
+        rest.createInteractionResponse(ping.id, ping.token, {
+          type: InteractionCallbackType.PONG,
         }),
       ),
     );

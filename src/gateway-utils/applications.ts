@@ -1,9 +1,8 @@
-import { GatewayDispatchEvents as E } from "discord-api-types/v8";
 import * as RxO from "rxjs/operators";
 import * as GatewayClient from "../gateway/client";
 
 export const watch$ = (dispatch$: GatewayClient.Client["dispatch$"]) =>
-  dispatch$(E.Ready).pipe(
+  dispatch$("READY").pipe(
     RxO.map((ready) => ready.application),
     RxO.shareReplay(1),
   );

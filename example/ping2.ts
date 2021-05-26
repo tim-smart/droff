@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 import * as RxO from "rxjs/operators";
-import { createClient, Events, Intents } from "../src/mod";
+import { createClient, Intents } from "../src/mod";
 
 const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
@@ -9,11 +9,11 @@ const client = createClient({
 });
 
 client
-  .dispatch$(Events.MessageCreate)
+  .dispatch$("MESSAGE_CREATE")
   .pipe(
     RxO.filter((msg) => msg.content === "!ping"),
     RxO.flatMap((msg) =>
-      client.postChannelMessages([msg.channel_id], {
+      client.createMessage(msg.channel_id, {
         message_reference: { message_id: msg.id },
         content: "Pong!",
       }),

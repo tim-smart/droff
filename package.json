@@ -9,12 +9,13 @@
     "dist/"
   ],
   "scripts": {
+    "types": "discord-api-codegen ../discord-api-docs -l typescript > src/types.ts",
     "prepare": "husky install && rm -rf dist && tsc"
   },
   "devDependencies": {
+    "@tim-smart/discord-api-docs-parser": "^0.1.9",
     "@types/node": "^15.0.2",
     "@types/ws": "^7.4.2",
-    "discord-api-types": "^0.18.1",
     "dotenv": "^9.0.0",
     "husky": "^6.0.0",
     "lint-staged": ">=10",
@@ -36,9 +37,7 @@
   "optionalDependencies": {
     "bufferutil": "^4.0.3"
   },
-  "peerDependencies": {
-    "discord-api-types": "^0.18.1"
-  },
+  "peerDependencies": {},
   "lint-staged": {
     "*.{ts,md}": "prettier --write"
   }

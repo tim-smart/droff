@@ -1,25 +1,15 @@
-import {
-  GatewayDispatchPayload,
-  GatewayHeartbeatAck,
-  GatewayHeartbeatRequest,
-  GatewayHello,
-  GatewayInvalidSession,
-  GatewayOPCodes,
-  GatewayReceivePayload,
-  GatewayReconnect,
-  GatewaySendPayload,
-} from "discord-api-types/v8";
 import * as Erl from "erlpack";
 import * as F from "fp-ts/function";
 import { WebSocketClient } from "reconnecting-ws";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
+import { GatewayEvent, GatewayOpcode, GatewayPayload } from "../types";
 
 const VERSION = 8;
 
-const opCode = <T extends GatewayReceivePayload>(code: T["op"]) =>
+const opCode = (code: GatewayOpcode) =>
   F.flow(
-    RxO.filter((p: GatewayReceivePayload): p is T => p.op === code),
+    RxO.filter((p: GatewayPayload) => p.op === code),
     RxO.share(),
   );
 
@@ -27,7 +17,7 @@ export function create() {
   const ws = new WebSocketClient();
   ws.connect(`wss://gateway.discord.gg/?v=${VERSION}&encoding=etf`);
 
-  function send(data: GatewaySendPayload) {
+  function send(data: GatewayPayload) {
     return ws.sendData(Erl.pack(data));
   }
 
@@ -41,7 +31,7 @@ export function create() {
     ws.WebSocketInstance.close(1012, "reconnecting");
   }
 
-  const messageSubject = new Rx.Subject<GatewayReceivePayload>();
+  const messageSubject = new Rx.Subject<GatewayPayload>();
   const raw$ = messageSubject.asObservable();
   ws.on("message", (data) => {
     messageSubject.next(Erl.unpack(data as Buffer));
@@ -57,22 +47,12 @@ export function create() {
     }
   });
 
-  const dispatch$ = raw$.pipe(
-    opCode<GatewayDispatchPayload>(GatewayOPCodes.Dispatch),
-  );
-  const heartbeat$ = raw$.pipe(
-    opCode<GatewayHeartbeatRequest>(GatewayOPCodes.Heartbeat),
-  );
-  const reconnect$ = raw$.pipe(
-    opCode<GatewayReconnect>(GatewayOPCodes.Reconnect),
-  );
-  const invalidSession$ = raw$.pipe(
-    opCode<GatewayInvalidSession>(GatewayOPCodes.InvalidSession),
-  );
-  const hello$ = raw$.pipe(opCode<GatewayHello>(GatewayOPCodes.Hello));
-  const heartbeatAck$ = raw$.pipe(
-    opCode<GatewayHeartbeatAck>(GatewayOPCodes.HeartbeatAck),
-  );
+  const dispatch$ = raw$.pipe(opCode(GatewayOpcode.DISPATCH));
+  const heartbeat$ = raw$.pipe(opCode(GatewayOpcode.HEARTBEAT));
+  const reconnect$ = raw$.pipe(opCode(GatewayOpcode.RECONNECT));
+  const invalidSession$ = raw$.pipe(opCode(GatewayOpcode.INVALID_SESSION));
+  const hello$ = raw$.pipe(opCode(GatewayOpcode.HELLO));
+  const heartbeatAck$ = raw$.pipe(opCode(GatewayOpcode.HEARTBEAT_ACK));
 
   return {
     raw$,

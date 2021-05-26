@@ -11,7 +11,6 @@ export {
 } from "./utils/rxjs";
 
 export {
-  GatewayDispatchEvents as Events,
-  GatewayIntentBits as Intents,
-  PermissionFlagsBits as Permissions,
-} from "discord-api-types/v8";
+  GatewayIntents as Intents,
+  PermissionFlag as Permissions,
+} from "./types";

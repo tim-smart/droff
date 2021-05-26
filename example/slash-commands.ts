@@ -1,9 +1,9 @@
 require("dotenv").config();
 
-import { ApplicationCommandPermissionType } from "discord-api-types/v8";
+import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { createClient, Intents, Permissions } from "../src/mod";
-import * as Rx from "rxjs";
+import { ApplicationCommandPermissionType } from "../src/types";
 
 const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
@@ -21,7 +21,7 @@ commands
   })
   .pipe(
     RxO.flatMap(({ respond, member }) =>
-      respond({ content: `Hi there ${member!.user.username}` }),
+      respond({ content: `Hi there ${member!.user!.username}` }),
     ),
   )
   .subscribe();
@@ -55,6 +55,7 @@ commands
       Rx.of(guild).pipe(
         // Permissions for roles with ADMINISTRATOR enabled
         client.withCaches({ roles: client.roles$ })((guild) => guild.id),
+        client.onlyWithGuild(),
         RxO.flatMap(([_guild, { roles }]) =>
           roles
             .filter(

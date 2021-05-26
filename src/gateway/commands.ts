@@ -1,45 +1,40 @@
 import {
-  GatewayHeartbeat,
-  GatewayIdentify,
-  GatewayOPCodes,
-  GatewayRequestGuildMembers,
-  GatewayResume,
-  GatewayUpdatePresence,
-  GatewayVoiceStateUpdate,
-} from "discord-api-types/v8";
+  GatewayOpcode,
+  GatewayPayload,
+  Heartbeat,
+  Identify,
+  RequestGuildMember,
+  Resume,
+  UpdatePresence,
+  UpdateVoiceState,
+} from "../types";
 
-export const heartbeat = (d: GatewayHeartbeat["d"]): GatewayHeartbeat => ({
-  op: GatewayOPCodes.Heartbeat,
+export const heartbeat = (d: Heartbeat): GatewayPayload => ({
+  op: GatewayOpcode.HEARTBEAT,
   d,
 });
 
-export const identify = (d: GatewayIdentify["d"]): GatewayIdentify => ({
-  op: GatewayOPCodes.Identify,
+export const identify = (d: Identify): GatewayPayload => ({
+  op: GatewayOpcode.IDENTIFY,
   d,
 });
 
-export const resume = (d: GatewayResume["d"]): GatewayResume => ({
-  op: GatewayOPCodes.Resume,
+export const resume = (d: Resume): GatewayPayload => ({
+  op: GatewayOpcode.RESUME,
   d,
 });
 
-export const requestGuildMembers = (
-  d: GatewayRequestGuildMembers["d"],
-): GatewayRequestGuildMembers => ({
-  op: GatewayOPCodes.RequestGuildMembers,
+export const requestGuildMembers = (d: RequestGuildMember): GatewayPayload => ({
+  op: GatewayOpcode.REQUEST_GUILD_MEMBERS,
   d,
 });
 
-export const voiceStateUpdate = (
-  d: GatewayVoiceStateUpdate["d"],
-): GatewayVoiceStateUpdate => ({
-  op: GatewayOPCodes.VoiceStateUpdate,
+export const voiceStateUpdate = (d: UpdateVoiceState): GatewayPayload => ({
+  op: GatewayOpcode.VOICE_STATE_UPDATE,
   d,
 });
 
-export const presenceUpdate = (
-  d: GatewayUpdatePresence["d"],
-): GatewayUpdatePresence => ({
-  op: GatewayOPCodes.PresenceUpdate,
+export const presenceUpdate = (d: UpdatePresence): GatewayPayload => ({
+  op: GatewayOpcode.PRESENCE_UPDATE,
   d,
 });

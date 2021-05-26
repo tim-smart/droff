@@ -45,14 +45,18 @@ export function create(
 }
 
 const handleError = (err: AxiosError) => {
-  err.message = `REST error: ${err.response?.status} ${err.config}`;
+  err.message = `REST error: ${err.response?.status} ${JSON.stringify(
+    err.config,
+    null,
+    2,
+  )}`;
   throw err;
 };
 
 export const routes = (client: AxiosInstance) => {
   return createRoutes<AxiosRequestConfig>(
     ({ method, url, params = {}, options = {} }) => {
-      const hasBody = method === "GET" || method === "DELETE";
+      const hasBody = method !== "GET" && method !== "DELETE";
 
       return client
         .request({

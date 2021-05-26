@@ -10,7 +10,7 @@ Simple Discord client powered by RxJS and Axios
 ## Install
 
 ```
-yarn add droff discord-api-types
+yarn add droff
 ```
 
 If you want more performance:
@@ -53,8 +53,8 @@ client.emojis$;
 This example creates a couple of slash commands:
 
 ```typescript
-import { ApplicationCommandPermissionType } from "discord-api-types/v8";
 import { createClient, Intents, Permissions } from "droff";
+import { ApplicationCommandPermissionType } from "droff/dist/types";
 import * as RxO from "rxjs/operators";
 
 const client = createClient({
@@ -73,7 +73,7 @@ commands
   })
   .pipe(
     RxO.flatMap(({ respond, member }) =>
-      respond({ content: `Hi there ${member!.user.username}` }),
+      respond({ content: `Hi there ${member!.user!.username}` }),
     ),
   )
   .subscribe();
@@ -103,14 +103,33 @@ commands
     name: "admin-only",
     description: "A restricted command",
     default_permission: false,
-    permissions: async (guild) =>
-      guild.roles
-        .filter((role) => BigInt(role.permissions) & Permissions.ADMINISTRATOR)
-        .map((role) => ({
-          id: role.id,
-          type: ApplicationCommandPermissionType.ROLE,
+    permissions: (guild) =>
+      Rx.of(guild).pipe(
+        // Permissions for roles with ADMINISTRATOR enabled
+        client.withCaches({ roles: client.roles$ })((guild) => guild.id),
+        client.onlyWithGuild(),
+        RxO.flatMap(([_guild, { roles }]) =>
+          roles
+            .filter(
+              (role) => BigInt(role.permissions) & Permissions.ADMINISTRATOR,
+            )
+            .map((role) => ({
+              id: role.id,
+              type: ApplicationCommandPermissionType.ROLE,
+              permission: true,
+            }))
+            .values(),
+        ),
+
+        // Add permissions for the guild owner
+        RxO.startWith({
+          id: guild.owner_id,
+          type: ApplicationCommandPermissionType.USER,
           permission: true,
-        })),
+        }),
+
+        RxO.toArray(),
+      ),
   })
   .pipe(
     RxO.flatMap(({ respond }) => respond({ content: "You are the special." })),

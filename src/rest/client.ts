@@ -45,28 +45,32 @@ export function create(
 }
 
 const handleError = (err: AxiosError) => {
-  err.message = `REST error: ${err.code} ${err.config.url} ${err.message}`;
+  err.message = `REST error: ${err.response?.status} ${err.config}`;
   throw err;
 };
 
 export const routes = (client: AxiosInstance) => {
   return createRoutes<AxiosRequestConfig>(
     ({ method, url, params = {}, options = {} }) => {
-      const useParams = method === "GET" || method === "DELETE";
+      const hasBody = method === "GET" || method === "DELETE";
 
       return client
         .request({
           ...options,
           method: method as Method,
           url,
-          params: {
-            ...(options.params || {}),
-            ...(useParams ? params : {}),
-          },
-          data: {
-            ...(options.data || {}),
-            ...(useParams ? {} : params),
-          },
+          params: hasBody
+            ? options.params
+            : {
+                ...(options.params || {}),
+                ...params,
+              },
+          data: hasBody
+            ? {
+                ...(options.data || {}),
+                ...params,
+              }
+            : options.data,
         })
         .then((r) => r.data, handleError);
     },

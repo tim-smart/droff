@@ -53,8 +53,8 @@ const handleError = (err: AxiosError) => {
   throw err;
 };
 
-export const routes = (client: AxiosInstance) => {
-  return createRoutes<AxiosRequestConfig>(
+export const routes = (client: AxiosInstance) =>
+  createRoutes<AxiosRequestConfig>(
     ({ method, url, params = {}, options = {} }) => {
       const hasBody = method !== "GET" && method !== "DELETE";
 
@@ -79,6 +79,5 @@ export const routes = (client: AxiosInstance) => {
         .then((r) => r.data, handleError);
     },
   );
-};
 
 export type Routes = ReturnType<typeof routes>;

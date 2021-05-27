@@ -15,10 +15,6 @@ export interface UnavailableGuild {
   /**  */
   unavailable: boolean;
 }
-export interface MessageActionRow {
-  /** list of child components */
-  components?: MessageComponent[];
-}
 export type Heartbeat = number | null;
 export type ApplicationCommandCreateEvent = ApplicationCommand &
   ApplicationCommandExtra;
@@ -30,7 +26,6 @@ export type GuildMemberAddEvent = GuildMember & GuildMemberAddExtra;
 export type InvalidSessionEvent = boolean;
 export type ResumedEvent = null;
 export type ReconnectEvent = null;
-export type MessageComponent = Component & MessageActionRow;
 export interface Component {
   /** component type */
   type: ComponentType;
@@ -46,6 +41,8 @@ export interface Component {
   url?: string;
   /** whether the button is disabled, default false */
   disabled?: boolean;
+  /** a list of child components */
+  components?: Component[];
 }
 export interface Button {
   /** 2 for a button */
@@ -147,6 +144,48 @@ export interface ModifyGuildEmojiParams {
   /** roles allowed to use this emoji */
   roles?: Snowflake[] | null;
 }
+export interface GuildTemplate {
+  /** the template code (unique ID) */
+  code: string;
+  /** template name */
+  name: string;
+  /** the description for the template */
+  description?: string | null;
+  /** number of times this template has been used */
+  usage_count: number;
+  /** the ID of the user who created the template */
+  creator_id: Snowflake;
+  /** the user who created the template */
+  creator: User;
+  /** when this template was created */
+  created_at: string;
+  /** when this template was last synced to the source guild */
+  updated_at: string;
+  /** the ID of the guild this template is based on */
+  source_guild_id: Snowflake;
+  /** the guild snapshot this template contains */
+  serialized_source_guild: Guild;
+  /** whether the template has unsynced changes */
+  is_dirty?: boolean | null;
+}
+export interface CreateGuildFromGuildTemplateParams {
+  /** name of the guild (2-100 characters) */
+  name: string;
+  /** base64 128x128 image for the guild icon */
+  icon?: string;
+}
+export interface CreateGuildTemplateParams {
+  /** name of the template (1-100 characters) */
+  name: string;
+  /** description for the template (0-120 characters) */
+  description?: string | null;
+}
+export interface ModifyGuildTemplateParams {
+  /** name of the template (1-100 characters) */
+  name?: string;
+  /** description for the template (0-120 characters) */
+  description?: string | null;
+}
 export interface Invite {
   /** the invite code (unique ID) */
   code: string;
@@ -190,48 +229,6 @@ export interface GetInviteParams {
 export enum InviteTargetType {
   STREAM = 1,
   EMBEDDED_APPLICATION = 2,
-}
-export interface GuildTemplate {
-  /** the template code (unique ID) */
-  code: string;
-  /** template name */
-  name: string;
-  /** the description for the template */
-  description?: string | null;
-  /** number of times this template has been used */
-  usage_count: number;
-  /** the ID of the user who created the template */
-  creator_id: Snowflake;
-  /** the user who created the template */
-  creator: User;
-  /** when this template was created */
-  created_at: string;
-  /** when this template was last synced to the source guild */
-  updated_at: string;
-  /** the ID of the guild this template is based on */
-  source_guild_id: Snowflake;
-  /** the guild snapshot this template contains */
-  serialized_source_guild: Guild;
-  /** whether the template has unsynced changes */
-  is_dirty?: boolean | null;
-}
-export interface CreateGuildFromGuildTemplateParams {
-  /** name of the guild (2-100 characters) */
-  name: string;
-  /** base64 128x128 image for the guild icon */
-  icon?: string;
-}
-export interface CreateGuildTemplateParams {
-  /** name of the template (1-100 characters) */
-  name: string;
-  /** description for the template (0-120 characters) */
-  description?: string | null;
-}
-export interface ModifyGuildTemplateParams {
-  /** name of the template (1-100 characters) */
-  name?: string;
-  /** description for the template (0-120 characters) */
-  description?: string | null;
 }
 export interface VoiceState {
   /** the guild id this voice state is for */
@@ -532,54 +529,6 @@ export enum AuditLogEvent {
   INTEGRATION_UPDATE = 81,
   INTEGRATION_DELETE = 82,
 }
-export enum GatewayOpcode {
-  /** An event was dispatched. */
-  DISPATCH = 0,
-  /** Fired periodically by the client to keep the connection alive. */
-  HEARTBEAT = 1,
-  /** Starts a new session during the initial handshake. */
-  IDENTIFY = 2,
-  /** Update the client's presence. */
-  PRESENCE_UPDATE = 3,
-  /** Used to join/leave or move between voice channels. */
-  VOICE_STATE_UPDATE = 4,
-  /** Resume a previous session that was disconnected. */
-  RESUME = 6,
-  /** You should attempt to reconnect and resume immediately. */
-  RECONNECT = 7,
-  /** Request information about offline guild members in a large guild. */
-  REQUEST_GUILD_MEMBERS = 8,
-  /** The session has been invalidated. You should reconnect and identify/resume accordingly. */
-  INVALID_SESSION = 9,
-  /** Sent immediately after connecting, contains the heartbeat_interval to use. */
-  HELLO = 10,
-  /** Sent in response to receiving a heartbeat to acknowledge that it has been received. */
-  HEARTBEAT_ACK = 11,
-}
-export enum VoiceOpcode {
-  /** Begin a voice websocket connection. */
-  IDENTIFY = 0,
-  /** Select the voice protocol. */
-  SELECT_PROTOCOL = 1,
-  /** Complete the websocket handshake. */
-  READY = 2,
-  /** Keep the websocket connection alive. */
-  HEARTBEAT = 3,
-  /** Describe the session. */
-  SESSION_DESCRIPTION = 4,
-  /** Indicate which users are speaking. */
-  SPEAKING = 5,
-  /** Sent to acknowledge a received client heartbeat. */
-  HEARTBEAT_ACK = 6,
-  /** Resume a connection. */
-  RESUME = 7,
-  /** Time to wait between sending heartbeats in milliseconds. */
-  HELLO = 8,
-  /** Acknowledge a successful session resume. */
-  RESUMED = 9,
-  /** A client has disconnected from the voice channel */
-  CLIENT_DISCONNECT = 13,
-}
 export interface Webhook {
   /** the id of the webhook */
   id: Snowflake;
@@ -762,6 +711,54 @@ export const PermissionFlag = {
   /** Allows for creating and participating in private threads */
   USE_PRIVATE_THREADS: BigInt(1) << BigInt(36),
 } as const;
+export enum GatewayOpcode {
+  /** An event was dispatched. */
+  DISPATCH = 0,
+  /** Fired periodically by the client to keep the connection alive. */
+  HEARTBEAT = 1,
+  /** Starts a new session during the initial handshake. */
+  IDENTIFY = 2,
+  /** Update the client's presence. */
+  PRESENCE_UPDATE = 3,
+  /** Used to join/leave or move between voice channels. */
+  VOICE_STATE_UPDATE = 4,
+  /** Resume a previous session that was disconnected. */
+  RESUME = 6,
+  /** You should attempt to reconnect and resume immediately. */
+  RECONNECT = 7,
+  /** Request information about offline guild members in a large guild. */
+  REQUEST_GUILD_MEMBERS = 8,
+  /** The session has been invalidated. You should reconnect and identify/resume accordingly. */
+  INVALID_SESSION = 9,
+  /** Sent immediately after connecting, contains the heartbeat_interval to use. */
+  HELLO = 10,
+  /** Sent in response to receiving a heartbeat to acknowledge that it has been received. */
+  HEARTBEAT_ACK = 11,
+}
+export enum VoiceOpcode {
+  /** Begin a voice websocket connection. */
+  IDENTIFY = 0,
+  /** Select the voice protocol. */
+  SELECT_PROTOCOL = 1,
+  /** Complete the websocket handshake. */
+  READY = 2,
+  /** Keep the websocket connection alive. */
+  HEARTBEAT = 3,
+  /** Describe the session. */
+  SESSION_DESCRIPTION = 4,
+  /** Indicate which users are speaking. */
+  SPEAKING = 5,
+  /** Sent to acknowledge a received client heartbeat. */
+  HEARTBEAT_ACK = 6,
+  /** Resume a connection. */
+  RESUME = 7,
+  /** Time to wait between sending heartbeats in milliseconds. */
+  HELLO = 8,
+  /** Acknowledge a successful session resume. */
+  RESUMED = 9,
+  /** A client has disconnected from the voice channel */
+  CLIENT_DISCONNECT = 13,
+}
 export interface ApplicationCommand {
   /** unique id of the command */
   id: Snowflake;
@@ -890,7 +887,7 @@ export interface InteractionApplicationCommandCallbackDatum {
   /** set to 64 to make your response ephemeral */
   flags?: number;
   /** message components */
-  components?: MessageComponent[];
+  components?: Component[];
 }
 export interface MessageInteraction {
   /** id of the interaction */
@@ -1512,601 +1509,6 @@ export const SystemChannelFlag = {
   /** Suppress server setup tips */
   SUPPRESS_GUILD_REMINDER_NOTIFICATIONS: 1 << 2,
 } as const;
-export interface Channel {
-  /** the id of this channel */
-  id: Snowflake;
-  /** the type of channel */
-  type: ChannelType;
-  /** the id of the guild (may be missing for some channel objects received over gateway guild dispatches) */
-  guild_id?: Snowflake;
-  /** sorting position of the channel */
-  position?: number;
-  /** explicit permission overwrites for members and roles */
-  permission_overwrites?: Overwrite[];
-  /** the name of the channel (2-100 characters) */
-  name?: string;
-  /** the channel topic (0-1024 characters) */
-  topic?: string | null;
-  /** whether the channel is nsfw */
-  nsfw?: boolean;
-  /** the id of the last message sent in this channel (may not point to an existing or valid message) */
-  last_message_id?: Snowflake | null;
-  /** the bitrate (in bits) of the voice channel */
-  bitrate?: number;
-  /** the user limit of the voice channel */
-  user_limit?: number;
-  /** amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages or manage_channel, are unaffected */
-  rate_limit_per_user?: number;
-  /** the recipients of the DM */
-  recipients?: User[];
-  /** icon hash */
-  icon?: string | null;
-  /** id of the creator of the group DM or thread */
-  owner_id?: Snowflake;
-  /** application id of the group DM creator if it is bot-created */
-  application_id?: Snowflake;
-  /** for guild channels: id of the parent category for a channel (each parent category can contain up to 50 channels), for threads: id of the text channel this thread was created */
-  parent_id?: Snowflake | null;
-  /** when the last pinned message was pinned. This may be null in events such as GUILD_CREATE when a message is not pinned. */
-  last_pin_timestamp?: string | null;
-  /** voice region id for the voice channel, automatic when set to null */
-  rtc_region?: string | null;
-  /** the camera video quality mode of the voice channel, 1 when not present */
-  video_quality_mode?: VideoQualityMode;
-  /** an approximate count of messages in a thread, stops counting at 50 */
-  message_count?: number;
-  /** an approximate count of users in a thread, stops counting at 50 */
-  member_count?: number;
-  /** thread-specific fields not needed by other channels */
-  thread_metadata?: ThreadMetadatum;
-  /** thread member object for the current user, if they have joined the thread, only included on certain API endpoints */
-  member?: ThreadMember;
-}
-export interface Message {
-  /** id of the message */
-  id: Snowflake;
-  /** id of the channel the message was sent in */
-  channel_id: Snowflake;
-  /** id of the guild the message was sent in */
-  guild_id?: Snowflake;
-  /** the author of this message (not guaranteed to be a valid user, see below) */
-  author: User;
-  /** member properties for this message's author */
-  member?: GuildMember;
-  /** contents of the message */
-  content: string;
-  /** when this message was sent */
-  timestamp: string;
-  /** when this message was edited (or null if never) */
-  edited_timestamp?: string | null;
-  /** whether this was a TTS message */
-  tts: boolean;
-  /** whether this message mentions everyone */
-  mention_everyone: boolean;
-  /** users specifically mentioned in the message */
-  mentions: User[];
-  /** roles specifically mentioned in this message */
-  mention_roles: Snowflake[];
-  /** channels specifically mentioned in this message */
-  mention_channels?: ChannelMention[];
-  /** any attached files */
-  attachments: Attachment[];
-  /** any embedded content */
-  embeds: Embed[];
-  /** reactions to the message */
-  reactions?: Reaction[];
-  /** used for validating a message was sent */
-  nonce?: string;
-  /** whether this message is pinned */
-  pinned: boolean;
-  /** if the message is generated by a webhook, this is the webhook's id */
-  webhook_id?: Snowflake;
-  /** type of message */
-  type: MessageType;
-  /** sent with Rich Presence-related chat embeds */
-  activity?: MessageActivity;
-  /** sent with Rich Presence-related chat embeds */
-  application?: Application;
-  /** if the message is a response to an Interaction, this is the id of the interaction's application */
-  application_id?: Snowflake;
-  /** data showing the source of a crosspost, channel follow add, pin, or reply message */
-  message_reference?: MessageReference;
-  /** message flags combined as a bitfield */
-  flags?: number;
-  /** the stickers sent with the message (bots currently can only receive messages with stickers, not send) */
-  stickers?: MessageSticker[];
-  /** the message associated with the message_reference */
-  referenced_message?: Message | null;
-  /** sent if the message is a response to an Interaction */
-  interaction?: MessageInteraction;
-  /** the thread that was started from this message, includes thread member object */
-  thread?: Channel;
-  /** sent if the message contains components like buttons, action rows, or other interactive components */
-  components?: MessageComponent[];
-}
-export interface MessageActivity {
-  /** type of message activity */
-  type: MessageActivityType;
-  /** party_id from a Rich Presence event */
-  party_id?: string;
-}
-export interface MessageSticker {
-  /** id of the sticker */
-  id: Snowflake;
-  /** id of the pack the sticker is from */
-  pack_id: Snowflake;
-  /** name of the sticker */
-  name: string;
-  /** description of the sticker */
-  description: string;
-  /** a comma-separated list of tags for the sticker */
-  tags?: string;
-  /** sticker asset hash */
-  asset: string;
-  /** type of sticker format */
-  format_type: MessageStickerFormatType;
-}
-export interface MessageReference {
-  /** id of the originating message */
-  message_id?: Snowflake;
-  /** id of the originating message's channel */
-  channel_id?: Snowflake;
-  /** id of the originating message's guild */
-  guild_id?: Snowflake;
-  /** when sending, whether to error if the referenced message doesn't exist instead of sending as a normal (non-reply) message, default true */
-  fail_if_not_exists?: boolean;
-}
-export interface FollowedChannel {
-  /** source channel id */
-  channel_id: Snowflake;
-  /** created target webhook id */
-  webhook_id: Snowflake;
-}
-export interface Reaction {
-  /** times this emoji has been used to react */
-  count: number;
-  /** whether the current user reacted using this emoji */
-  me: boolean;
-  /** emoji information */
-  emoji: Emoji;
-}
-export interface Overwrite {
-  /** role or user id */
-  id: Snowflake;
-  /** either 0 (role) or 1 (member) */
-  type: number;
-  /** permission bit set */
-  allow: string;
-  /** permission bit set */
-  deny: string;
-}
-export interface ThreadMetadatum {
-  /** whether the thread is archived */
-  archived: boolean;
-  /** id of the user that last archived or unarchived the thread */
-  archiver_id?: Snowflake;
-  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
-  auto_archive_duration: number;
-  /** timestamp when the thread's archive status was last changed, used for calculating recent activity */
-  archive_timestamp: string;
-  /** when a thread is locked, only users with MANAGE_THREADS can unarchive it */
-  locked?: boolean;
-}
-export interface ThreadMember {
-  /** the id of the thread */
-  id: Snowflake;
-  /** the id of the user */
-  user_id: Snowflake;
-  /** the time the current user last joined the thread */
-  join_timestamp: string;
-  /** any user-thread settings, currently only used for notifications */
-  flags: number;
-}
-export interface Embed {
-  /** title of embed */
-  title?: string;
-  /** type of embed (always "rich" for webhook embeds) */
-  type?: EmbedType;
-  /** description of embed */
-  description?: string;
-  /** url of embed */
-  url?: string;
-  /** timestamp of embed content */
-  timestamp?: string;
-  /** color code of the embed */
-  color?: number;
-  /** footer information */
-  footer?: EmbedFooter;
-  /** image information */
-  image?: EmbedImage;
-  /** thumbnail information */
-  thumbnail?: EmbedThumbnail;
-  /** video information */
-  video?: EmbedVideo;
-  /** provider information */
-  provider?: EmbedProvider;
-  /** author information */
-  author?: EmbedAuthor;
-  /** fields information */
-  fields?: EmbedField[];
-}
-export interface EmbedThumbnail {
-  /** source url of thumbnail (only supports http(s) and attachments) */
-  url?: string;
-  /** a proxied url of the thumbnail */
-  proxy_url?: string;
-  /** height of thumbnail */
-  height?: number;
-  /** width of thumbnail */
-  width?: number;
-}
-export interface EmbedVideo {
-  /** source url of video */
-  url?: string;
-  /** a proxied url of the video */
-  proxy_url?: string;
-  /** height of video */
-  height?: number;
-  /** width of video */
-  width?: number;
-}
-export interface EmbedImage {
-  /** source url of image (only supports http(s) and attachments) */
-  url?: string;
-  /** a proxied url of the image */
-  proxy_url?: string;
-  /** height of image */
-  height?: number;
-  /** width of image */
-  width?: number;
-}
-export interface EmbedProvider {
-  /** name of provider */
-  name?: string;
-  /** url of provider */
-  url?: string;
-}
-export interface EmbedAuthor {
-  /** name of author */
-  name?: string;
-  /** url of author */
-  url?: string;
-  /** url of author icon (only supports http(s) and attachments) */
-  icon_url?: string;
-  /** a proxied url of author icon */
-  proxy_icon_url?: string;
-}
-export interface EmbedFooter {
-  /** footer text */
-  text: string;
-  /** url of footer icon (only supports http(s) and attachments) */
-  icon_url?: string;
-  /** a proxied url of footer icon */
-  proxy_icon_url?: string;
-}
-export interface EmbedField {
-  /** name of the field */
-  name: string;
-  /** value of the field */
-  value: string;
-  /** whether or not this field should display inline */
-  inline?: boolean;
-}
-export interface Attachment {
-  /** attachment id */
-  id: Snowflake;
-  /** name of file attached */
-  filename: string;
-  /** the attachment's media type */
-  content_type?: string;
-  /** size of file in bytes */
-  size: number;
-  /** source url of file */
-  url: string;
-  /** a proxied url of file */
-  proxy_url: string;
-  /** height of file (if image) */
-  height?: number | null;
-  /** width of file (if image) */
-  width?: number | null;
-}
-export interface ChannelMention {
-  /** id of the channel */
-  id: Snowflake;
-  /** id of the guild containing the channel */
-  guild_id: Snowflake;
-  /** the type of channel */
-  type: ChannelType;
-  /** the name of the channel */
-  name: string;
-}
-export interface AllowedMention {
-  /** An array of allowed mention types to parse from the content. */
-  parse: AllowedMentionType[];
-  /** Array of role_ids to mention (Max size of 100) */
-  roles: Snowflake[];
-  /** Array of user_ids to mention (Max size of 100) */
-  users: Snowflake[];
-  /** For replies, whether to mention the author of the message being replied to (default false) */
-  replied_user: boolean;
-}
-export interface ResponseBody {
-  /** the active threads */
-  threads: Channel[];
-  /** a thread member object for each returned thread the current user has joined */
-  members: ThreadMember[];
-  /** whether there are potentially additional threads that could be returned on a subsequent call */
-  has_more: boolean;
-}
-export interface ModifyChannelGroupDmParams {
-  /** 2-100 character channel name */
-  name: string;
-  /** base64 encoded icon */
-  icon: string;
-}
-export interface ModifyChannelGuildChannelParams {
-  /** 2-100 character channel name */
-  name: string;
-  /** the type of channel; only conversion between text and news is supported and only in guilds with the "NEWS" feature */
-  type: ChannelType;
-  /** the position of the channel in the left-hand listing */
-  position?: number | null;
-  /** 0-1024 character channel topic */
-  topic?: string | null;
-  /** whether the channel is nsfw */
-  nsfw?: boolean | null;
-  /** amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages or manage_channel, are unaffected */
-  rate_limit_per_user?: number | null;
-  /** the bitrate (in bits) of the voice channel; 8000 to 96000 (128000 for VIP servers) */
-  bitrate?: number | null;
-  /** the user limit of the voice channel; 0 refers to no limit, 1 to 99 refers to a user limit */
-  user_limit?: number | null;
-  /** channel or category-specific permissions */
-  permission_overwrites?: Overwrite[] | null;
-  /** id of the new parent category for a channel */
-  parent_id?: Snowflake | null;
-  /** channel voice region id, automatic when set to null */
-  rtc_region?: string | null;
-  /** the camera video quality mode of the voice channel */
-  video_quality_mode?: VideoQualityMode | null;
-}
-export interface ModifyChannelThreadParams {
-  /** 2-100 character channel name */
-  name: string;
-  /** whether the channel is archived */
-  archived: boolean;
-  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
-  auto_archive_duration: number;
-  /** when a thread is locked, only users with MANAGE_THREADS can unarchive it */
-  locked: boolean;
-  /** amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages, manage_thread, or manage_channel, are unaffected */
-  rate_limit_per_user?: number | null;
-}
-export interface GetChannelMessageParams {
-  /** get messages around this message ID */
-  around: Snowflake;
-  /** get messages before this message ID */
-  before: Snowflake;
-  /** get messages after this message ID */
-  after: Snowflake;
-  /** max number of messages to return (1-100) */
-  limit: number;
-}
-export interface CreateMessageParams {
-  /** the message contents (up to 2000 characters) */
-  content: string;
-  /** true if this is a TTS message */
-  tts: boolean;
-  /** the contents of the file being sent */
-  file: string;
-  /** embedded rich content */
-  embed: Embed;
-  /** JSON encoded body of non-file params */
-  payload_json: string;
-  /** allowed mentions for the message */
-  allowed_mentions: AllowedMention;
-  /** include to make your message a reply */
-  message_reference: MessageReference;
-}
-export interface GetReactionParams {
-  /** get users after this user ID */
-  after: Snowflake;
-  /** max number of users to return (1-100) */
-  limit: number;
-}
-export interface EditMessageParams {
-  /** the message contents (up to 2000 characters) */
-  content: string;
-  /** embedded rich content */
-  embed: Embed;
-  /** edit the flags of a message (only SUPPRESS_EMBEDS can currently be set/unset) */
-  flags: number;
-  /** the contents of the file being sent/edited */
-  file: string;
-  /** JSON encoded body of non-file params (multipart/form-data only) */
-  payload_json: string;
-  /** allowed mentions for the message */
-  allowed_mentions: AllowedMention;
-  /** attached files to keep */
-  attachments: Attachment[];
-}
-export interface BulkDeleteMessageParams {
-  /** an array of message ids to delete (2-100) */
-  messages: Snowflake[];
-}
-export interface EditChannelPermissionParams {
-  /** the bitwise value of all allowed permissions */
-  allow: string;
-  /** the bitwise value of all disallowed permissions */
-  deny: string;
-  /** 0 for a role or 1 for a member */
-  type: number;
-}
-export interface CreateChannelInviteParams {
-  /** duration of invite in seconds before expiry, or 0 for never. between 0 and 604800 (7 days) */
-  max_age: number;
-  /** max number of uses or 0 for unlimited. between 0 and 100 */
-  max_uses: number;
-  /** whether this invite only grants temporary membership */
-  temporary: boolean;
-  /** if true, don't try to reuse a similar invite (useful for creating many unique one time use invites) */
-  unique: boolean;
-  /** the type of target for this voice channel invite */
-  target_type: InviteTargetType;
-  /** the id of the user whose stream to display for this invite, required if target_type is 1, the user must be streaming in the channel */
-  target_user_id: Snowflake;
-  /** the id of the embedded application to open for this invite, required if target_type is 2, the application must have the EMBEDDED flag */
-  target_application_id: Snowflake;
-}
-export interface FollowNewsChannelParams {
-  /** id of target channel */
-  webhook_channel_id: Snowflake;
-}
-export interface GroupDmAddRecipientParams {
-  /** access token of a user that has granted your app the gdm.join scope */
-  access_token: string;
-  /** nickname of the user being added */
-  nick: string;
-}
-export interface StartThreadWithMessageParams {
-  /** 2-100 character channel name */
-  name: string;
-  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
-  auto_archive_duration: number;
-}
-export interface StartThreadWithoutMessageParams {
-  /** 2-100 character channel name */
-  name: string;
-  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
-  auto_archive_duration: number;
-}
-export interface ListPublicArchivedThreadParams {
-  /** returns threads before this timestamp */
-  before?: string;
-  /** optional maximum number of threads to return */
-  limit?: number;
-}
-export interface ListPrivateArchivedThreadParams {
-  /** returns threads before this timestamp */
-  before?: string;
-  /** optional maximum number of threads to return */
-  limit?: number;
-}
-export interface ListJoinedPrivateArchivedThreadParams {
-  /** returns threads before this id */
-  before?: Snowflake;
-  /** optional maximum number of threads to return */
-  limit?: number;
-}
-export enum ChannelType {
-  /** a text channel within a server */
-  GUILD_TEXT = 0,
-  /** a direct message between users */
-  DM = 1,
-  /** a voice channel within a server */
-  GUILD_VOICE = 2,
-  /** a direct message between multiple users */
-  GROUP_DM = 3,
-  /** an organizational category that contains up to 50 channels */
-  GUILD_CATEGORY = 4,
-  /** a channel that users can follow and crosspost into their own server */
-  GUILD_NEWS = 5,
-  /** a channel in which game developers can sell their game on Discord */
-  GUILD_STORE = 6,
-  /** a temporary sub-channel within a GUILD_NEWS channel */
-  GUILD_NEWS_THREAD = 10,
-  /** a temporary sub-channel within a GUILD_TEXT channel */
-  GUILD_PUBLIC_THREAD = 11,
-  /** a temporary sub-channel within a GUILD_TEXT channel that is only viewable by those invited and those with the MANAGE_THREADS permission */
-  GUILD_PRIVATE_THREAD = 12,
-  /** a voice channel for hosting events with an audience */
-  GUILD_STAGE_VOICE = 13,
-}
-export enum VideoQualityMode {
-  /** Discord chooses the quality for optimal performance */
-  AUTO = 1,
-  /** 720p */
-  FULL = 2,
-}
-export enum MessageType {
-  DEFAULT = 0,
-  RECIPIENT_ADD = 1,
-  RECIPIENT_REMOVE = 2,
-  CALL = 3,
-  CHANNEL_NAME_CHANGE = 4,
-  CHANNEL_ICON_CHANGE = 5,
-  CHANNEL_PINNED_MESSAGE = 6,
-  GUILD_MEMBER_JOIN = 7,
-  USER_PREMIUM_GUILD_SUBSCRIPTION = 8,
-  USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_1 = 9,
-  USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_2 = 10,
-  USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_3 = 11,
-  CHANNEL_FOLLOW_ADD = 12,
-  GUILD_DISCOVERY_DISQUALIFIED = 14,
-  GUILD_DISCOVERY_REQUALIFIED = 15,
-  GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING = 16,
-  GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING = 17,
-  THREAD_CREATED = 18,
-  REPLY = 19,
-  APPLICATION_COMMAND = 20,
-  THREAD_STARTER_MESSAGE = 21,
-  GUILD_INVITE_REMINDER = 22,
-}
-export enum MessageActivityType {
-  JOIN = 1,
-  SPECTATE = 2,
-  LISTEN = 3,
-  JOIN_REQUEST = 5,
-}
-export enum MessageStickerFormatType {
-  PNG = 1,
-  APNG = 2,
-  LOTTIE = 3,
-}
-export enum EmbedType {
-  /** generic embed rendered from embed attributes */
-  RICH = "rich",
-  /** image embed */
-  IMAGE = "image",
-  /** video embed */
-  VIDEO = "video",
-  /** animated gif image embed rendered as a video embed */
-  GIFV = "gifv",
-  /** article embed */
-  ARTICLE = "article",
-  /** link embed */
-  LINK = "link",
-}
-export enum AllowedMentionType {
-  /** Controls role mentions */
-  ROLE_MENTIONS = "roles",
-  /** Controls user mentions */
-  USER_MENTIONS = "users",
-  /** Controls @everyone and @here mentions */
-  EVERYONE_MENTIONS = "everyone",
-}
-export const MessageFlag = {
-  /** this message has been published to subscribed channels (via Channel Following) */
-  CROSSPOSTED: 1 << 0,
-  /** this message originated from a message in another channel (via Channel Following) */
-  IS_CROSSPOST: 1 << 1,
-  /** do not include any embeds when serializing this message */
-  SUPPRESS_EMBEDS: 1 << 2,
-  /** the source message for this crosspost has been deleted (via Channel Following) */
-  SOURCE_MESSAGE_DELETED: 1 << 3,
-  /** this message came from the urgent message system */
-  URGENT: 1 << 4,
-  /** this message has an associated thread, with the same id as the message */
-  HAS_THREAD: 1 << 5,
-  /** this message is only visible to the user who invoked the Interaction */
-  EPHEMERAL: 1 << 6,
-  /** this message is an Interaction Response and the bot is "thinking" */
-  LOADING: 1 << 7,
-} as const;
-export type ModifyChannelParams =
-  | ModifyChannelGroupDmParams
-  | ModifyChannelGuildChannelParams
-  | ModifyChannelThreadParams;
 export interface Identify {
   /** authentication token */
   token: string;
@@ -2737,6 +2139,601 @@ export type MessageUpdateEvent = Message;
 export type UserUpdateEvent = User;
 export type VoiceStateUpdateEvent = VoiceState;
 export type InteractionCreateEvent = Interaction;
+export interface Channel {
+  /** the id of this channel */
+  id: Snowflake;
+  /** the type of channel */
+  type: ChannelType;
+  /** the id of the guild (may be missing for some channel objects received over gateway guild dispatches) */
+  guild_id?: Snowflake;
+  /** sorting position of the channel */
+  position?: number;
+  /** explicit permission overwrites for members and roles */
+  permission_overwrites?: Overwrite[];
+  /** the name of the channel (2-100 characters) */
+  name?: string;
+  /** the channel topic (0-1024 characters) */
+  topic?: string | null;
+  /** whether the channel is nsfw */
+  nsfw?: boolean;
+  /** the id of the last message sent in this channel (may not point to an existing or valid message) */
+  last_message_id?: Snowflake | null;
+  /** the bitrate (in bits) of the voice channel */
+  bitrate?: number;
+  /** the user limit of the voice channel */
+  user_limit?: number;
+  /** amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages or manage_channel, are unaffected */
+  rate_limit_per_user?: number;
+  /** the recipients of the DM */
+  recipients?: User[];
+  /** icon hash */
+  icon?: string | null;
+  /** id of the creator of the group DM or thread */
+  owner_id?: Snowflake;
+  /** application id of the group DM creator if it is bot-created */
+  application_id?: Snowflake;
+  /** for guild channels: id of the parent category for a channel (each parent category can contain up to 50 channels), for threads: id of the text channel this thread was created */
+  parent_id?: Snowflake | null;
+  /** when the last pinned message was pinned. This may be null in events such as GUILD_CREATE when a message is not pinned. */
+  last_pin_timestamp?: string | null;
+  /** voice region id for the voice channel, automatic when set to null */
+  rtc_region?: string | null;
+  /** the camera video quality mode of the voice channel, 1 when not present */
+  video_quality_mode?: VideoQualityMode;
+  /** an approximate count of messages in a thread, stops counting at 50 */
+  message_count?: number;
+  /** an approximate count of users in a thread, stops counting at 50 */
+  member_count?: number;
+  /** thread-specific fields not needed by other channels */
+  thread_metadata?: ThreadMetadatum;
+  /** thread member object for the current user, if they have joined the thread, only included on certain API endpoints */
+  member?: ThreadMember;
+}
+export interface Message {
+  /** id of the message */
+  id: Snowflake;
+  /** id of the channel the message was sent in */
+  channel_id: Snowflake;
+  /** id of the guild the message was sent in */
+  guild_id?: Snowflake;
+  /** the author of this message (not guaranteed to be a valid user, see below) */
+  author: User;
+  /** member properties for this message's author */
+  member?: GuildMember;
+  /** contents of the message */
+  content: string;
+  /** when this message was sent */
+  timestamp: string;
+  /** when this message was edited (or null if never) */
+  edited_timestamp?: string | null;
+  /** whether this was a TTS message */
+  tts: boolean;
+  /** whether this message mentions everyone */
+  mention_everyone: boolean;
+  /** users specifically mentioned in the message */
+  mentions: User[];
+  /** roles specifically mentioned in this message */
+  mention_roles: Snowflake[];
+  /** channels specifically mentioned in this message */
+  mention_channels?: ChannelMention[];
+  /** any attached files */
+  attachments: Attachment[];
+  /** any embedded content */
+  embeds: Embed[];
+  /** reactions to the message */
+  reactions?: Reaction[];
+  /** used for validating a message was sent */
+  nonce?: string;
+  /** whether this message is pinned */
+  pinned: boolean;
+  /** if the message is generated by a webhook, this is the webhook's id */
+  webhook_id?: Snowflake;
+  /** type of message */
+  type: MessageType;
+  /** sent with Rich Presence-related chat embeds */
+  activity?: MessageActivity;
+  /** sent with Rich Presence-related chat embeds */
+  application?: Application;
+  /** if the message is a response to an Interaction, this is the id of the interaction's application */
+  application_id?: Snowflake;
+  /** data showing the source of a crosspost, channel follow add, pin, or reply message */
+  message_reference?: MessageReference;
+  /** message flags combined as a bitfield */
+  flags?: number;
+  /** the stickers sent with the message (bots currently can only receive messages with stickers, not send) */
+  stickers?: MessageSticker[];
+  /** the message associated with the message_reference */
+  referenced_message?: Message | null;
+  /** sent if the message is a response to an Interaction */
+  interaction?: MessageInteraction;
+  /** the thread that was started from this message, includes thread member object */
+  thread?: Channel;
+  /** sent if the message contains components like buttons, action rows, or other interactive components */
+  components?: Component[];
+}
+export interface MessageActivity {
+  /** type of message activity */
+  type: MessageActivityType;
+  /** party_id from a Rich Presence event */
+  party_id?: string;
+}
+export interface MessageSticker {
+  /** id of the sticker */
+  id: Snowflake;
+  /** id of the pack the sticker is from */
+  pack_id: Snowflake;
+  /** name of the sticker */
+  name: string;
+  /** description of the sticker */
+  description: string;
+  /** a comma-separated list of tags for the sticker */
+  tags?: string;
+  /** sticker asset hash */
+  asset: string;
+  /** type of sticker format */
+  format_type: MessageStickerFormatType;
+}
+export interface MessageReference {
+  /** id of the originating message */
+  message_id?: Snowflake;
+  /** id of the originating message's channel */
+  channel_id?: Snowflake;
+  /** id of the originating message's guild */
+  guild_id?: Snowflake;
+  /** when sending, whether to error if the referenced message doesn't exist instead of sending as a normal (non-reply) message, default true */
+  fail_if_not_exists?: boolean;
+}
+export interface FollowedChannel {
+  /** source channel id */
+  channel_id: Snowflake;
+  /** created target webhook id */
+  webhook_id: Snowflake;
+}
+export interface Reaction {
+  /** times this emoji has been used to react */
+  count: number;
+  /** whether the current user reacted using this emoji */
+  me: boolean;
+  /** emoji information */
+  emoji: Emoji;
+}
+export interface Overwrite {
+  /** role or user id */
+  id: Snowflake;
+  /** either 0 (role) or 1 (member) */
+  type: number;
+  /** permission bit set */
+  allow: string;
+  /** permission bit set */
+  deny: string;
+}
+export interface ThreadMetadatum {
+  /** whether the thread is archived */
+  archived: boolean;
+  /** id of the user that last archived or unarchived the thread */
+  archiver_id?: Snowflake;
+  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
+  auto_archive_duration: number;
+  /** timestamp when the thread's archive status was last changed, used for calculating recent activity */
+  archive_timestamp: string;
+  /** when a thread is locked, only users with MANAGE_THREADS can unarchive it */
+  locked?: boolean;
+}
+export interface ThreadMember {
+  /** the id of the thread */
+  id: Snowflake;
+  /** the id of the user */
+  user_id: Snowflake;
+  /** the time the current user last joined the thread */
+  join_timestamp: string;
+  /** any user-thread settings, currently only used for notifications */
+  flags: number;
+}
+export interface Embed {
+  /** title of embed */
+  title?: string;
+  /** type of embed (always "rich" for webhook embeds) */
+  type?: EmbedType;
+  /** description of embed */
+  description?: string;
+  /** url of embed */
+  url?: string;
+  /** timestamp of embed content */
+  timestamp?: string;
+  /** color code of the embed */
+  color?: number;
+  /** footer information */
+  footer?: EmbedFooter;
+  /** image information */
+  image?: EmbedImage;
+  /** thumbnail information */
+  thumbnail?: EmbedThumbnail;
+  /** video information */
+  video?: EmbedVideo;
+  /** provider information */
+  provider?: EmbedProvider;
+  /** author information */
+  author?: EmbedAuthor;
+  /** fields information */
+  fields?: EmbedField[];
+}
+export interface EmbedThumbnail {
+  /** source url of thumbnail (only supports http(s) and attachments) */
+  url?: string;
+  /** a proxied url of the thumbnail */
+  proxy_url?: string;
+  /** height of thumbnail */
+  height?: number;
+  /** width of thumbnail */
+  width?: number;
+}
+export interface EmbedVideo {
+  /** source url of video */
+  url?: string;
+  /** a proxied url of the video */
+  proxy_url?: string;
+  /** height of video */
+  height?: number;
+  /** width of video */
+  width?: number;
+}
+export interface EmbedImage {
+  /** source url of image (only supports http(s) and attachments) */
+  url?: string;
+  /** a proxied url of the image */
+  proxy_url?: string;
+  /** height of image */
+  height?: number;
+  /** width of image */
+  width?: number;
+}
+export interface EmbedProvider {
+  /** name of provider */
+  name?: string;
+  /** url of provider */
+  url?: string;
+}
+export interface EmbedAuthor {
+  /** name of author */
+  name?: string;
+  /** url of author */
+  url?: string;
+  /** url of author icon (only supports http(s) and attachments) */
+  icon_url?: string;
+  /** a proxied url of author icon */
+  proxy_icon_url?: string;
+}
+export interface EmbedFooter {
+  /** footer text */
+  text: string;
+  /** url of footer icon (only supports http(s) and attachments) */
+  icon_url?: string;
+  /** a proxied url of footer icon */
+  proxy_icon_url?: string;
+}
+export interface EmbedField {
+  /** name of the field */
+  name: string;
+  /** value of the field */
+  value: string;
+  /** whether or not this field should display inline */
+  inline?: boolean;
+}
+export interface Attachment {
+  /** attachment id */
+  id: Snowflake;
+  /** name of file attached */
+  filename: string;
+  /** the attachment's media type */
+  content_type?: string;
+  /** size of file in bytes */
+  size: number;
+  /** source url of file */
+  url: string;
+  /** a proxied url of file */
+  proxy_url: string;
+  /** height of file (if image) */
+  height?: number | null;
+  /** width of file (if image) */
+  width?: number | null;
+}
+export interface ChannelMention {
+  /** id of the channel */
+  id: Snowflake;
+  /** id of the guild containing the channel */
+  guild_id: Snowflake;
+  /** the type of channel */
+  type: ChannelType;
+  /** the name of the channel */
+  name: string;
+}
+export interface AllowedMention {
+  /** An array of allowed mention types to parse from the content. */
+  parse: AllowedMentionType[];
+  /** Array of role_ids to mention (Max size of 100) */
+  roles: Snowflake[];
+  /** Array of user_ids to mention (Max size of 100) */
+  users: Snowflake[];
+  /** For replies, whether to mention the author of the message being replied to (default false) */
+  replied_user: boolean;
+}
+export interface ResponseBody {
+  /** the active threads */
+  threads: Channel[];
+  /** a thread member object for each returned thread the current user has joined */
+  members: ThreadMember[];
+  /** whether there are potentially additional threads that could be returned on a subsequent call */
+  has_more: boolean;
+}
+export interface ModifyChannelGroupDmParams {
+  /** 2-100 character channel name */
+  name: string;
+  /** base64 encoded icon */
+  icon: string;
+}
+export interface ModifyChannelGuildChannelParams {
+  /** 2-100 character channel name */
+  name: string;
+  /** the type of channel; only conversion between text and news is supported and only in guilds with the "NEWS" feature */
+  type: ChannelType;
+  /** the position of the channel in the left-hand listing */
+  position?: number | null;
+  /** 0-1024 character channel topic */
+  topic?: string | null;
+  /** whether the channel is nsfw */
+  nsfw?: boolean | null;
+  /** amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages or manage_channel, are unaffected */
+  rate_limit_per_user?: number | null;
+  /** the bitrate (in bits) of the voice channel; 8000 to 96000 (128000 for VIP servers) */
+  bitrate?: number | null;
+  /** the user limit of the voice channel; 0 refers to no limit, 1 to 99 refers to a user limit */
+  user_limit?: number | null;
+  /** channel or category-specific permissions */
+  permission_overwrites?: Overwrite[] | null;
+  /** id of the new parent category for a channel */
+  parent_id?: Snowflake | null;
+  /** channel voice region id, automatic when set to null */
+  rtc_region?: string | null;
+  /** the camera video quality mode of the voice channel */
+  video_quality_mode?: VideoQualityMode | null;
+}
+export interface ModifyChannelThreadParams {
+  /** 2-100 character channel name */
+  name: string;
+  /** whether the channel is archived */
+  archived: boolean;
+  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
+  auto_archive_duration: number;
+  /** when a thread is locked, only users with MANAGE_THREADS can unarchive it */
+  locked: boolean;
+  /** amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages, manage_thread, or manage_channel, are unaffected */
+  rate_limit_per_user?: number | null;
+}
+export interface GetChannelMessageParams {
+  /** get messages around this message ID */
+  around: Snowflake;
+  /** get messages before this message ID */
+  before: Snowflake;
+  /** get messages after this message ID */
+  after: Snowflake;
+  /** max number of messages to return (1-100) */
+  limit: number;
+}
+export interface CreateMessageParams {
+  /** the message contents (up to 2000 characters) */
+  content: string;
+  /** true if this is a TTS message */
+  tts: boolean;
+  /** the contents of the file being sent */
+  file: string;
+  /** embedded rich content */
+  embed: Embed;
+  /** JSON encoded body of non-file params */
+  payload_json: string;
+  /** allowed mentions for the message */
+  allowed_mentions: AllowedMention;
+  /** include to make your message a reply */
+  message_reference: MessageReference;
+}
+export interface GetReactionParams {
+  /** get users after this user ID */
+  after: Snowflake;
+  /** max number of users to return (1-100) */
+  limit: number;
+}
+export interface EditMessageParams {
+  /** the message contents (up to 2000 characters) */
+  content: string;
+  /** embedded rich content */
+  embed: Embed;
+  /** edit the flags of a message (only SUPPRESS_EMBEDS can currently be set/unset) */
+  flags: number;
+  /** the contents of the file being sent/edited */
+  file: string;
+  /** JSON encoded body of non-file params (multipart/form-data only) */
+  payload_json: string;
+  /** allowed mentions for the message */
+  allowed_mentions: AllowedMention;
+  /** attached files to keep */
+  attachments: Attachment[];
+}
+export interface BulkDeleteMessageParams {
+  /** an array of message ids to delete (2-100) */
+  messages: Snowflake[];
+}
+export interface EditChannelPermissionParams {
+  /** the bitwise value of all allowed permissions */
+  allow: string;
+  /** the bitwise value of all disallowed permissions */
+  deny: string;
+  /** 0 for a role or 1 for a member */
+  type: number;
+}
+export interface CreateChannelInviteParams {
+  /** duration of invite in seconds before expiry, or 0 for never. between 0 and 604800 (7 days) */
+  max_age: number;
+  /** max number of uses or 0 for unlimited. between 0 and 100 */
+  max_uses: number;
+  /** whether this invite only grants temporary membership */
+  temporary: boolean;
+  /** if true, don't try to reuse a similar invite (useful for creating many unique one time use invites) */
+  unique: boolean;
+  /** the type of target for this voice channel invite */
+  target_type: InviteTargetType;
+  /** the id of the user whose stream to display for this invite, required if target_type is 1, the user must be streaming in the channel */
+  target_user_id: Snowflake;
+  /** the id of the embedded application to open for this invite, required if target_type is 2, the application must have the EMBEDDED flag */
+  target_application_id: Snowflake;
+}
+export interface FollowNewsChannelParams {
+  /** id of target channel */
+  webhook_channel_id: Snowflake;
+}
+export interface GroupDmAddRecipientParams {
+  /** access token of a user that has granted your app the gdm.join scope */
+  access_token: string;
+  /** nickname of the user being added */
+  nick: string;
+}
+export interface StartThreadWithMessageParams {
+  /** 2-100 character channel name */
+  name: string;
+  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
+  auto_archive_duration: number;
+}
+export interface StartThreadWithoutMessageParams {
+  /** 2-100 character channel name */
+  name: string;
+  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
+  auto_archive_duration: number;
+}
+export interface ListPublicArchivedThreadParams {
+  /** returns threads before this timestamp */
+  before?: string;
+  /** optional maximum number of threads to return */
+  limit?: number;
+}
+export interface ListPrivateArchivedThreadParams {
+  /** returns threads before this timestamp */
+  before?: string;
+  /** optional maximum number of threads to return */
+  limit?: number;
+}
+export interface ListJoinedPrivateArchivedThreadParams {
+  /** returns threads before this id */
+  before?: Snowflake;
+  /** optional maximum number of threads to return */
+  limit?: number;
+}
+export enum ChannelType {
+  /** a text channel within a server */
+  GUILD_TEXT = 0,
+  /** a direct message between users */
+  DM = 1,
+  /** a voice channel within a server */
+  GUILD_VOICE = 2,
+  /** a direct message between multiple users */
+  GROUP_DM = 3,
+  /** an organizational category that contains up to 50 channels */
+  GUILD_CATEGORY = 4,
+  /** a channel that users can follow and crosspost into their own server */
+  GUILD_NEWS = 5,
+  /** a channel in which game developers can sell their game on Discord */
+  GUILD_STORE = 6,
+  /** a temporary sub-channel within a GUILD_NEWS channel */
+  GUILD_NEWS_THREAD = 10,
+  /** a temporary sub-channel within a GUILD_TEXT channel */
+  GUILD_PUBLIC_THREAD = 11,
+  /** a temporary sub-channel within a GUILD_TEXT channel that is only viewable by those invited and those with the MANAGE_THREADS permission */
+  GUILD_PRIVATE_THREAD = 12,
+  /** a voice channel for hosting events with an audience */
+  GUILD_STAGE_VOICE = 13,
+}
+export enum VideoQualityMode {
+  /** Discord chooses the quality for optimal performance */
+  AUTO = 1,
+  /** 720p */
+  FULL = 2,
+}
+export enum MessageType {
+  DEFAULT = 0,
+  RECIPIENT_ADD = 1,
+  RECIPIENT_REMOVE = 2,
+  CALL = 3,
+  CHANNEL_NAME_CHANGE = 4,
+  CHANNEL_ICON_CHANGE = 5,
+  CHANNEL_PINNED_MESSAGE = 6,
+  GUILD_MEMBER_JOIN = 7,
+  USER_PREMIUM_GUILD_SUBSCRIPTION = 8,
+  USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_1 = 9,
+  USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_2 = 10,
+  USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_3 = 11,
+  CHANNEL_FOLLOW_ADD = 12,
+  GUILD_DISCOVERY_DISQUALIFIED = 14,
+  GUILD_DISCOVERY_REQUALIFIED = 15,
+  GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING = 16,
+  GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING = 17,
+  THREAD_CREATED = 18,
+  REPLY = 19,
+  APPLICATION_COMMAND = 20,
+  THREAD_STARTER_MESSAGE = 21,
+  GUILD_INVITE_REMINDER = 22,
+}
+export enum MessageActivityType {
+  JOIN = 1,
+  SPECTATE = 2,
+  LISTEN = 3,
+  JOIN_REQUEST = 5,
+}
+export enum MessageStickerFormatType {
+  PNG = 1,
+  APNG = 2,
+  LOTTIE = 3,
+}
+export enum EmbedType {
+  /** generic embed rendered from embed attributes */
+  RICH = "rich",
+  /** image embed */
+  IMAGE = "image",
+  /** video embed */
+  VIDEO = "video",
+  /** animated gif image embed rendered as a video embed */
+  GIFV = "gifv",
+  /** article embed */
+  ARTICLE = "article",
+  /** link embed */
+  LINK = "link",
+}
+export enum AllowedMentionType {
+  /** Controls role mentions */
+  ROLE_MENTIONS = "roles",
+  /** Controls user mentions */
+  USER_MENTIONS = "users",
+  /** Controls @everyone and @here mentions */
+  EVERYONE_MENTIONS = "everyone",
+}
+export const MessageFlag = {
+  /** this message has been published to subscribed channels (via Channel Following) */
+  CROSSPOSTED: 1 << 0,
+  /** this message originated from a message in another channel (via Channel Following) */
+  IS_CROSSPOST: 1 << 1,
+  /** do not include any embeds when serializing this message */
+  SUPPRESS_EMBEDS: 1 << 2,
+  /** the source message for this crosspost has been deleted (via Channel Following) */
+  SOURCE_MESSAGE_DELETED: 1 << 3,
+  /** this message came from the urgent message system */
+  URGENT: 1 << 4,
+  /** this message has an associated thread, with the same id as the message */
+  HAS_THREAD: 1 << 5,
+  /** this message is only visible to the user who invoked the Interaction */
+  EPHEMERAL: 1 << 6,
+  /** this message is an Interaction Response and the bot is "thinking" */
+  LOADING: 1 << 7,
+} as const;
+export type ModifyChannelParams =
+  | ModifyChannelGroupDmParams
+  | ModifyChannelGuildChannelParams
+  | ModifyChannelThreadParams;
 export type Route<P, O> = {
   method: string;
   url: string;
@@ -2791,25 +2788,6 @@ export function createRoutes<O = any>(
       fetch<any, any>({
         method: "DELETE",
         url: `/guilds/${guildId}/emojis/${emojiId}`,
-        options,
-      }),
-    /** Returns an invite object for the given code. */
-    getInvite: (
-      inviteCode: string,
-      params: Partial<GetInviteParams>,
-      options?: O,
-    ) =>
-      fetch<Invite, Partial<GetInviteParams>>({
-        method: "GET",
-        url: `/invites/${inviteCode}`,
-        params,
-        options,
-      }),
-    /** Delete an invite. Requires the MANAGE_CHANNELS permission on the channel this invite belongs to, or MANAGE_GUILD to remove any invite across the guild. Returns an invite object on success. Fires a Invite Delete Gateway event. */
-    deleteInvite: (inviteCode: string, options?: O) =>
-      fetch<Invite, any>({
-        method: "DELETE",
-        url: `/invites/${inviteCode}`,
         options,
       }),
     /** Returns a guild template object for the given code. */
@@ -2875,6 +2853,25 @@ export function createRoutes<O = any>(
       fetch<GuildTemplate, any>({
         method: "DELETE",
         url: `/guilds/${guildId}/templates/${templateCode}`,
+        options,
+      }),
+    /** Returns an invite object for the given code. */
+    getInvite: (
+      inviteCode: string,
+      params: Partial<GetInviteParams>,
+      options?: O,
+    ) =>
+      fetch<Invite, Partial<GetInviteParams>>({
+        method: "GET",
+        url: `/invites/${inviteCode}`,
+        params,
+        options,
+      }),
+    /** Delete an invite. Requires the MANAGE_CHANNELS permission on the channel this invite belongs to, or MANAGE_GUILD to remove any invite across the guild. Returns an invite object on success. Fires a Invite Delete Gateway event. */
+    deleteInvite: (inviteCode: string, options?: O) =>
+      fetch<Invite, any>({
+        method: "DELETE",
+        url: `/invites/${inviteCode}`,
         options,
       }),
     /** Returns an array of voice region objects that can be used when creating servers. */
@@ -3804,6 +3801,18 @@ export function createRoutes<O = any>(
         params,
         options,
       }),
+    getGateway: (options?: O) =>
+      fetch<any, any>({
+        method: "GET",
+        url: `/gateway`,
+        options,
+      }),
+    getGatewayBot: (options?: O) =>
+      fetch<any, any>({
+        method: "GET",
+        url: `/gateway/bot`,
+        options,
+      }),
     /** Get a channel by ID. Returns a channel object.  If the channel is a thread, a thread member object is included in the returned result. */
     getChannel: (channelId: string, options?: O) =>
       fetch<Channel, any>({
@@ -4178,18 +4187,6 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
         method: "GET",
         url: `/channels/${channelId}/users/@me/threads/archived/private`,
         params,
-        options,
-      }),
-    getGateway: (options?: O) =>
-      fetch<any, any>({
-        method: "GET",
-        url: `/gateway`,
-        options,
-      }),
-    getGatewayBot: (options?: O) =>
-      fetch<any, any>({
-        method: "GET",
-        url: `/gateway/bot`,
         options,
       }),
   };

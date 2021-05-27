@@ -35,10 +35,10 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@tim-smart/discord-api-docs-parser@^0.1.9":
-  version "0.1.9"
-  resolved "https://registry.yarnpkg.com/@tim-smart/discord-api-docs-parser/-/discord-api-docs-parser-0.1.9.tgz#55cc55a7ba0a73170ad90752493a7db2a584ea82"
-  integrity sha512-CjHtrAZco3sV3w9qKY+tQq7QtOjqmzvPzdohP2tVyBiRagZxKqULkyiuXPBMNkOpp43+4h12mywVZPLcjQX+pQ==
+"@tim-smart/discord-api-docs-parser@^0.1.13":
+  version "0.1.13"
+  resolved "https://registry.yarnpkg.com/@tim-smart/discord-api-docs-parser/-/discord-api-docs-parser-0.1.13.tgz#55aa3614f04713b43e0aec03dc90b0a5876f1211"
+  integrity sha512-9Kok3aWQvTVee5KWsqok5FnAFJ9V/fBp0IagAXNoghm66bVgemvWqbKSHrCL2/W05nE/lgH5qkHQfqQe3gbU4Q==
   dependencies:
     "@types/yargs" "^17.0.0"
     cheerio "^1.0.0-rc.9"

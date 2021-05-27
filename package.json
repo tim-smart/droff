@@ -13,7 +13,7 @@
     "prepare": "husky install && rm -rf dist && tsc"
   },
   "devDependencies": {
-    "@tim-smart/discord-api-docs-parser": "^0.1.9",
+    "@tim-smart/discord-api-docs-parser": "^0.1.13",
     "@types/node": "^15.0.2",
     "@types/ws": "^7.4.2",
     "dotenv": "^9.0.0",

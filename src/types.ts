@@ -147,48 +147,6 @@ export interface ModifyGuildEmojiParams {
   /** roles allowed to use this emoji */
   roles?: Snowflake[] | null;
 }
-export interface GuildTemplate {
-  /** the template code (unique ID) */
-  code: string;
-  /** template name */
-  name: string;
-  /** the description for the template */
-  description?: string | null;
-  /** number of times this template has been used */
-  usage_count: number;
-  /** the ID of the user who created the template */
-  creator_id: Snowflake;
-  /** the user who created the template */
-  creator: User;
-  /** when this template was created */
-  created_at: string;
-  /** when this template was last synced to the source guild */
-  updated_at: string;
-  /** the ID of the guild this template is based on */
-  source_guild_id: Snowflake;
-  /** the guild snapshot this template contains */
-  serialized_source_guild: Guild;
-  /** whether the template has unsynced changes */
-  is_dirty?: boolean | null;
-}
-export interface CreateGuildFromGuildTemplateParams {
-  /** name of the guild (2-100 characters) */
-  name: string;
-  /** base64 128x128 image for the guild icon */
-  icon?: string;
-}
-export interface CreateGuildTemplateParams {
-  /** name of the template (1-100 characters) */
-  name: string;
-  /** description for the template (0-120 characters) */
-  description?: string | null;
-}
-export interface ModifyGuildTemplateParams {
-  /** name of the template (1-100 characters) */
-  name?: string;
-  /** description for the template (0-120 characters) */
-  description?: string | null;
-}
 export interface Invite {
   /** the invite code (unique ID) */
   code: string;
@@ -233,67 +191,89 @@ export enum InviteTargetType {
   STREAM = 1,
   EMBEDDED_APPLICATION = 2,
 }
-export interface StageInstance {
-  /** The id of this Stage instance */
-  id: Snowflake;
-  /** The guild id of the associated Stage channel */
-  guild_id: Snowflake;
-  /** The id of the associated Stage channel */
-  channel_id: Snowflake;
-  /** The topic of the Stage instance (1-120 characters) */
-  topic: string;
-  /** The privacy level of the Stage instance */
-  privacy_level: PrivacyLevel;
-  /** Whether or not Stage discovery is disabled */
-  discoverable_disabled: boolean;
+export interface GuildTemplate {
+  /** the template code (unique ID) */
+  code: string;
+  /** template name */
+  name: string;
+  /** the description for the template */
+  description?: string | null;
+  /** number of times this template has been used */
+  usage_count: number;
+  /** the ID of the user who created the template */
+  creator_id: Snowflake;
+  /** the user who created the template */
+  creator: User;
+  /** when this template was created */
+  created_at: string;
+  /** when this template was last synced to the source guild */
+  updated_at: string;
+  /** the ID of the guild this template is based on */
+  source_guild_id: Snowflake;
+  /** the guild snapshot this template contains */
+  serialized_source_guild: Guild;
+  /** whether the template has unsynced changes */
+  is_dirty?: boolean | null;
 }
-export interface CreateStageInstanceParams {
-  /** The id of the Stage channel */
-  channel_id: Snowflake;
-  /** The topic of the Stage instance (1-120 characters) */
-  topic: string;
-  /** The privacy level of the Stage instance (default GUILD_ONLY) */
-  privacy_level?: PrivacyLevel;
+export interface CreateGuildFromGuildTemplateParams {
+  /** name of the guild (2-100 characters) */
+  name: string;
+  /** base64 128x128 image for the guild icon */
+  icon?: string;
 }
-export interface UpdateStageInstanceParams {
-  /** The topic of the Stage instance (1-120 characters) */
-  topic?: string;
-  /** The privacy level of the Stage instance */
-  privacy_level?: PrivacyLevel;
+export interface CreateGuildTemplateParams {
+  /** name of the template (1-100 characters) */
+  name: string;
+  /** description for the template (0-120 characters) */
+  description?: string | null;
 }
-export enum PrivacyLevel {
-  /** The Stage instance is visible publicly, such as on Stage discovery. */
-  PUBLIC = 1,
-  /** The Stage instance is visible to only guild members. */
-  GUILD_ONLY = 2,
+export interface ModifyGuildTemplateParams {
+  /** name of the template (1-100 characters) */
+  name?: string;
+  /** description for the template (0-120 characters) */
+  description?: string | null;
 }
-export interface UsernamesAndNickname {
-  /** the user's id */
-  id: Snowflake;
-  /** the user's username, not unique across the platform */
-  username: string;
-  /** the user's 4-digit discord-tag */
-  discriminator: string;
-  /** the user's avatar hash */
-  avatar?: string | null;
-  /** whether the user belongs to an OAuth2 application */
-  bot?: boolean;
-  /** whether the user is an Official Discord System user (part of the urgent message system) */
-  system?: boolean;
-  /** whether the user has two factor enabled on their account */
-  mfa_enabled?: boolean;
-  /** the user's chosen language option */
-  locale?: string;
-  /** whether the email on this account has been verified */
-  verified?: boolean;
-  /** the user's email */
-  email?: string | null;
-  /** the flags on a user's account */
-  flags?: number;
-  /** the type of Nitro subscription on a user's account */
-  premium_type?: PremiumType;
-  /** the public flags on a user's account */
-  public_flags?: number;
+export interface VoiceState {
+  /** the guild id this voice state is for */
+  guild_id?: Snowflake;
+  /** the channel id this user is connected to */
+  channel_id?: Snowflake | null;
+  /** the user id this voice state is for */
+  user_id: Snowflake;
+  /** the guild member this voice state is for */
+  member?: GuildMember;
+  /** the session id for this voice state */
+  session_id: string;
+  /** whether this user is deafened by the server */
+  deaf: boolean;
+  /** whether this user is muted by the server */
+  mute: boolean;
+  /** whether this user is locally deafened */
+  self_deaf: boolean;
+  /** whether this user is locally muted */
+  self_mute: boolean;
+  /** whether this user is streaming using "Go Live" */
+  self_stream?: boolean;
+  /** whether this user's camera is enabled */
+  self_video: boolean;
+  /** whether this user is muted by the current user */
+  suppress: boolean;
+  /** the time at which the user requested to speak */
+  request_to_speak_timestamp?: string | null;
+}
+export interface VoiceRegion {
+  /** unique ID for the region */
+  id: string;
+  /** name of the region */
+  name: string;
+  /** true if this is a vip-only server */
+  vip: boolean;
+  /** true for a single server that is closest to the current user's client */
+  optimal: boolean;
+  /** whether this is a deprecated voice region (avoid switching to these) */
+  deprecated: boolean;
+  /** whether this is a custom voice region (used for events/etc) */
+  custom: boolean;
 }
 export interface User {
   /** the user's id */
@@ -393,59 +373,39 @@ export const UserFlag = {
   EARLY_VERIFIED_BOT_DEVELOPER: 1 << 17,
   DISCORD_CERTIFIED_MODERATOR: 1 << 18,
 } as const;
-export interface VoiceState {
-  /** the guild id this voice state is for */
-  guild_id?: Snowflake;
-  /** the channel id this user is connected to */
-  channel_id?: Snowflake | null;
-  /** the user id this voice state is for */
-  user_id: Snowflake;
-  /** the guild member this voice state is for */
-  member?: GuildMember;
-  /** the session id for this voice state */
-  session_id: string;
-  /** whether this user is deafened by the server */
-  deaf: boolean;
-  /** whether this user is muted by the server */
-  mute: boolean;
-  /** whether this user is locally deafened */
-  self_deaf: boolean;
-  /** whether this user is locally muted */
-  self_mute: boolean;
-  /** whether this user is streaming using "Go Live" */
-  self_stream?: boolean;
-  /** whether this user's camera is enabled */
-  self_video: boolean;
-  /** whether this user is muted by the current user */
-  suppress: boolean;
-  /** the time at which the user requested to speak */
-  request_to_speak_timestamp?: string | null;
-}
-export interface VoiceRegion {
-  /** unique ID for the region */
-  id: string;
-  /** name of the region */
-  name: string;
-  /** true if this is a vip-only server */
-  vip: boolean;
-  /** true for a single server that is closest to the current user's client */
-  optimal: boolean;
-  /** whether this is a deprecated voice region (avoid switching to these) */
-  deprecated: boolean;
-  /** whether this is a custom voice region (used for events/etc) */
-  custom: boolean;
-}
-export interface DataModel {
-  /** a hash of the image of the team's icon */
-  icon?: string | null;
-  /** the unique id of the team */
+export interface StageInstance {
+  /** The id of this Stage instance */
   id: Snowflake;
-  /** the members of the team */
-  members: TeamMember[];
-  /** the name of the team */
-  name: string;
-  /** the user id of the current team owner */
-  owner_user_id: Snowflake;
+  /** The guild id of the associated Stage channel */
+  guild_id: Snowflake;
+  /** The id of the associated Stage channel */
+  channel_id: Snowflake;
+  /** The topic of the Stage instance (1-120 characters) */
+  topic: string;
+  /** The privacy level of the Stage instance */
+  privacy_level: PrivacyLevel;
+  /** Whether or not Stage discovery is disabled */
+  discoverable_disabled: boolean;
+}
+export interface CreateStageInstanceParams {
+  /** The id of the Stage channel */
+  channel_id: Snowflake;
+  /** The topic of the Stage instance (1-120 characters) */
+  topic: string;
+  /** The privacy level of the Stage instance (default GUILD_ONLY) */
+  privacy_level?: PrivacyLevel;
+}
+export interface UpdateStageInstanceParams {
+  /** The topic of the Stage instance (1-120 characters) */
+  topic?: string;
+  /** The privacy level of the Stage instance */
+  privacy_level?: PrivacyLevel;
+}
+export enum PrivacyLevel {
+  /** The Stage instance is visible publicly, such as on Stage discovery. */
+  PUBLIC = 1,
+  /** The Stage instance is visible to only guild members. */
+  GUILD_ONLY = 2,
 }
 export interface Team {
   /** a hash of the image of the team's icon */
@@ -572,6 +532,54 @@ export enum AuditLogEvent {
   INTEGRATION_UPDATE = 81,
   INTEGRATION_DELETE = 82,
 }
+export enum GatewayOpcode {
+  /** An event was dispatched. */
+  DISPATCH = 0,
+  /** Fired periodically by the client to keep the connection alive. */
+  HEARTBEAT = 1,
+  /** Starts a new session during the initial handshake. */
+  IDENTIFY = 2,
+  /** Update the client's presence. */
+  PRESENCE_UPDATE = 3,
+  /** Used to join/leave or move between voice channels. */
+  VOICE_STATE_UPDATE = 4,
+  /** Resume a previous session that was disconnected. */
+  RESUME = 6,
+  /** You should attempt to reconnect and resume immediately. */
+  RECONNECT = 7,
+  /** Request information about offline guild members in a large guild. */
+  REQUEST_GUILD_MEMBERS = 8,
+  /** The session has been invalidated. You should reconnect and identify/resume accordingly. */
+  INVALID_SESSION = 9,
+  /** Sent immediately after connecting, contains the heartbeat_interval to use. */
+  HELLO = 10,
+  /** Sent in response to receiving a heartbeat to acknowledge that it has been received. */
+  HEARTBEAT_ACK = 11,
+}
+export enum VoiceOpcode {
+  /** Begin a voice websocket connection. */
+  IDENTIFY = 0,
+  /** Select the voice protocol. */
+  SELECT_PROTOCOL = 1,
+  /** Complete the websocket handshake. */
+  READY = 2,
+  /** Keep the websocket connection alive. */
+  HEARTBEAT = 3,
+  /** Describe the session. */
+  SESSION_DESCRIPTION = 4,
+  /** Indicate which users are speaking. */
+  SPEAKING = 5,
+  /** Sent to acknowledge a received client heartbeat. */
+  HEARTBEAT_ACK = 6,
+  /** Resume a connection. */
+  RESUME = 7,
+  /** Time to wait between sending heartbeats in milliseconds. */
+  HELLO = 8,
+  /** Acknowledge a successful session resume. */
+  RESUMED = 9,
+  /** A client has disconnected from the voice channel */
+  CLIENT_DISCONNECT = 13,
+}
 export interface Webhook {
   /** the id of the webhook */
   id: Snowflake;
@@ -651,74 +659,6 @@ export enum WebhookType {
   CHANNEL_FOLLOWER = 2,
   /** Application webhooks are webhooks used with Interactions */
   APPLICATION = 3,
-}
-export enum GatewayOpcode {
-  /** An event was dispatched. */
-  DISPATCH = 0,
-  /** Fired periodically by the client to keep the connection alive. */
-  HEARTBEAT = 1,
-  /** Starts a new session during the initial handshake. */
-  IDENTIFY = 2,
-  /** Update the client's presence. */
-  PRESENCE_UPDATE = 3,
-  /** Used to join/leave or move between voice channels. */
-  VOICE_STATE_UPDATE = 4,
-  /** Resume a previous session that was disconnected. */
-  RESUME = 6,
-  /** You should attempt to reconnect and resume immediately. */
-  RECONNECT = 7,
-  /** Request information about offline guild members in a large guild. */
-  REQUEST_GUILD_MEMBERS = 8,
-  /** The session has been invalidated. You should reconnect and identify/resume accordingly. */
-  INVALID_SESSION = 9,
-  /** Sent immediately after connecting, contains the heartbeat_interval to use. */
-  HELLO = 10,
-  /** Sent in response to receiving a heartbeat to acknowledge that it has been received. */
-  HEARTBEAT_ACK = 11,
-}
-export enum VoiceOpcode {
-  /** Begin a voice websocket connection. */
-  IDENTIFY = 0,
-  /** Select the voice protocol. */
-  SELECT_PROTOCOL = 1,
-  /** Complete the websocket handshake. */
-  READY = 2,
-  /** Keep the websocket connection alive. */
-  HEARTBEAT = 3,
-  /** Describe the session. */
-  SESSION_DESCRIPTION = 4,
-  /** Indicate which users are speaking. */
-  SPEAKING = 5,
-  /** Sent to acknowledge a received client heartbeat. */
-  HEARTBEAT_ACK = 6,
-  /** Resume a connection. */
-  RESUME = 7,
-  /** Time to wait between sending heartbeats in milliseconds. */
-  HELLO = 8,
-  /** Acknowledge a successful session resume. */
-  RESUMED = 9,
-  /** A client has disconnected from the voice channel */
-  CLIENT_DISCONNECT = 13,
-}
-export interface PermissionSyncing {
-  /** role id */
-  id: Snowflake;
-  /** role name */
-  name: string;
-  /** integer representation of hexadecimal color code */
-  color: number;
-  /** if this role is pinned in the user listing */
-  hoist: boolean;
-  /** position of this role */
-  position: number;
-  /** permission bit set */
-  permissions: string;
-  /** whether this role is managed by an integration */
-  managed: boolean;
-  /** whether this role is mentionable */
-  mentionable: boolean;
-  /** the tags this role has */
-  tags?: RoleTag;
 }
 export interface Role {
   /** role id */
@@ -2167,24 +2107,6 @@ export type ModifyChannelParams =
   | ModifyChannelGroupDmParams
   | ModifyChannelGuildChannelParams
   | ModifyChannelThreadParams;
-export interface Payload {
-  /** opcode for the payload */
-  op: GatewayOpcode;
-  /** event data */
-  d?: any | null;
-  /** sequence number, used for resuming sessions and heartbeats */
-  s?: number | null;
-  /** the event name for this payload */
-  t?: string | null;
-}
-export interface ConnectingToTheGateway {
-  /** Gateway Version to use */
-  v: number;
-  /** The encoding of received gateway packets */
-  encoding: string;
-  /** The (optional) compression of gateway packets */
-  compress?: string;
-}
 export interface Identify {
   /** authentication token */
   token: string;
@@ -2871,6 +2793,25 @@ export function createRoutes<O = any>(
         url: `/guilds/${guildId}/emojis/${emojiId}`,
         options,
       }),
+    /** Returns an invite object for the given code. */
+    getInvite: (
+      inviteCode: string,
+      params: Partial<GetInviteParams>,
+      options?: O,
+    ) =>
+      fetch<Invite, Partial<GetInviteParams>>({
+        method: "GET",
+        url: `/invites/${inviteCode}`,
+        params,
+        options,
+      }),
+    /** Delete an invite. Requires the MANAGE_CHANNELS permission on the channel this invite belongs to, or MANAGE_GUILD to remove any invite across the guild. Returns an invite object on success. Fires a Invite Delete Gateway event. */
+    deleteInvite: (inviteCode: string, options?: O) =>
+      fetch<Invite, any>({
+        method: "DELETE",
+        url: `/invites/${inviteCode}`,
+        options,
+      }),
     /** Returns a guild template object for the given code. */
     getGuildTemplate: (templateCode: string, options?: O) =>
       fetch<GuildTemplate, any>({
@@ -2936,60 +2877,11 @@ export function createRoutes<O = any>(
         url: `/guilds/${guildId}/templates/${templateCode}`,
         options,
       }),
-    /** Returns an invite object for the given code. */
-    getInvite: (
-      inviteCode: string,
-      params: Partial<GetInviteParams>,
-      options?: O,
-    ) =>
-      fetch<Invite, Partial<GetInviteParams>>({
+    /** Returns an array of voice region objects that can be used when creating servers. */
+    listVoiceRegions: (options?: O) =>
+      fetch<VoiceRegion[], any>({
         method: "GET",
-        url: `/invites/${inviteCode}`,
-        params,
-        options,
-      }),
-    /** Delete an invite. Requires the MANAGE_CHANNELS permission on the channel this invite belongs to, or MANAGE_GUILD to remove any invite across the guild. Returns an invite object on success. Fires a Invite Delete Gateway event. */
-    deleteInvite: (inviteCode: string, options?: O) =>
-      fetch<Invite, any>({
-        method: "DELETE",
-        url: `/invites/${inviteCode}`,
-        options,
-      }),
-    /** Creates a new Stage instance associated to a Stage channel. */
-    createStageInstance: (
-      params: Partial<CreateStageInstanceParams>,
-      options?: O,
-    ) =>
-      fetch<any, Partial<CreateStageInstanceParams>>({
-        method: "POST",
-        url: `/stage-instances`,
-        params,
-        options,
-      }),
-    /** Gets the stage instance associated with the Stage channel, if it exists. */
-    getStageInstance: (channelId: string, options?: O) =>
-      fetch<any, any>({
-        method: "GET",
-        url: `/stage-instances/${channelId}`,
-        options,
-      }),
-    /** Updates fields of an existing Stage instance. */
-    updateStageInstance: (
-      channelId: string,
-      params: Partial<UpdateStageInstanceParams>,
-      options?: O,
-    ) =>
-      fetch<any, Partial<UpdateStageInstanceParams>>({
-        method: "PATCH",
-        url: `/stage-instances/${channelId}`,
-        params,
-        options,
-      }),
-    /** Deletes the Stage instance. */
-    deleteStageInstance: (channelId: string, options?: O) =>
-      fetch<any, any>({
-        method: "DELETE",
-        url: `/stage-instances/${channelId}`,
+        url: `/voice/regions`,
         options,
       }),
     /** Returns the user object of the requester's account. For OAuth2, this requires the identify scope, which will return the object without an email, and optionally the email scope, which returns the object with an email. */
@@ -3058,11 +2950,41 @@ export function createRoutes<O = any>(
         url: `/users/@me/connections`,
         options,
       }),
-    /** Returns an array of voice region objects that can be used when creating servers. */
-    listVoiceRegions: (options?: O) =>
-      fetch<VoiceRegion[], any>({
+    /** Creates a new Stage instance associated to a Stage channel. */
+    createStageInstance: (
+      params: Partial<CreateStageInstanceParams>,
+      options?: O,
+    ) =>
+      fetch<any, Partial<CreateStageInstanceParams>>({
+        method: "POST",
+        url: `/stage-instances`,
+        params,
+        options,
+      }),
+    /** Gets the stage instance associated with the Stage channel, if it exists. */
+    getStageInstance: (channelId: string, options?: O) =>
+      fetch<any, any>({
         method: "GET",
-        url: `/voice/regions`,
+        url: `/stage-instances/${channelId}`,
+        options,
+      }),
+    /** Updates fields of an existing Stage instance. */
+    updateStageInstance: (
+      channelId: string,
+      params: Partial<UpdateStageInstanceParams>,
+      options?: O,
+    ) =>
+      fetch<any, Partial<UpdateStageInstanceParams>>({
+        method: "PATCH",
+        url: `/stage-instances/${channelId}`,
+        params,
+        options,
+      }),
+    /** Deletes the Stage instance. */
+    deleteStageInstance: (channelId: string, options?: O) =>
+      fetch<any, any>({
+        method: "DELETE",
+        url: `/stage-instances/${channelId}`,
         options,
       }),
     /** Returns an audit log object for the guild. Requires the 'VIEW_AUDIT_LOG' permission. */

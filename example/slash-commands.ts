@@ -40,7 +40,7 @@ commands
   .guild({
     name: "disabled",
     description: "A disabled command. Will not show up in Discord.",
-    enabled: async (_guild) => false,
+    enabled: (_guild) => Rx.of(false),
   })
   .pipe(RxO.flatMap(({ respond }) => respond({ content: "Pong!" })))
   .subscribe();
@@ -53,11 +53,14 @@ commands
     default_permission: false,
     permissions: (guild) =>
       Rx.of(guild).pipe(
-        // Permissions for roles with ADMINISTRATOR enabled
+        // Use the roles cache
         client.withCaches({ roles: client.roles$ })((guild) => guild.id),
         client.onlyWithGuild(),
+
+        // Permissions for roles with ADMINISTRATOR enabled
         RxO.flatMap(([_guild, { roles }]) =>
           roles
+            .valueSeq()
             .filter(
               (role) => BigInt(role.permissions) & Permissions.ADMINISTRATOR,
             )
@@ -65,8 +68,7 @@ commands
               id: role.id,
               type: ApplicationCommandPermissionType.ROLE,
               permission: true,
-            }))
-            .values(),
+            })),
         ),
 
         // Add permissions for the guild owner
@@ -75,8 +77,6 @@ commands
           type: ApplicationCommandPermissionType.USER,
           permission: true,
         }),
-
-        RxO.toArray(),
       ),
   })
   .pipe(

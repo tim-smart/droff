@@ -40,8 +40,8 @@ export const setPermissions =
         () => Promise.resolve(apiCommand),
         (permissions) =>
           F.pipe(
-            Rx.from(permissions(guild)),
-            RxO.first(),
+            permissions(guild),
+            RxO.toArray(),
             RxO.flatMap((permissions) =>
               rest.editApplicationCommandPermissions(
                 apiCommand.application_id,

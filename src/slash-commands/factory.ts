@@ -22,15 +22,11 @@ import * as Commands from "./commands";
 import * as Sync from "./sync";
 
 interface CommandOptions {
-  permissions?: (
-    guild: Guild,
-  ) =>
-    | Promise<ApplicationCommandPermission[]>
-    | Rx.Observable<ApplicationCommandPermission[]>;
+  permissions?: (guild: Guild) => Rx.Observable<ApplicationCommandPermission>;
 }
 
 interface GuildCommandOptions {
-  enabled?: (guild: Guild) => Promise<boolean> | Rx.Observable<boolean>;
+  enabled?: (guild: Guild) => Rx.Observable<boolean>;
 }
 
 export type GlobalCommand = CreateGlobalApplicationCommandParams &
@@ -122,7 +118,7 @@ export const factory =
     const guild = (command: GuildCommandCreate) => {
       guildCommands = guildCommands.set(command.name, {
         ...command,
-        enabled: command.enabled || (async () => true),
+        enabled: command.enabled || (() => Rx.of(true)),
       });
 
       return interactionCreate$.pipe(

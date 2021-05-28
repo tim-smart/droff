@@ -47,6 +47,8 @@ export interface SlashCommandContext {
 
   respond: (data: InteractionApplicationCommandCallbackDatum) => Promise<any>;
   deferred: () => Promise<any>;
+  update: (data: InteractionApplicationCommandCallbackDatum) => Promise<any>;
+  deferredUpdate: () => Promise<any>;
 }
 
 export const factory =
@@ -67,12 +69,22 @@ export const factory =
       rest,
       InteractionCallbackType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
     );
+    const update = Commands.respond(
+      rest,
+      InteractionCallbackType.UPDATE_MESSAGE,
+    );
+    const updateDeferred = Commands.respond(
+      rest,
+      InteractionCallbackType.DEFERRED_UPDATE_MESSAGE,
+    );
     const createContext = (interaction: Interaction) => ({
       interaction,
       member: interaction.member,
       user: interaction.user,
       respond: respond(interaction),
       deferred: respondDeferred(interaction),
+      update: update(interaction),
+      deferredUpdate: updateDeferred(interaction),
     });
 
     // Set permissions fn

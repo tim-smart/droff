@@ -39,9 +39,9 @@ export const groupByTime =
     const operator = op(window);
     return (key: (item: T) => string) => (source$: Rx.Observable<T>) =>
       source$.pipe(
-        RxO.groupBy(key, undefined, (group$) =>
-          group$.pipe(RxO.debounceTime(window * 2)),
-        ),
+        RxO.groupBy(key, {
+          duration: (group$) => group$.pipe(RxO.debounceTime(window * 2)),
+        }),
         RxO.mergeMap((group$) => group$.pipe(operator)),
       );
   };

@@ -83,6 +83,8 @@ commands
     RxO.flatMap(({ respond }) =>
       respond({
         content: "You are the special.",
+
+        // Add some buttons
         components: [
           {
             type: ComponentType.ACTION_ROW,
@@ -105,7 +107,7 @@ commands
   .component("admin-button")
   .pipe(
     RxO.flatMap(({ respond }) =>
-      respond({ content: "You clicked a button. wow." }),
+      respond({ content: "You clicked a button. wow.", flags: 64 }),
     ),
   )
   .subscribe();

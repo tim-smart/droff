@@ -54,7 +54,12 @@ This example creates a couple of slash commands:
 
 ```typescript
 import { createClient, Intents, Permissions } from "droff";
-import { ApplicationCommandPermissionType } from "droff/dist/types";
+import {
+  ApplicationCommandPermissionType,
+  ButtonStyle,
+  ComponentType,
+} from "droff/dist/types";
+import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 
 const client = createClient({
@@ -128,7 +133,33 @@ commands
       ),
   })
   .pipe(
-    RxO.flatMap(({ respond }) => respond({ content: "You are the special." })),
+    RxO.flatMap(({ respond }) =>
+      respond({
+        content: "You are the special.",
+        components: [
+          {
+            type: ComponentType.ACTION_ROW,
+            components: [
+              {
+                type: ComponentType.BUTTON,
+                label: "Here is a button",
+                custom_id: "admin-button",
+                style: ButtonStyle.PRIMARY,
+              },
+            ],
+          },
+        ],
+      }),
+    ),
+  )
+  .subscribe();
+
+commands
+  .component("admin-button")
+  .pipe(
+    RxO.flatMap(({ respond }) =>
+      respond({ content: "You clicked a button. wow." }),
+    ),
   )
   .subscribe();
 

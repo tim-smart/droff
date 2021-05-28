@@ -3,7 +3,11 @@ require("dotenv").config();
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { createClient, Intents, Permissions } from "../src/mod";
-import { ApplicationCommandPermissionType } from "../src/types";
+import {
+  ApplicationCommandPermissionType,
+  ButtonStyle,
+  ComponentType,
+} from "../src/types";
 
 const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
@@ -76,7 +80,33 @@ commands
       ),
   })
   .pipe(
-    RxO.flatMap(({ respond }) => respond({ content: "You are the special." })),
+    RxO.flatMap(({ respond }) =>
+      respond({
+        content: "You are the special.",
+        components: [
+          {
+            type: ComponentType.ACTION_ROW,
+            components: [
+              {
+                type: ComponentType.BUTTON,
+                label: "Here is a button",
+                custom_id: "admin-button",
+                style: ButtonStyle.PRIMARY,
+              },
+            ],
+          },
+        ],
+      }),
+    ),
+  )
+  .subscribe();
+
+commands
+  .component("admin-button")
+  .pipe(
+    RxO.flatMap(({ respond }) =>
+      respond({ content: "You clicked a button. wow." }),
+    ),
   )
   .subscribe();
 

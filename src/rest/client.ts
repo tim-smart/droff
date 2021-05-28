@@ -48,7 +48,7 @@ const handleError = (err: AxiosError) => {
     err.config,
     null,
     2,
-  )}`;
+  )} ${JSON.stringify(err.response?.data, null, 2)}`;
   throw err;
 };
 

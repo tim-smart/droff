@@ -67,6 +67,13 @@ export const factory =
       rest,
       InteractionCallbackType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
     );
+    const createContext = (interaction: Interaction) => ({
+      interaction,
+      member: interaction.member,
+      user: interaction.user,
+      respond: respond(interaction),
+      deferred: respondDeferred(interaction),
+    });
 
     // Set permissions fn
     const setPermissions = Commands.setPermissions(rest);
@@ -74,15 +81,13 @@ export const factory =
     // Shared command create observable
     const interactionCreate$ = dispatch$("INTERACTION_CREATE").pipe(
       RxO.filter((i) => i.type === InteractionType.APPLICATION_COMMAND),
-      RxO.map(
-        (interaction): SlashCommandContext => ({
-          interaction,
-          member: (interaction as any).member,
-          user: (interaction as any).user,
-          respond: respond(interaction),
-          deferred: respondDeferred(interaction),
-        }),
-      ),
+      RxO.map(createContext),
+      RxO.share(),
+    );
+
+    const interactionComponent$ = dispatch$("INTERACTION_CREATE").pipe(
+      RxO.filter((i) => i.type === InteractionType.MESSAGE_COMPONENT),
+      RxO.map(createContext),
       RxO.share(),
     );
 
@@ -128,6 +133,13 @@ export const factory =
       );
     };
 
+    const component = (customID: string) =>
+      interactionComponent$.pipe(
+        RxO.filter(
+          ({ interaction }) => interaction.data!.custom_id === customID,
+        ),
+      );
+
     // Respond to pings
     const pingPong$ = dispatch$("INTERACTION_CREATE").pipe(
       RxO.filter((i) => i.type === InteractionType.PING),
@@ -170,6 +182,8 @@ export const factory =
       global,
       /** Create a guild slash command */
       guild,
+      /** Listen to component interactions */
+      component,
       /**
        * Start syncing the commands to Discord. It returns a function that stops
        * the syncing service.

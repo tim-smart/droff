@@ -8,6 +8,7 @@ import { Routes } from "../rest/client";
 import {
   ApplicationCommandPermission,
   Channel,
+  Component,
   CreateGlobalApplicationCommandParams,
   CreateGuildApplicationCommandParams,
   Guild,
@@ -166,6 +167,17 @@ export const factory =
         ),
       );
 
+    const components = (components: Component[]) => {
+      const map = components
+        .filter(({ custom_id }) => !!custom_id)
+        .reduce((map, c) => map.set(c.custom_id!, c), Map<string, Component>());
+
+      return interactionComponent$.pipe(
+        RxO.filter(({ interaction }) => map.has(interaction.data!.custom_id)),
+        RxO.map((ctx) => [ctx, map.get(ctx.interaction.data!.custom_id)]),
+      );
+    };
+
     // Respond to pings
     const pingPong$ = dispatch$("INTERACTION_CREATE").pipe(
       RxO.filter((i) => i.type === InteractionType.PING),
@@ -210,6 +222,8 @@ export const factory =
       guild,
       /** Listen to component interactions */
       component,
+      /** Listen to multiple component interactions */
+      components,
       /**
        * Start syncing the commands to Discord. It returns a function that stops
        * the syncing service.

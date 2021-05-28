@@ -7,6 +7,7 @@ import { Dispatch } from "../gateway/dispatch";
 import { Routes } from "../rest/client";
 import {
   ApplicationCommandPermission,
+  Channel,
   CreateGlobalApplicationCommandParams,
   CreateGuildApplicationCommandParams,
   Guild,
@@ -51,13 +52,13 @@ export interface SlashCommandContext {
   /** Respond to the interaction immediately */
   respond: (data: InteractionApplicationCommandCallbackDatum) => Promise<any>;
   /** Respond to the interaction later with editOriginal */
-  deferred: () => Promise<any>;
+  defer: () => Promise<any>;
   /** Update the original message (components only) */
   update: (data: InteractionApplicationCommandCallbackDatum) => Promise<any>;
   /** Update the original message later (components only) */
-  deferredUpdate: () => Promise<any>;
+  deferUpdate: () => Promise<any>;
   /** Follow up message when using deferred */
-  editOriginal: (
+  editResponse: (
     data: InteractionApplicationCommandCallbackDatum,
   ) => Promise<any>;
 }
@@ -94,10 +95,10 @@ export const factory =
       member: interaction.member,
       user: interaction.user,
       respond: respond(interaction),
-      deferred: respondDeferred(interaction),
+      defer: respondDeferred(interaction),
       update: update(interaction),
-      deferredUpdate: updateDeferred(interaction),
-      editOriginal: editOriginal(interaction),
+      deferUpdate: updateDeferred(interaction),
+      editResponse: editOriginal(interaction),
     });
 
     // Set permissions fn

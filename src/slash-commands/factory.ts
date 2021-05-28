@@ -217,3 +217,5 @@ export const factory =
       start,
     };
   };
+
+export type SlashCommandsHelper = ReturnType<ReturnType<typeof factory>>;

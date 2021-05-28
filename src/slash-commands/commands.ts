@@ -7,6 +7,7 @@ import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import {
   ApplicationCommand,
+  EditWebhookMessageParams,
   Guild,
   Interaction,
   InteractionApplicationCommandCallbackDatum,
@@ -30,6 +31,16 @@ export const respond =
       type,
       data,
     });
+
+export const editOriginal =
+  (rest: Routes) =>
+  (interaction: Interaction) =>
+  (data?: InteractionApplicationCommandCallbackDatum) =>
+    rest.editOriginalInteractionResponse(
+      interaction.application_id,
+      interaction.token,
+      { data },
+    );
 
 export const setPermissions =
   (rest: Routes) =>

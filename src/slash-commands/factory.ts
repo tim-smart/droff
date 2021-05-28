@@ -41,14 +41,25 @@ export type GuildCommandCreate = CreateGuildApplicationCommandParams &
   CommandOptions;
 
 export interface SlashCommandContext {
+  /** The interaction object */
   interaction: Interaction;
+  /** The guild member who sent the interaction */
   member?: GuildMember;
+  /** The user who sent the interaction (in a DM) */
   user?: User;
 
+  /** Respond to the interaction immediately */
   respond: (data: InteractionApplicationCommandCallbackDatum) => Promise<any>;
+  /** Respond to the interaction later with editOriginal */
   deferred: () => Promise<any>;
+  /** Update the original message (components only) */
   update: (data: InteractionApplicationCommandCallbackDatum) => Promise<any>;
+  /** Update the original message later (components only) */
   deferredUpdate: () => Promise<any>;
+  /** Follow up message when using deferred */
+  editOriginal: (
+    data: InteractionApplicationCommandCallbackDatum,
+  ) => Promise<any>;
 }
 
 export const factory =
@@ -77,7 +88,8 @@ export const factory =
       rest,
       InteractionCallbackType.DEFERRED_UPDATE_MESSAGE,
     );
-    const createContext = (interaction: Interaction) => ({
+    const editOriginal = Commands.editOriginal(rest);
+    const createContext = (interaction: Interaction): SlashCommandContext => ({
       interaction,
       member: interaction.member,
       user: interaction.user,
@@ -85,6 +97,7 @@ export const factory =
       deferred: respondDeferred(interaction),
       update: update(interaction),
       deferredUpdate: updateDeferred(interaction),
+      editOriginal: editOriginal(interaction),
     });
 
     // Set permissions fn

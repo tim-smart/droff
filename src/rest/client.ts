@@ -8,6 +8,7 @@ import Axios, {
 } from "axios";
 import { createRoutes } from "../types";
 import * as RateLimits from "./rate-limits";
+import FormData from "form-data";
 
 const VERSION = 9;
 
@@ -56,24 +57,41 @@ export const routes = (client: AxiosInstance) =>
   createRoutes<AxiosRequestConfig>(
     ({ method, url, params = {}, options = {} }) => {
       const hasBody = method !== "GET" && method !== "DELETE";
+      let hasFormData = false;
+
+      if (typeof options.data?.append === "function") {
+        hasFormData = true;
+        (options.data as FormData).append(
+          "payload_json",
+          JSON.stringify(params),
+        );
+      }
+
+      const qsParams = hasBody
+        ? options.params
+        : {
+            ...(options.params || {}),
+            ...params,
+          };
+      const data =
+        hasFormData || !hasBody
+          ? options.data
+          : {
+              ...(options.data || {}),
+              ...params,
+            };
 
       return client
         .request({
           ...options,
+          headers: {
+            ...(options.headers || {}),
+            ...(hasFormData ? data.getHeaders() : {}),
+          },
           method: method as Method,
           url,
-          params: hasBody
-            ? options.params
-            : {
-                ...(options.params || {}),
-                ...params,
-              },
-          data: hasBody
-            ? {
-                ...(options.data || {}),
-                ...params,
-              }
-            : options.data,
+          params: qsParams,
+          data,
         })
         .then((r) => r.data, handleError);
     },

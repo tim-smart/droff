@@ -51,7 +51,7 @@ export interface SlashCommandContext {
 
   /** Respond to the interaction immediately */
   respond: (data: InteractionApplicationCommandCallbackDatum) => Promise<any>;
-  /** Respond to the interaction later with editOriginal */
+  /** Respond to the interaction later with editResponse */
   defer: () => Promise<any>;
   /** Update the original message (components only) */
   update: (data: InteractionApplicationCommandCallbackDatum) => Promise<any>;

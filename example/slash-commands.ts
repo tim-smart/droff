@@ -52,15 +52,10 @@ commands
     description: "A restricted command",
     default_permission: false,
     permissions: (guild) =>
-      Rx.of(guild).pipe(
-        // Use the roles cache
-        client.withCaches({ roles: client.roles$ })((guild) => guild.id),
-        client.onlyWithGuild(),
-
+      Rx.from(client.getGuildRoles(guild.id)).pipe(
         // Permissions for roles with ADMINISTRATOR enabled
-        RxO.flatMap(([_guild, { roles }]) =>
+        RxO.flatMap((roles) =>
           roles
-            .valueSeq()
             .filter(
               (role) => BigInt(role.permissions) & Permissions.ADMINISTRATOR,
             )
@@ -68,7 +63,8 @@ commands
               id: role.id,
               type: ApplicationCommandPermissionType.ROLE,
               permission: true,
-            })),
+            }))
+            .values(),
         ),
 
         // Add permissions for the guild owner

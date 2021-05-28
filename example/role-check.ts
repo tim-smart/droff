@@ -18,11 +18,12 @@ command$({ name: "role-check" })
     })(({ message }) => message.guild_id),
     client.onlyWithGuild(),
 
-    RxO.flatMap(([{ message, reply }, { roles }]) => {
+    RxO.flatMap(([{ message, reply }, { guild, roles }]) => {
       const memberRoles = message.member!.roles.map((id) => roles.get(id)!);
       const isAdmin = memberRoles.some((role) => role.name === "Admin");
+      const isOwner = guild.owner_id === message.author.id;
 
-      return isAdmin ? reply("Hi sir!") : reply("Nice try.");
+      return isAdmin || isOwner ? reply("Hi sir!") : reply("Nice try.");
     }),
   )
   .subscribe();

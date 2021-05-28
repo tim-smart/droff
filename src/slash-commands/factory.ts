@@ -174,7 +174,9 @@ export const factory =
 
       return interactionComponent$.pipe(
         RxO.filter(({ interaction }) => map.has(interaction.data!.custom_id)),
-        RxO.map((ctx) => [ctx, map.get(ctx.interaction.data!.custom_id)]),
+        RxO.map(
+          (ctx) => [ctx, map.get(ctx.interaction.data!.custom_id)!] as const,
+        ),
       );
     };
 

@@ -9,10 +9,28 @@ import * as GatewayClient from "./gateway/client";
 import * as RestClient from "./rest/client";
 import * as SlashCommands from "./slash-commands/factory";
 
+export function createRestClient(opts: RestClient.Options) {
+  const [client, close] = RestClient.create(opts);
+  const routes = RestClient.routes(client);
+
+  return {
+    close,
+
+    delete: client.delete.bind(client),
+    get: client.get.bind(client),
+    patch: client.patch.bind(client),
+    post: client.post.bind(client),
+    put: client.put.bind(client),
+
+    ...routes,
+  };
+}
+
+export type RESTClient = ReturnType<typeof createRestClient>;
+
 export function create(opts: GatewayClient.Options & RestClient.Options) {
   const gateway = GatewayClient.create(opts);
-  const [rest, restClose] = RestClient.create(opts.token, opts);
-  const restRoutes = RestClient.routes(rest);
+  const rest = createRestClient(opts);
 
   // Cached resources
   const guilds$ = Guilds.watch$(gateway.dispatch$);
@@ -24,14 +42,14 @@ export function create(opts: GatewayClient.Options & RestClient.Options) {
   const withCaches = Resources.withCaches(guilds$);
 
   const command$ = Commands.command$(
-    restRoutes,
+    rest,
     guilds$,
     gateway.dispatch$("MESSAGE_CREATE"),
   );
 
   function close() {
     gateway.close();
-    restClose();
+    rest.close();
   }
 
   if (opts.debug) {
@@ -79,7 +97,7 @@ export function create(opts: GatewayClient.Options & RestClient.Options) {
     onlyWithGuild: Resources.onlyWithGuild,
 
     /** Observable of all the dispatch events */
-    all: gateway.all$,
+    all$: gateway.all$,
     /** Helper function to listen to an individual dispatch event */
     dispatch$: gateway.dispatch$,
     /**
@@ -87,23 +105,14 @@ export function create(opts: GatewayClient.Options & RestClient.Options) {
      * the shard
      */
     dispatchWithShard$: gateway.dispatchWithShard$,
-    /** Close all the client connections */
-    close,
 
     command$,
-    useSlashCommands: SlashCommands.factory(
-      gateway.dispatch$,
-      restRoutes,
-      guilds$,
-    ),
+    useSlashCommands: SlashCommands.factory(gateway.dispatch$, rest, guilds$),
 
-    delete: rest.delete.bind(rest),
-    get: rest.get.bind(rest),
-    patch: rest.patch.bind(rest),
-    post: rest.post.bind(rest),
-    put: rest.put.bind(rest),
+    ...rest,
 
-    ...restRoutes,
+    /** Close all the client connections */
+    close,
   };
 }
 

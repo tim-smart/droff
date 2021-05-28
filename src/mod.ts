@@ -1,7 +1,14 @@
 export * as Gateway from "./gateway/client";
 export * as Commands from "./gateway/commands";
 export * as Rest from "./rest/client";
-export { create as createClient, Client } from "./client";
+
+export {
+  create as createClient,
+  createRestClient,
+  Client,
+  RESTClient,
+} from "./client";
+
 export {
   debounceBy,
   groupByTime,

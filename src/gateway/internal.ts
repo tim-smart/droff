@@ -7,7 +7,6 @@ import * as RxO from "rxjs/operators";
 import {
   GatewayEvent,
   GatewayPayload,
-  Heartbeat,
   HelloEvent,
   InvalidSessionEvent,
   ReadyEvent,

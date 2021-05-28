@@ -12,16 +12,15 @@ import * as RateLimits from "./rate-limits";
 const VERSION = 9;
 
 export interface Options {
+  /** Bot token */
+  token: string;
   /** Global rate limit in requests per second */
   rateLimit?: number;
   /** Turn on debug logging */
   debug?: boolean;
 }
 
-export function create(
-  token: string,
-  { rateLimit = 50, debug = false }: Options = {},
-) {
+export function create({ token, rateLimit = 50, debug = false }: Options) {
   const client = Axios.create({
     baseURL: `https://discord.com/api/v${VERSION}`,
     headers: {

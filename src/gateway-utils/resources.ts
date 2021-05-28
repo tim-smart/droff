@@ -84,7 +84,7 @@ export const withCaches =
             const resultMap = obKeys.reduce(
               (map, key, index) => ({
                 ...map,
-                [key]: results[index].get(guild.id),
+                [key]: results[index].get(guild.id, Map()),
               }),
               {} as {
                 [K in keyof M]: M[K] extends Rx.Observable<

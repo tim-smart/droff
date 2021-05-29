@@ -160,10 +160,12 @@ export const factory =
       );
     };
 
-    const component = (customID: string) =>
+    const component = (customID: string | RegExp) =>
       interactionComponent$.pipe(
-        RxO.filter(
-          ({ interaction }) => interaction.data!.custom_id === customID,
+        RxO.filter(({ interaction }) =>
+          customID instanceof RegExp
+            ? customID.test(interaction.data!.custom_id)
+            : interaction.data!.custom_id === customID,
         ),
       );
 

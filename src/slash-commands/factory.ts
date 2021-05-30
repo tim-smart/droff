@@ -120,10 +120,10 @@ export const factory =
 
     // Command creation functions
     let globalCommands = Map<string, CreateGlobalApplicationCommandParams>();
-    const global = (command: GlobalCommand) => {
+    const global = (command: GlobalCommand, create = false) => {
       globalCommands = globalCommands.set(command.name, command);
 
-      return app$.pipe(
+      const create$ = app$.pipe(
         RxO.flatMap((app) =>
           rest.createGlobalApplicationCommand(app.id, command),
         ),
@@ -137,7 +137,9 @@ export const factory =
             RxO.last(),
           ),
         ),
+      );
 
+      return Rx.iif(() => create, create$, Rx.of(0)).pipe(
         // Switch to emitting the interactions
         RxO.switchMap(() => interactionCreate$),
         RxO.filter(

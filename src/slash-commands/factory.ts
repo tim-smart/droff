@@ -7,7 +7,6 @@ import { Dispatch } from "../gateway/dispatch";
 import { Routes } from "../rest/client";
 import {
   ApplicationCommandPermission,
-  Channel,
   Component,
   CreateGlobalApplicationCommandParams,
   CreateGuildApplicationCommandParams,
@@ -24,10 +23,12 @@ import * as Commands from "./commands";
 import * as Sync from "./sync";
 
 interface CommandOptions {
+  /** Used for setting permissions for the command per guild */
   permissions?: (guild: Guild) => Rx.Observable<ApplicationCommandPermission>;
 }
 
 interface GuildCommandOptions {
+  /** Used for enabling / disabling commands per guild */
   enabled?: (guild: Guild) => Rx.Observable<boolean>;
 }
 
@@ -64,13 +65,44 @@ export interface SlashCommandContext {
   ) => Promise<any>;
 }
 
+export interface SlashCommandsHelper {
+  /** Create a global slash command */
+  global: (
+    command: GlobalCommand,
+    create?: boolean,
+  ) => Rx.Observable<SlashCommandContext>;
+  /** Create a guild slash command */
+  guild: (command: GuildCommandCreate) => Rx.Observable<SlashCommandContext>;
+  /**
+   * Listen to component interactions. Pass in a `custom_id` to determine what
+   * interfactions to listen for.
+   *
+   * You can also pass in a `RegExp`. For example, this would match both
+   * "button_1" and "button_2":
+   *
+   * ```
+   * commands.component(/^button_/).subscribe()
+   * ```
+   */
+  component: (customID: string | RegExp) => Rx.Observable<SlashCommandContext>;
+  /** Listen to multiple component interactions */
+  components: (
+    components: Component[],
+  ) => Rx.Observable<readonly [SlashCommandContext, Component]>;
+  /**
+   * Start syncing the commands to Discord. It returns a function that stops
+   * the syncing service.
+   */
+  start: () => () => void;
+}
+
 export const factory =
   (
     dispatch$: Dispatch,
     rest: Routes,
     guilds$: Rx.Observable<Map<Snowflake, Guild>>,
   ) =>
-  () => {
+  (): SlashCommandsHelper => {
     const app$ = App.watch$(dispatch$).pipe(RxO.first(), RxO.shareReplay(1));
 
     // Response helpers
@@ -222,20 +254,10 @@ export const factory =
     }
 
     return {
-      /** Create a global slash command */
       global,
-      /** Create a guild slash command */
       guild,
-      /** Listen to component interactions */
       component,
-      /** Listen to multiple component interactions */
       components,
-      /**
-       * Start syncing the commands to Discord. It returns a function that stops
-       * the syncing service.
-       */
       start,
     };
   };
-
-export type SlashCommandsHelper = ReturnType<ReturnType<typeof factory>>;

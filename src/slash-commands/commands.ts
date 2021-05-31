@@ -1,18 +1,17 @@
 import * as F from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { Map } from "immutable";
-import { Routes } from "../rest/client";
-import { GlobalCommand, GuildCommand } from "./factory";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
+import { Routes } from "../rest/client";
 import {
   ApplicationCommand,
-  EditWebhookMessageParams,
   Guild,
   Interaction,
   InteractionApplicationCommandCallbackDatum,
   InteractionCallbackType,
 } from "../types";
+import { GlobalCommand, GuildCommand } from "./factory";
 
 export const enabled =
   (commands: Map<string, GuildCommand>) =>

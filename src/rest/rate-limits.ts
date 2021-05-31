@@ -97,7 +97,7 @@ export const interceptors =
       limitRequestBuckets(),
 
       // Global rate limit
-      RxU.rateLimit(limit, window),
+      RxU.rateLimit(limit - 1, window),
 
       whenDebug(({ config }) =>
         console.error(

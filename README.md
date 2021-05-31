@@ -6,6 +6,9 @@ Simple Discord client powered by RxJS and Axios
 
 - Lightweight - Simple Axios wrapper for the REST API with a lean Gateway API
   wrapper powered by RxJS.
+- Functional - Favour functional composition over inheritence. Every function or
+  property on the client can be destructured and used without worrying about
+  scope.
 
 ## Install
 

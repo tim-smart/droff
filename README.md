@@ -19,6 +19,16 @@ If you want more performance:
 yarn add bufferutil
 ```
 
+## What's missing
+
+Just a heads up that is a relatively new client library. You should note that:
+
+- There isn't much documentation
+- There isn't anything implemented for Voice channels
+- Some caches will be missing
+
+Pull requests are more than welcome :)
+
 ## Caching
 
 Droff will only activate the caches that you use. So by default nothing is

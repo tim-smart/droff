@@ -3,13 +3,21 @@ import * as F from "fp-ts/function";
 import { WebSocketClient } from "reconnecting-ws";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import { GatewayEvent, GatewayOpcode, GatewayPayload } from "../types";
+import {
+  GatewayEvent,
+  GatewayOpcode,
+  GatewayPayload,
+  Heartbeat,
+  HelloEvent,
+  InvalidSessionEvent,
+  ReconnectEvent,
+} from "../types";
 
 const VERSION = 8;
 
-const opCode = (code: GatewayOpcode) =>
+const opCode = <T = any>(code: GatewayOpcode) =>
   F.flow(
-    RxO.filter((p: GatewayPayload) => p.op === code),
+    RxO.filter((p: GatewayPayload<T>) => p.op === code),
     RxO.share(),
   );
 
@@ -47,12 +55,16 @@ export function create() {
     }
   });
 
-  const dispatch$ = raw$.pipe(opCode(GatewayOpcode.DISPATCH));
-  const heartbeat$ = raw$.pipe(opCode(GatewayOpcode.HEARTBEAT));
+  const dispatch$ = raw$.pipe(opCode<GatewayEvent>(GatewayOpcode.DISPATCH));
+  const heartbeat$ = raw$.pipe(opCode<Heartbeat>(GatewayOpcode.HEARTBEAT));
   const reconnect$ = raw$.pipe(opCode(GatewayOpcode.RECONNECT));
-  const invalidSession$ = raw$.pipe(opCode(GatewayOpcode.INVALID_SESSION));
-  const hello$ = raw$.pipe(opCode(GatewayOpcode.HELLO));
-  const heartbeatAck$ = raw$.pipe(opCode(GatewayOpcode.HEARTBEAT_ACK));
+  const invalidSession$ = raw$.pipe(
+    opCode<InvalidSessionEvent>(GatewayOpcode.INVALID_SESSION),
+  );
+  const hello$ = raw$.pipe(opCode<HelloEvent>(GatewayOpcode.HELLO));
+  const heartbeatAck$ = raw$.pipe(
+    opCode<undefined>(GatewayOpcode.HEARTBEAT_ACK),
+  );
 
   return {
     raw$,

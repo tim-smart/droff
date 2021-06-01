@@ -8,7 +8,8 @@
     "module": "CommonJS",
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "removeComments": false
   },
 
   "include": ["src/**/*"]

@@ -1,3 +1,5 @@
+import { AxiosInstance } from "axios";
+import { Observable } from "rxjs";
 import * as Channels from "./gateway-utils/channels";
 import * as Commands from "./gateway-utils/commands";
 import * as Emojis from "./gateway-utils/emojis";
@@ -8,8 +10,18 @@ import * as Roles from "./gateway-utils/roles";
 import * as GatewayClient from "./gateway/client";
 import * as RestClient from "./rest/client";
 import * as SlashCommands from "./slash-commands/factory";
+import { Channel, Emoji, Guild, GuildMember, Role } from "./types";
 
-export function createRestClient(opts: RestClient.Options) {
+export interface RESTClient extends RestClient.Routes {
+  close: () => void;
+  get: AxiosInstance["get"];
+  post: AxiosInstance["post"];
+  patch: AxiosInstance["patch"];
+  put: AxiosInstance["put"];
+  delete: AxiosInstance["delete"];
+}
+
+export function createRestClient(opts: RestClient.Options): RESTClient {
   const [client, close] = RestClient.create(opts);
   const routes = RestClient.routes(client);
 
@@ -26,9 +38,62 @@ export function createRestClient(opts: RestClient.Options) {
   };
 }
 
-export type RESTClient = ReturnType<typeof createRestClient>;
+export interface Client extends RESTClient {
+  gateway: GatewayClient.Client;
+  /** Observable of all the dispatch events */
+  all$: GatewayClient.Client["all$"];
+  /** Helper function to listen to an individual dispatch event */
+  dispatch$: GatewayClient.Client["dispatch$"];
+  /**
+   * Helper function to listen to an individual dispatch event, along with
+   * the shard
+   */
+  dispatchWithShard$: GatewayClient.Client["dispatchWithShard$"];
 
-export function create(opts: GatewayClient.Options & RestClient.Options) {
+  /** Cache of the latest guilds */
+  guilds$: Observable<Resources.SnowflakeMap<Guild>>;
+  /** Cache of the latest roles for each guild */
+  roles$: Observable<Resources.GuildSnowflakeMap<Role>>;
+  /** Cache of the latest channels for each guild */
+  channels$: Observable<Resources.GuildSnowflakeMap<Channel>>;
+  /** Cache of the latest members for each guild */
+  members$: Observable<Resources.GuildSnowflakeMap<GuildMember>>;
+  /** Cache of the latest emojis for each guild */
+  emojis$: Observable<Resources.GuildSnowflakeMap<Emoji>>;
+
+  /**
+   * RxJS operator that appends cached data to the stream. E.g.
+   *
+   * ```typescript
+   * client.dispatch$(Events.GuildMemberAdd).pipe(
+   *   client.withCaches({
+   *     roles: client.roles$,
+   *   })(({ message }) => message.guild_id),
+   * );
+   * ```
+   */
+  withCaches: ReturnType<typeof Resources.withCaches>;
+  /**
+   * Use this operator in combination with withCaches.
+   * It will filter out any direct messages etc.
+   *
+   * ```typescript
+   * client.dispatch$(Events.GuildMemberAdd).pipe(
+   *   client.withCaches({
+   *     roles: client.roles$,
+   *   })(({ message }) => message.guild_id),
+   *   client.onlyWithGuild(),
+   * );
+   */
+  onlyWithGuild: typeof Resources.onlyWithGuild;
+
+  command$: ReturnType<typeof Commands.command$>;
+  useSlashCommands: () => SlashCommands.SlashCommandsHelper;
+}
+
+export function create(
+  opts: GatewayClient.Options & RestClient.Options,
+): Client {
   const gateway = GatewayClient.create(opts);
   const rest = createRestClient(opts);
 
@@ -59,51 +124,17 @@ export function create(opts: GatewayClient.Options & RestClient.Options) {
   return {
     gateway,
 
-    /** Cache of the latest guilds */
     guilds$,
-    /** Cache of the latest channels for each guild */
     channels$,
-    /** Cache of the latest roles for each guild */
     roles$,
-    /** Cache of the latest members for each guild */
     members$,
-    /** Cache of the latest emojis for each guild */
     emojis$,
-    /**
-     * RxJS operator that appends cached guild data to the stream. E.g.
-     *
-     * ```typescript
-     * client.dispatch$(Events.GuildMemberAdd).pipe(
-     *   client.withCaches({
-     *     roles: client.roles$,
-     *   })(({ message }) => message.guild_id),
-     * );
-     * ```
-     */
     withCaches,
 
-    /**
-     * Use this operator in combination with withCaches.
-     * It will filter out any direct messages etc.
-     *
-     * ```typescript
-     * client.dispatch$(Events.GuildMemberAdd).pipe(
-     *   client.withCaches({
-     *     roles: client.roles$,
-     *   })(({ message }) => message.guild_id),
-     *   client.onlyWithGuild(),
-     * );
-     */
     onlyWithGuild: Resources.onlyWithGuild,
 
-    /** Observable of all the dispatch events */
     all$: gateway.all$,
-    /** Helper function to listen to an individual dispatch event */
     dispatch$: gateway.dispatch$,
-    /**
-     * Helper function to listen to an individual dispatch event, along with
-     * the shard
-     */
     dispatchWithShard$: gateway.dispatchWithShard$,
 
     command$,
@@ -111,9 +142,6 @@ export function create(opts: GatewayClient.Options & RestClient.Options) {
 
     ...rest,
 
-    /** Close all the client connections */
     close,
   };
 }
-
-export type Client = ReturnType<typeof create>;

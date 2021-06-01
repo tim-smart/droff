@@ -271,6 +271,48 @@ export enum PrivacyLevel {
   /** The Stage instance is visible to only guild members. */
   GUILD_ONLY = 2,
 }
+export interface VoiceState {
+  /** the guild id this voice state is for */
+  guild_id?: Snowflake;
+  /** the channel id this user is connected to */
+  channel_id?: Snowflake | null;
+  /** the user id this voice state is for */
+  user_id: Snowflake;
+  /** the guild member this voice state is for */
+  member?: GuildMember;
+  /** the session id for this voice state */
+  session_id: string;
+  /** whether this user is deafened by the server */
+  deaf: boolean;
+  /** whether this user is muted by the server */
+  mute: boolean;
+  /** whether this user is locally deafened */
+  self_deaf: boolean;
+  /** whether this user is locally muted */
+  self_mute: boolean;
+  /** whether this user is streaming using "Go Live" */
+  self_stream?: boolean;
+  /** whether this user's camera is enabled */
+  self_video: boolean;
+  /** whether this user is muted by the current user */
+  suppress: boolean;
+  /** the time at which the user requested to speak */
+  request_to_speak_timestamp?: string | null;
+}
+export interface VoiceRegion {
+  /** unique ID for the region */
+  id: string;
+  /** name of the region */
+  name: string;
+  /** true if this is a vip-only server */
+  vip: boolean;
+  /** true for a single server that is closest to the current user's client */
+  optimal: boolean;
+  /** whether this is a deprecated voice region (avoid switching to these) */
+  deprecated: boolean;
+  /** whether this is a custom voice region (used for events/etc) */
+  custom: boolean;
+}
 export interface User {
   /** the user's id */
   id: Snowflake;
@@ -369,48 +411,6 @@ export const UserFlag = {
   EARLY_VERIFIED_BOT_DEVELOPER: 1 << 17,
   DISCORD_CERTIFIED_MODERATOR: 1 << 18,
 } as const;
-export interface VoiceState {
-  /** the guild id this voice state is for */
-  guild_id?: Snowflake;
-  /** the channel id this user is connected to */
-  channel_id?: Snowflake | null;
-  /** the user id this voice state is for */
-  user_id: Snowflake;
-  /** the guild member this voice state is for */
-  member?: GuildMember;
-  /** the session id for this voice state */
-  session_id: string;
-  /** whether this user is deafened by the server */
-  deaf: boolean;
-  /** whether this user is muted by the server */
-  mute: boolean;
-  /** whether this user is locally deafened */
-  self_deaf: boolean;
-  /** whether this user is locally muted */
-  self_mute: boolean;
-  /** whether this user is streaming using "Go Live" */
-  self_stream?: boolean;
-  /** whether this user's camera is enabled */
-  self_video: boolean;
-  /** whether this user is muted by the current user */
-  suppress: boolean;
-  /** the time at which the user requested to speak */
-  request_to_speak_timestamp?: string | null;
-}
-export interface VoiceRegion {
-  /** unique ID for the region */
-  id: string;
-  /** name of the region */
-  name: string;
-  /** true if this is a vip-only server */
-  vip: boolean;
-  /** true for a single server that is closest to the current user's client */
-  optimal: boolean;
-  /** whether this is a deprecated voice region (avoid switching to these) */
-  deprecated: boolean;
-  /** whether this is a custom voice region (used for events/etc) */
-  custom: boolean;
-}
 export interface Team {
   /** a hash of the image of the team's icon */
   icon?: string | null;
@@ -593,6 +593,8 @@ export interface ExecuteWebhookParams {
   payload_json: string;
   /** allowed mentions for the message */
   allowed_mentions: AllowedMention;
+  /** the components to include with the message */
+  components: Component[];
 }
 export interface EditWebhookMessageParams {
   /** the message contents (up to 2000 characters) */
@@ -607,6 +609,8 @@ export interface EditWebhookMessageParams {
   allowed_mentions: AllowedMention;
   /** attached files to keep */
   attachments: Attachment[];
+  /** the components to include with the message */
+  components: Component[];
 }
 export enum WebhookType {
   /** Incoming Webhooks can post messages to channels with a generated token */
@@ -615,54 +619,6 @@ export enum WebhookType {
   CHANNEL_FOLLOWER = 2,
   /** Application webhooks are webhooks used with Interactions */
   APPLICATION = 3,
-}
-export enum GatewayOpcode {
-  /** An event was dispatched. */
-  DISPATCH = 0,
-  /** Fired periodically by the client to keep the connection alive. */
-  HEARTBEAT = 1,
-  /** Starts a new session during the initial handshake. */
-  IDENTIFY = 2,
-  /** Update the client's presence. */
-  PRESENCE_UPDATE = 3,
-  /** Used to join/leave or move between voice channels. */
-  VOICE_STATE_UPDATE = 4,
-  /** Resume a previous session that was disconnected. */
-  RESUME = 6,
-  /** You should attempt to reconnect and resume immediately. */
-  RECONNECT = 7,
-  /** Request information about offline guild members in a large guild. */
-  REQUEST_GUILD_MEMBERS = 8,
-  /** The session has been invalidated. You should reconnect and identify/resume accordingly. */
-  INVALID_SESSION = 9,
-  /** Sent immediately after connecting, contains the heartbeat_interval to use. */
-  HELLO = 10,
-  /** Sent in response to receiving a heartbeat to acknowledge that it has been received. */
-  HEARTBEAT_ACK = 11,
-}
-export enum VoiceOpcode {
-  /** Begin a voice websocket connection. */
-  IDENTIFY = 0,
-  /** Select the voice protocol. */
-  SELECT_PROTOCOL = 1,
-  /** Complete the websocket handshake. */
-  READY = 2,
-  /** Keep the websocket connection alive. */
-  HEARTBEAT = 3,
-  /** Describe the session. */
-  SESSION_DESCRIPTION = 4,
-  /** Indicate which users are speaking. */
-  SPEAKING = 5,
-  /** Sent to acknowledge a received client heartbeat. */
-  HEARTBEAT_ACK = 6,
-  /** Resume a connection. */
-  RESUME = 7,
-  /** Time to wait between sending heartbeats in milliseconds. */
-  HELLO = 8,
-  /** Acknowledge a successful session resume. */
-  RESUMED = 9,
-  /** A client has disconnected from the voice channel */
-  CLIENT_DISCONNECT = 13,
 }
 export interface Role {
   /** role id */
@@ -766,6 +722,54 @@ export const PermissionFlag = {
   /** Allows for creating and participating in private threads */
   USE_PRIVATE_THREADS: BigInt(1) << BigInt(36),
 } as const;
+export enum GatewayOpcode {
+  /** An event was dispatched. */
+  DISPATCH = 0,
+  /** Fired periodically by the client to keep the connection alive. */
+  HEARTBEAT = 1,
+  /** Starts a new session during the initial handshake. */
+  IDENTIFY = 2,
+  /** Update the client's presence. */
+  PRESENCE_UPDATE = 3,
+  /** Used to join/leave or move between voice channels. */
+  VOICE_STATE_UPDATE = 4,
+  /** Resume a previous session that was disconnected. */
+  RESUME = 6,
+  /** You should attempt to reconnect and resume immediately. */
+  RECONNECT = 7,
+  /** Request information about offline guild members in a large guild. */
+  REQUEST_GUILD_MEMBERS = 8,
+  /** The session has been invalidated. You should reconnect and identify/resume accordingly. */
+  INVALID_SESSION = 9,
+  /** Sent immediately after connecting, contains the heartbeat_interval to use. */
+  HELLO = 10,
+  /** Sent in response to receiving a heartbeat to acknowledge that it has been received. */
+  HEARTBEAT_ACK = 11,
+}
+export enum VoiceOpcode {
+  /** Begin a voice websocket connection. */
+  IDENTIFY = 0,
+  /** Select the voice protocol. */
+  SELECT_PROTOCOL = 1,
+  /** Complete the websocket handshake. */
+  READY = 2,
+  /** Keep the websocket connection alive. */
+  HEARTBEAT = 3,
+  /** Describe the session. */
+  SESSION_DESCRIPTION = 4,
+  /** Indicate which users are speaking. */
+  SPEAKING = 5,
+  /** Sent to acknowledge a received client heartbeat. */
+  HEARTBEAT_ACK = 6,
+  /** Resume a connection. */
+  RESUME = 7,
+  /** Time to wait between sending heartbeats in milliseconds. */
+  HELLO = 8,
+  /** Acknowledge a successful session resume. */
+  RESUMED = 9,
+  /** A client has disconnected from the voice channel */
+  CLIENT_DISCONNECT = 13,
+}
 export interface ApplicationCommand {
   /** unique id of the command */
   id: Snowflake;
@@ -1275,7 +1279,7 @@ export interface ModifyGuildParams {
   description?: string | null;
 }
 export interface CreateGuildChannelParams {
-  /** channel name (2-100 characters) */
+  /** channel name (1-100 characters) */
   name: string;
   /** the type of channel */
   type: ChannelType;
@@ -1527,7 +1531,7 @@ export interface Channel {
   position?: number;
   /** explicit permission overwrites for members and roles */
   permission_overwrites?: Overwrite[];
-  /** the name of the channel (2-100 characters) */
+  /** the name of the channel (1-100 characters) */
   name?: string;
   /** the channel topic (0-1024 characters) */
   topic?: string | null;
@@ -1911,6 +1915,8 @@ export interface CreateMessageParams {
   allowed_mentions: AllowedMention;
   /** include to make your message a reply */
   message_reference: MessageReference;
+  /** the components to include with the message */
+  components: Component[];
 }
 export interface GetReactionParams {
   /** get users after this user ID */
@@ -1933,6 +1939,8 @@ export interface EditMessageParams {
   allowed_mentions: AllowedMention;
   /** attached files to keep */
   attachments: Attachment[];
+  /** the components to include with the message */
+  components: Component[];
 }
 export interface BulkDeleteMessageParams {
   /** an array of message ids to delete (2-100) */
@@ -2836,6 +2844,8 @@ export interface Endpoints<O> {
   ) => Promise<any>;
   /** Deletes the Stage instance. */
   deleteStageInstance: (channelId: string, options?: O) => Promise<any>;
+  /** Returns an array of voice region objects that can be used when creating servers. */
+  listVoiceRegions: (options?: O) => Promise<VoiceRegion[]>;
   /** Returns the user object of the requester's account. For OAuth2, this requires the identify scope, which will return the object without an email, and optionally the email scope, which returns the object with an email. */
   getCurrentUser: (options?: O) => Promise<User>;
   /** Returns a user object for a given user ID. */
@@ -2861,8 +2871,6 @@ export interface Endpoints<O> {
   ) => Promise<Channel>;
   /** Returns a list of connection objects. Requires the connections OAuth2 scope. */
   getUserConnections: (options?: O) => Promise<Connection[]>;
-  /** Returns an array of voice region objects that can be used when creating servers. */
-  listVoiceRegions: (options?: O) => Promise<VoiceRegion[]>;
   /** Returns an audit log object for the guild. Requires the 'VIEW_AUDIT_LOG' permission. */
   getGuildAuditLog: (
     guildId: string,
@@ -3624,6 +3632,12 @@ export function createRoutes<O = any>(
         url: `/stage-instances/${channelId}`,
         options,
       }),
+    listVoiceRegions: (options) =>
+      fetch({
+        method: "GET",
+        url: `/voice/regions`,
+        options,
+      }),
     getCurrentUser: (options) =>
       fetch({
         method: "GET",
@@ -3674,12 +3688,6 @@ export function createRoutes<O = any>(
       fetch({
         method: "GET",
         url: `/users/@me/connections`,
-        options,
-      }),
-    listVoiceRegions: (options) =>
-      fetch({
-        method: "GET",
-        url: `/voice/regions`,
         options,
       }),
     getGuildAuditLog: (guildId, params, options) =>

@@ -73,706 +73,6 @@ export enum ButtonStyle {
   DANGER = 4,
   LINK = 5,
 }
-export interface Application {
-  /** the id of the app */
-  id: Snowflake;
-  /** the name of the app */
-  name: string;
-  /** the icon hash of the app */
-  icon?: string | null;
-  /** the description of the app */
-  description: string;
-  /** an array of rpc origin urls, if rpc is enabled */
-  rpc_origins?: string[];
-  /** when false only app owner can join the app's bot to guilds */
-  bot_public: boolean;
-  /** when true the app's bot will only join upon completion of the full oauth2 code grant flow */
-  bot_require_code_grant: boolean;
-  /** the url of the app's terms of service */
-  terms_of_service_url?: string;
-  /** the url of the app's privacy policy */
-  privacy_policy_url?: string;
-  /** partial user object containing info on the owner of the application */
-  owner?: User;
-  /** if this application is a game sold on Discord, this field will be the summary field for the store page of its primary sku */
-  summary: string;
-  /** the hex encoded key for verification in interactions and the GameSDK's GetTicket */
-  verify_key: string;
-  /** if the application belongs to a team, this will be a list of the members of that team */
-  team?: Team | null;
-  /** if this application is a game sold on Discord, this field will be the guild to which it has been linked */
-  guild_id?: Snowflake;
-  /** if this application is a game sold on Discord, this field will be the id of the "Game SKU" that is created, if exists */
-  primary_sku_id?: Snowflake;
-  /** if this application is a game sold on Discord, this field will be the URL slug that links to the store page */
-  slug?: string;
-  /** the application's default rich presence invite cover image hash */
-  cover_image?: string;
-  /** the application's public flags */
-  flags: number;
-}
-export const ApplicationFlag = {
-  GATEWAY_PRESENCE: 1 << 12,
-  GATEWAY_PRESENCE_LIMITED: 1 << 13,
-  GATEWAY_GUILD_MEMBERS: 1 << 14,
-  GATEWAY_GUILD_MEMBERS_LIMITED: 1 << 15,
-  VERIFICATION_PENDING_GUILD_LIMIT: 1 << 16,
-  EMBEDDED: 1 << 17,
-} as const;
-export interface Emoji {
-  /** emoji id */
-  id?: Snowflake | null;
-  /** emoji name */
-  name?: string | null;
-  /** roles allowed to use this emoji */
-  roles?: Snowflake[];
-  /** user that created this emoji */
-  user?: User;
-  /** whether this emoji must be wrapped in colons */
-  require_colons?: boolean;
-  /** whether this emoji is managed */
-  managed?: boolean;
-  /** whether this emoji is animated */
-  animated?: boolean;
-  /** whether this emoji can be used, may be false due to loss of Server Boosts */
-  available?: boolean;
-}
-export interface CreateGuildEmojiParams {
-  /** name of the emoji */
-  name: string;
-  /** the 128x128 emoji image */
-  image: string;
-  /** roles allowed to use this emoji */
-  roles: Snowflake[];
-}
-export interface ModifyGuildEmojiParams {
-  /** name of the emoji */
-  name: string;
-  /** roles allowed to use this emoji */
-  roles?: Snowflake[] | null;
-}
-export interface GuildTemplate {
-  /** the template code (unique ID) */
-  code: string;
-  /** template name */
-  name: string;
-  /** the description for the template */
-  description?: string | null;
-  /** number of times this template has been used */
-  usage_count: number;
-  /** the ID of the user who created the template */
-  creator_id: Snowflake;
-  /** the user who created the template */
-  creator: User;
-  /** when this template was created */
-  created_at: string;
-  /** when this template was last synced to the source guild */
-  updated_at: string;
-  /** the ID of the guild this template is based on */
-  source_guild_id: Snowflake;
-  /** the guild snapshot this template contains */
-  serialized_source_guild: Guild;
-  /** whether the template has unsynced changes */
-  is_dirty?: boolean | null;
-}
-export interface CreateGuildFromGuildTemplateParams {
-  /** name of the guild (2-100 characters) */
-  name: string;
-  /** base64 128x128 image for the guild icon */
-  icon?: string;
-}
-export interface CreateGuildTemplateParams {
-  /** name of the template (1-100 characters) */
-  name: string;
-  /** description for the template (0-120 characters) */
-  description?: string | null;
-}
-export interface ModifyGuildTemplateParams {
-  /** name of the template (1-100 characters) */
-  name?: string;
-  /** description for the template (0-120 characters) */
-  description?: string | null;
-}
-export interface Invite {
-  /** the invite code (unique ID) */
-  code: string;
-  /** the guild this invite is for */
-  guild?: Guild;
-  /** the channel this invite is for */
-  channel: Channel;
-  /** the user who created the invite */
-  inviter?: User;
-  /** the type of target for this voice channel invite */
-  target_type?: InviteTargetType;
-  /** the user whose stream to display for this voice channel stream invite */
-  target_user?: User;
-  /** the embedded application to open for this voice channel embedded application invite */
-  target_application?: Application;
-  /** approximate count of online members, returned from the GET /invites/<code> endpoint when with_counts is true */
-  approximate_presence_count?: number;
-  /** approximate count of total members, returned from the GET /invites/<code> endpoint when with_counts is true */
-  approximate_member_count?: number;
-  /** the expiration date of this invite, returned from the GET /invites/<code> endpoint when with_expiration is true */
-  expires_at?: string | null;
-}
-export interface InviteMetadatum {
-  /** number of times this invite has been used */
-  uses: number;
-  /** max number of times this invite can be used */
-  max_uses: number;
-  /** duration (in seconds) after which the invite expires */
-  max_age: number;
-  /** whether this invite only grants temporary membership */
-  temporary: boolean;
-  /** when this invite was created */
-  created_at: string;
-}
-export interface GetInviteParams {
-  /** whether the invite should contain approximate member counts */
-  with_counts?: boolean;
-  /** whether the invite should contain the expiration date */
-  with_expiration?: boolean;
-}
-export enum InviteTargetType {
-  STREAM = 1,
-  EMBEDDED_APPLICATION = 2,
-}
-export interface User {
-  /** the user's id */
-  id: Snowflake;
-  /** the user's username, not unique across the platform */
-  username: string;
-  /** the user's 4-digit discord-tag */
-  discriminator: string;
-  /** the user's avatar hash */
-  avatar?: string | null;
-  /** whether the user belongs to an OAuth2 application */
-  bot?: boolean;
-  /** whether the user is an Official Discord System user (part of the urgent message system) */
-  system?: boolean;
-  /** whether the user has two factor enabled on their account */
-  mfa_enabled?: boolean;
-  /** the user's chosen language option */
-  locale?: string;
-  /** whether the email on this account has been verified */
-  verified?: boolean;
-  /** the user's email */
-  email?: string | null;
-  /** the flags on a user's account */
-  flags?: number;
-  /** the type of Nitro subscription on a user's account */
-  premium_type?: PremiumType;
-  /** the public flags on a user's account */
-  public_flags?: number;
-}
-export interface Connection {
-  /** id of the connection account */
-  id: string;
-  /** the username of the connection account */
-  name: string;
-  /** the service of the connection (twitch, youtube) */
-  type: string;
-  /** whether the connection is revoked */
-  revoked?: boolean;
-  /** an array of partial server integrations */
-  integrations?: Integration[];
-  /** whether the connection is verified */
-  verified: boolean;
-  /** whether friend sync is enabled for this connection */
-  friend_sync: boolean;
-  /** whether activities related to this connection will be shown in presence updates */
-  show_activity: boolean;
-  /** visibility of this connection */
-  visibility: VisibilityType;
-}
-export interface ModifyCurrentUserParams {
-  /** user's username, if changed may cause the user's discriminator to be randomized. */
-  username: string;
-  /** if passed, modifies the user's avatar */
-  avatar?: string | null;
-}
-export interface GetCurrentUserGuildParams {
-  /** get guilds before this guild ID */
-  before: Snowflake;
-  /** get guilds after this guild ID */
-  after: Snowflake;
-  /** max number of guilds to return (1-200) */
-  limit: number;
-}
-export interface CreateDmParams {
-  /** the recipient to open a DM channel with */
-  recipient_id: Snowflake;
-}
-export interface CreateGroupDmParams {
-  /** access tokens of users that have granted your app the gdm.join scope */
-  access_tokens: string[];
-  /** a dictionary of user ids to their respective nicknames */
-  nicks: Record<string, string>;
-}
-export enum PremiumType {
-  NONE = 0,
-  NITRO_CLASSIC = 1,
-  NITRO = 2,
-}
-export enum VisibilityType {
-  /** invisible to everyone except the user themselves */
-  NONE = 0,
-  /** visible to everyone */
-  EVERYONE = 1,
-}
-export const UserFlag = {
-  DISCORD_EMPLOYEE: 1 << 0,
-  PARTNERED_SERVER_OWNER: 1 << 1,
-  HYPE_SQUAD_EVENTS: 1 << 2,
-  BUG_HUNTER_LEVEL_1: 1 << 3,
-  HOUSE_BRAVERY: 1 << 6,
-  HOUSE_BRILLIANCE: 1 << 7,
-  HOUSE_BALANCE: 1 << 8,
-  EARLY_SUPPORTER: 1 << 9,
-  TEAM_USER: 1 << 10,
-  BUG_HUNTER_LEVEL_2: 1 << 14,
-  VERIFIED_BOT: 1 << 16,
-  EARLY_VERIFIED_BOT_DEVELOPER: 1 << 17,
-  DISCORD_CERTIFIED_MODERATOR: 1 << 18,
-} as const;
-export interface StageInstance {
-  /** The id of this Stage instance */
-  id: Snowflake;
-  /** The guild id of the associated Stage channel */
-  guild_id: Snowflake;
-  /** The id of the associated Stage channel */
-  channel_id: Snowflake;
-  /** The topic of the Stage instance (1-120 characters) */
-  topic: string;
-  /** The privacy level of the Stage instance */
-  privacy_level: PrivacyLevel;
-  /** Whether or not Stage discovery is disabled */
-  discoverable_disabled: boolean;
-}
-export interface CreateStageInstanceParams {
-  /** The id of the Stage channel */
-  channel_id: Snowflake;
-  /** The topic of the Stage instance (1-120 characters) */
-  topic: string;
-  /** The privacy level of the Stage instance (default GUILD_ONLY) */
-  privacy_level?: PrivacyLevel;
-}
-export interface UpdateStageInstanceParams {
-  /** The topic of the Stage instance (1-120 characters) */
-  topic?: string;
-  /** The privacy level of the Stage instance */
-  privacy_level?: PrivacyLevel;
-}
-export enum PrivacyLevel {
-  /** The Stage instance is visible publicly, such as on Stage discovery. */
-  PUBLIC = 1,
-  /** The Stage instance is visible to only guild members. */
-  GUILD_ONLY = 2,
-}
-export interface VoiceState {
-  /** the guild id this voice state is for */
-  guild_id?: Snowflake;
-  /** the channel id this user is connected to */
-  channel_id?: Snowflake | null;
-  /** the user id this voice state is for */
-  user_id: Snowflake;
-  /** the guild member this voice state is for */
-  member?: GuildMember;
-  /** the session id for this voice state */
-  session_id: string;
-  /** whether this user is deafened by the server */
-  deaf: boolean;
-  /** whether this user is muted by the server */
-  mute: boolean;
-  /** whether this user is locally deafened */
-  self_deaf: boolean;
-  /** whether this user is locally muted */
-  self_mute: boolean;
-  /** whether this user is streaming using "Go Live" */
-  self_stream?: boolean;
-  /** whether this user's camera is enabled */
-  self_video: boolean;
-  /** whether this user is muted by the current user */
-  suppress: boolean;
-  /** the time at which the user requested to speak */
-  request_to_speak_timestamp?: string | null;
-}
-export interface VoiceRegion {
-  /** unique ID for the region */
-  id: string;
-  /** name of the region */
-  name: string;
-  /** true if this is a vip-only server */
-  vip: boolean;
-  /** true for a single server that is closest to the current user's client */
-  optimal: boolean;
-  /** whether this is a deprecated voice region (avoid switching to these) */
-  deprecated: boolean;
-  /** whether this is a custom voice region (used for events/etc) */
-  custom: boolean;
-}
-export interface Team {
-  /** a hash of the image of the team's icon */
-  icon?: string | null;
-  /** the unique id of the team */
-  id: Snowflake;
-  /** the members of the team */
-  members: TeamMember[];
-  /** the name of the team */
-  name: string;
-  /** the user id of the current team owner */
-  owner_user_id: Snowflake;
-}
-export interface TeamMember {
-  /** the user's membership state on the team */
-  membership_state: MembershipState;
-  /** will always be ["*"] */
-  permissions: string[];
-  /** the id of the parent team of which they are a member */
-  team_id: Snowflake;
-  /** the avatar, discriminator, id, and username of the user */
-  user: User;
-}
-export enum MembershipState {
-  INVITED = 1,
-  ACCEPTED = 2,
-}
-export interface AuditLog {
-  /** list of webhooks found in the audit log */
-  webhooks: Webhook[];
-  /** list of users found in the audit log */
-  users: User[];
-  /** list of audit log entries */
-  audit_log_entries: AuditLogEntry[];
-  /** list of partial integration objects */
-  integrations: Integration[];
-}
-export interface AuditLogEntry {
-  /** id of the affected entity (webhook, user, role, etc.) */
-  target_id?: string | null;
-  /** changes made to the target_id */
-  changes?: AuditLogChange[];
-  /** the user who made the changes */
-  user_id?: Snowflake | null;
-  /** id of the entry */
-  id: Snowflake;
-  /** type of action that occurred */
-  action_type: AuditLogEvent;
-  /** additional info for certain action types */
-  options?: AuditEntryInfo;
-  /** the reason for the change (0-512 characters) */
-  reason?: string;
-}
-export interface AuditEntryInfo {
-  /** number of days after which inactive members were kicked */
-  delete_member_days: string;
-  /** number of members removed by the prune */
-  members_removed: string;
-  /** channel in which the entities were targeted */
-  channel_id: Snowflake;
-  /** id of the message that was targeted */
-  message_id: Snowflake;
-  /** number of entities that were targeted */
-  count: string;
-  /** id of the overwritten entity */
-  id: Snowflake;
-  /** type of overwritten entity - "0" for "role" or "1" for "member" */
-  type: string;
-  /** name of the role if type is "0" (not present if type is "1") */
-  role_name: string;
-}
-export interface AuditLogChange {
-  /** new value of the key */
-  new_value?: any;
-  /** old value of the key */
-  old_value?: any;
-  /** name of audit log change key */
-  key: string;
-}
-export interface GetGuildAuditLogParams {
-  /** filter the log for actions made by a user */
-  user_id: Snowflake;
-  /** the type of audit log event */
-  action_type: AuditLogEvent;
-  /** filter the log before a certain entry id */
-  before: Snowflake;
-  /** how many entries are returned (default 50, minimum 1, maximum 100) */
-  limit: number;
-}
-export enum AuditLogEvent {
-  GUILD_UPDATE = 1,
-  CHANNEL_CREATE = 10,
-  CHANNEL_UPDATE = 11,
-  CHANNEL_DELETE = 12,
-  CHANNEL_OVERWRITE_CREATE = 13,
-  CHANNEL_OVERWRITE_UPDATE = 14,
-  CHANNEL_OVERWRITE_DELETE = 15,
-  MEMBER_KICK = 20,
-  MEMBER_PRUNE = 21,
-  MEMBER_BAN_ADD = 22,
-  MEMBER_BAN_REMOVE = 23,
-  MEMBER_UPDATE = 24,
-  MEMBER_ROLE_UPDATE = 25,
-  MEMBER_MOVE = 26,
-  MEMBER_DISCONNECT = 27,
-  BOT_ADD = 28,
-  ROLE_CREATE = 30,
-  ROLE_UPDATE = 31,
-  ROLE_DELETE = 32,
-  INVITE_CREATE = 40,
-  INVITE_UPDATE = 41,
-  INVITE_DELETE = 42,
-  WEBHOOK_CREATE = 50,
-  WEBHOOK_UPDATE = 51,
-  WEBHOOK_DELETE = 52,
-  EMOJI_CREATE = 60,
-  EMOJI_UPDATE = 61,
-  EMOJI_DELETE = 62,
-  MESSAGE_DELETE = 72,
-  MESSAGE_BULK_DELETE = 73,
-  MESSAGE_PIN = 74,
-  MESSAGE_UNPIN = 75,
-  INTEGRATION_CREATE = 80,
-  INTEGRATION_UPDATE = 81,
-  INTEGRATION_DELETE = 82,
-  STAGE_INSTANCE_CREATE = 83,
-  STAGE_INSTANCE_UPDATE = 84,
-  STAGE_INSTANCE_DELETE = 85,
-}
-export interface Webhook {
-  /** the id of the webhook */
-  id: Snowflake;
-  /** the type of the webhook */
-  type: WebhookType;
-  /** the guild id this webhook is for, if any */
-  guild_id?: Snowflake | null;
-  /** the channel id this webhook is for, if any */
-  channel_id?: Snowflake | null;
-  /** the user this webhook was created by (not returned when getting a webhook with its token) */
-  user?: User;
-  /** the default name of the webhook */
-  name?: string | null;
-  /** the default user avatar hash of the webhook */
-  avatar?: string | null;
-  /** the secure token of the webhook (returned for Incoming Webhooks) */
-  token?: string;
-  /** the bot/OAuth2 application that created this webhook */
-  application_id?: Snowflake | null;
-  /** the guild of the channel that this webhook is following (returned for Channel Follower Webhooks) */
-  source_guild?: Guild;
-  /** the channel that this webhook is following (returned for Channel Follower Webhooks) */
-  source_channel?: Channel;
-  /** the url used for executing the webhook (returned by the webhooks OAuth2 flow) */
-  url?: string;
-}
-export interface CreateWebhookParams {
-  /** name of the webhook (1-80 characters) */
-  name: string;
-  /** image for the default webhook avatar */
-  avatar?: string | null;
-}
-export interface ModifyWebhookParams {
-  /** the default name of the webhook */
-  name: string;
-  /** image for the default webhook avatar */
-  avatar?: string | null;
-  /** the new channel id this webhook should be moved to */
-  channel_id: Snowflake;
-}
-export interface ExecuteWebhookParams {
-  /** the message contents (up to 2000 characters) */
-  content: string;
-  /** override the default username of the webhook */
-  username: string;
-  /** override the default avatar of the webhook */
-  avatar_url: string;
-  /** true if this is a TTS message */
-  tts: boolean;
-  /** the contents of the file being sent */
-  file: string;
-  /** embedded rich content */
-  embeds: Embed[];
-  /** JSON encoded body of non-file params */
-  payload_json: string;
-  /** allowed mentions for the message */
-  allowed_mentions: AllowedMention;
-  /** the components to include with the message */
-  components: Component[];
-}
-export interface EditWebhookMessageParams {
-  /** the message contents (up to 2000 characters) */
-  content: string;
-  /** embedded rich content */
-  embeds: Embed[];
-  /** the contents of the file being sent/edited */
-  file: string;
-  /** JSON encoded body of non-file params (multipart/form-data only) */
-  payload_json: string;
-  /** allowed mentions for the message */
-  allowed_mentions: AllowedMention;
-  /** attached files to keep */
-  attachments: Attachment[];
-  /** the components to include with the message */
-  components: Component[];
-}
-export enum WebhookType {
-  /** Incoming Webhooks can post messages to channels with a generated token */
-  INCOMING = 1,
-  /** Channel Follower Webhooks are internal webhooks used with Channel Following to post new messages into channels */
-  CHANNEL_FOLLOWER = 2,
-  /** Application webhooks are webhooks used with Interactions */
-  APPLICATION = 3,
-}
-export interface Role {
-  /** role id */
-  id: Snowflake;
-  /** role name */
-  name: string;
-  /** integer representation of hexadecimal color code */
-  color: number;
-  /** if this role is pinned in the user listing */
-  hoist: boolean;
-  /** position of this role */
-  position: number;
-  /** permission bit set */
-  permissions: string;
-  /** whether this role is managed by an integration */
-  managed: boolean;
-  /** whether this role is mentionable */
-  mentionable: boolean;
-  /** the tags this role has */
-  tags?: RoleTag;
-}
-export interface RoleTag {
-  /** the id of the bot this role belongs to */
-  bot_id?: Snowflake;
-  /** the id of the integration this role belongs to */
-  integration_id?: Snowflake;
-  /** whether this is the guild's premium subscriber role */
-  premium_subscriber?: null;
-}
-export const PermissionFlag = {
-  /** Allows creation of instant invites */
-  CREATE_INSTANT_INVITE: BigInt(1) << BigInt(0),
-  /** Allows kicking members */
-  KICK_MEMBERS: BigInt(1) << BigInt(1),
-  /** Allows banning members */
-  BAN_MEMBERS: BigInt(1) << BigInt(2),
-  /** Allows all permissions and bypasses channel permission overwrites */
-  ADMINISTRATOR: BigInt(1) << BigInt(3),
-  /** Allows management and editing of channels */
-  MANAGE_CHANNELS: BigInt(1) << BigInt(4),
-  /** Allows management and editing of the guild */
-  MANAGE_GUILD: BigInt(1) << BigInt(5),
-  /** Allows for the addition of reactions to messages */
-  ADD_REACTIONS: BigInt(1) << BigInt(6),
-  /** Allows for viewing of audit logs */
-  VIEW_AUDIT_LOG: BigInt(1) << BigInt(7),
-  /** Allows for using priority speaker in a voice channel */
-  PRIORITY_SPEAKER: BigInt(1) << BigInt(8),
-  /** Allows the user to go live */
-  STREAM: BigInt(1) << BigInt(9),
-  /** Allows guild members to view a channel, which includes reading messages in text channels */
-  VIEW_CHANNEL: BigInt(1) << BigInt(10),
-  /** Allows for sending messages in a channel */
-  SEND_MESSAGES: BigInt(1) << BigInt(11),
-  /** Allows for sending of /tts messages */
-  SEND_TTS_MESSAGES: BigInt(1) << BigInt(12),
-  /** Allows for deletion of other users messages */
-  MANAGE_MESSAGES: BigInt(1) << BigInt(13),
-  /** Links sent by users with this permission will be auto-embedded */
-  EMBED_LINKS: BigInt(1) << BigInt(14),
-  /** Allows for uploading images and files */
-  ATTACH_FILES: BigInt(1) << BigInt(15),
-  /** Allows for reading of message history */
-  READ_MESSAGE_HISTORY: BigInt(1) << BigInt(16),
-  /** Allows for using the @everyone tag to notify all users in a channel, and the @here tag to notify all online users in a channel */
-  MENTION_EVERYONE: BigInt(1) << BigInt(17),
-  /** Allows the usage of custom emojis from other servers */
-  USE_EXTERNAL_EMOJIS: BigInt(1) << BigInt(18),
-  /** Allows for viewing guild insights */
-  VIEW_GUILD_INSIGHTS: BigInt(1) << BigInt(19),
-  /** Allows for joining of a voice channel */
-  CONNECT: BigInt(1) << BigInt(20),
-  /** Allows for speaking in a voice channel */
-  SPEAK: BigInt(1) << BigInt(21),
-  /** Allows for muting members in a voice channel */
-  MUTE_MEMBERS: BigInt(1) << BigInt(22),
-  /** Allows for deafening of members in a voice channel */
-  DEAFEN_MEMBERS: BigInt(1) << BigInt(23),
-  /** Allows for moving of members between voice channels */
-  MOVE_MEMBERS: BigInt(1) << BigInt(24),
-  /** Allows for using voice-activity-detection in a voice channel */
-  USE_VAD: BigInt(1) << BigInt(25),
-  /** Allows for modification of own nickname */
-  CHANGE_NICKNAME: BigInt(1) << BigInt(26),
-  /** Allows for modification of other users nicknames */
-  MANAGE_NICKNAMES: BigInt(1) << BigInt(27),
-  /** Allows management and editing of roles */
-  MANAGE_ROLES: BigInt(1) << BigInt(28),
-  /** Allows management and editing of webhooks */
-  MANAGE_WEBHOOKS: BigInt(1) << BigInt(29),
-  /** Allows management and editing of emojis */
-  MANAGE_EMOJIS: BigInt(1) << BigInt(30),
-  /** Allows members to use slash commands in text channels */
-  USE_SLASH_COMMANDS: BigInt(1) << BigInt(31),
-  /** Allows for requesting to speak in stage channels. (This permission is under active development and may be changed or removed.) */
-  REQUEST_TO_SPEAK: BigInt(1) << BigInt(32),
-  /** Allows for deleting and archiving threads, and viewing all private threads */
-  MANAGE_THREADS: BigInt(1) << BigInt(34),
-  /** Allows for creating and participating in threads */
-  USE_PUBLIC_THREADS: BigInt(1) << BigInt(35),
-  /** Allows for creating and participating in private threads */
-  USE_PRIVATE_THREADS: BigInt(1) << BigInt(36),
-} as const;
-export enum GatewayOpcode {
-  /** An event was dispatched. */
-  DISPATCH = 0,
-  /** Fired periodically by the client to keep the connection alive. */
-  HEARTBEAT = 1,
-  /** Starts a new session during the initial handshake. */
-  IDENTIFY = 2,
-  /** Update the client's presence. */
-  PRESENCE_UPDATE = 3,
-  /** Used to join/leave or move between voice channels. */
-  VOICE_STATE_UPDATE = 4,
-  /** Resume a previous session that was disconnected. */
-  RESUME = 6,
-  /** You should attempt to reconnect and resume immediately. */
-  RECONNECT = 7,
-  /** Request information about offline guild members in a large guild. */
-  REQUEST_GUILD_MEMBERS = 8,
-  /** The session has been invalidated. You should reconnect and identify/resume accordingly. */
-  INVALID_SESSION = 9,
-  /** Sent immediately after connecting, contains the heartbeat_interval to use. */
-  HELLO = 10,
-  /** Sent in response to receiving a heartbeat to acknowledge that it has been received. */
-  HEARTBEAT_ACK = 11,
-}
-export enum VoiceOpcode {
-  /** Begin a voice websocket connection. */
-  IDENTIFY = 0,
-  /** Select the voice protocol. */
-  SELECT_PROTOCOL = 1,
-  /** Complete the websocket handshake. */
-  READY = 2,
-  /** Keep the websocket connection alive. */
-  HEARTBEAT = 3,
-  /** Describe the session. */
-  SESSION_DESCRIPTION = 4,
-  /** Indicate which users are speaking. */
-  SPEAKING = 5,
-  /** Sent to acknowledge a received client heartbeat. */
-  HEARTBEAT_ACK = 6,
-  /** Resume a connection. */
-  RESUME = 7,
-  /** Time to wait between sending heartbeats in milliseconds. */
-  HELLO = 8,
-  /** Acknowledge a successful session resume. */
-  RESUMED = 9,
-  /** A client has disconnected from the voice channel */
-  CLIENT_DISCONNECT = 13,
-}
 export interface ApplicationCommand {
   /** unique id of the command */
   id: Snowflake;
@@ -990,6 +290,833 @@ export enum InteractionCallbackType {
   DEFERRED_UPDATE_MESSAGE = 6,
   /** for components, edit the message the component was attached to */
   UPDATE_MESSAGE = 7,
+}
+export interface Application {
+  /** the id of the app */
+  id: Snowflake;
+  /** the name of the app */
+  name: string;
+  /** the icon hash of the app */
+  icon?: string | null;
+  /** the description of the app */
+  description: string;
+  /** an array of rpc origin urls, if rpc is enabled */
+  rpc_origins?: string[];
+  /** when false only app owner can join the app's bot to guilds */
+  bot_public: boolean;
+  /** when true the app's bot will only join upon completion of the full oauth2 code grant flow */
+  bot_require_code_grant: boolean;
+  /** the url of the app's terms of service */
+  terms_of_service_url?: string;
+  /** the url of the app's privacy policy */
+  privacy_policy_url?: string;
+  /** partial user object containing info on the owner of the application */
+  owner?: User;
+  /** if this application is a game sold on Discord, this field will be the summary field for the store page of its primary sku */
+  summary: string;
+  /** the hex encoded key for verification in interactions and the GameSDK's GetTicket */
+  verify_key: string;
+  /** if the application belongs to a team, this will be a list of the members of that team */
+  team?: Team | null;
+  /** if this application is a game sold on Discord, this field will be the guild to which it has been linked */
+  guild_id?: Snowflake;
+  /** if this application is a game sold on Discord, this field will be the id of the "Game SKU" that is created, if exists */
+  primary_sku_id?: Snowflake;
+  /** if this application is a game sold on Discord, this field will be the URL slug that links to the store page */
+  slug?: string;
+  /** the application's default rich presence invite cover image hash */
+  cover_image?: string;
+  /** the application's public flags */
+  flags: number;
+}
+export const ApplicationFlag = {
+  GATEWAY_PRESENCE: 1 << 12,
+  GATEWAY_PRESENCE_LIMITED: 1 << 13,
+  GATEWAY_GUILD_MEMBERS: 1 << 14,
+  GATEWAY_GUILD_MEMBERS_LIMITED: 1 << 15,
+  VERIFICATION_PENDING_GUILD_LIMIT: 1 << 16,
+  EMBEDDED: 1 << 17,
+} as const;
+export interface AuditLog {
+  /** list of webhooks found in the audit log */
+  webhooks: Webhook[];
+  /** list of users found in the audit log */
+  users: User[];
+  /** list of audit log entries */
+  audit_log_entries: AuditLogEntry[];
+  /** list of partial integration objects */
+  integrations: Integration[];
+}
+export interface AuditLogEntry {
+  /** id of the affected entity (webhook, user, role, etc.) */
+  target_id?: string | null;
+  /** changes made to the target_id */
+  changes?: AuditLogChange[];
+  /** the user who made the changes */
+  user_id?: Snowflake | null;
+  /** id of the entry */
+  id: Snowflake;
+  /** type of action that occurred */
+  action_type: AuditLogEvent;
+  /** additional info for certain action types */
+  options?: AuditEntryInfo;
+  /** the reason for the change (0-512 characters) */
+  reason?: string;
+}
+export interface AuditEntryInfo {
+  /** number of days after which inactive members were kicked */
+  delete_member_days: string;
+  /** number of members removed by the prune */
+  members_removed: string;
+  /** channel in which the entities were targeted */
+  channel_id: Snowflake;
+  /** id of the message that was targeted */
+  message_id: Snowflake;
+  /** number of entities that were targeted */
+  count: string;
+  /** id of the overwritten entity */
+  id: Snowflake;
+  /** type of overwritten entity - "0" for "role" or "1" for "member" */
+  type: string;
+  /** name of the role if type is "0" (not present if type is "1") */
+  role_name: string;
+}
+export interface AuditLogChange {
+  /** new value of the key */
+  new_value?: any;
+  /** old value of the key */
+  old_value?: any;
+  /** name of audit log change key */
+  key: string;
+}
+export interface GetGuildAuditLogParams {
+  /** filter the log for actions made by a user */
+  user_id: Snowflake;
+  /** the type of audit log event */
+  action_type: AuditLogEvent;
+  /** filter the log before a certain entry id */
+  before: Snowflake;
+  /** how many entries are returned (default 50, minimum 1, maximum 100) */
+  limit: number;
+}
+export enum AuditLogEvent {
+  GUILD_UPDATE = 1,
+  CHANNEL_CREATE = 10,
+  CHANNEL_UPDATE = 11,
+  CHANNEL_DELETE = 12,
+  CHANNEL_OVERWRITE_CREATE = 13,
+  CHANNEL_OVERWRITE_UPDATE = 14,
+  CHANNEL_OVERWRITE_DELETE = 15,
+  MEMBER_KICK = 20,
+  MEMBER_PRUNE = 21,
+  MEMBER_BAN_ADD = 22,
+  MEMBER_BAN_REMOVE = 23,
+  MEMBER_UPDATE = 24,
+  MEMBER_ROLE_UPDATE = 25,
+  MEMBER_MOVE = 26,
+  MEMBER_DISCONNECT = 27,
+  BOT_ADD = 28,
+  ROLE_CREATE = 30,
+  ROLE_UPDATE = 31,
+  ROLE_DELETE = 32,
+  INVITE_CREATE = 40,
+  INVITE_UPDATE = 41,
+  INVITE_DELETE = 42,
+  WEBHOOK_CREATE = 50,
+  WEBHOOK_UPDATE = 51,
+  WEBHOOK_DELETE = 52,
+  EMOJI_CREATE = 60,
+  EMOJI_UPDATE = 61,
+  EMOJI_DELETE = 62,
+  MESSAGE_DELETE = 72,
+  MESSAGE_BULK_DELETE = 73,
+  MESSAGE_PIN = 74,
+  MESSAGE_UNPIN = 75,
+  INTEGRATION_CREATE = 80,
+  INTEGRATION_UPDATE = 81,
+  INTEGRATION_DELETE = 82,
+  STAGE_INSTANCE_CREATE = 83,
+  STAGE_INSTANCE_UPDATE = 84,
+  STAGE_INSTANCE_DELETE = 85,
+}
+export interface Emoji {
+  /** emoji id */
+  id?: Snowflake | null;
+  /** emoji name */
+  name?: string | null;
+  /** roles allowed to use this emoji */
+  roles?: Snowflake[];
+  /** user that created this emoji */
+  user?: User;
+  /** whether this emoji must be wrapped in colons */
+  require_colons?: boolean;
+  /** whether this emoji is managed */
+  managed?: boolean;
+  /** whether this emoji is animated */
+  animated?: boolean;
+  /** whether this emoji can be used, may be false due to loss of Server Boosts */
+  available?: boolean;
+}
+export interface CreateGuildEmojiParams {
+  /** name of the emoji */
+  name: string;
+  /** the 128x128 emoji image */
+  image: string;
+  /** roles allowed to use this emoji */
+  roles: Snowflake[];
+}
+export interface ModifyGuildEmojiParams {
+  /** name of the emoji */
+  name: string;
+  /** roles allowed to use this emoji */
+  roles?: Snowflake[] | null;
+}
+export interface Channel {
+  /** the id of this channel */
+  id: Snowflake;
+  /** the type of channel */
+  type: ChannelType;
+  /** the id of the guild (may be missing for some channel objects received over gateway guild dispatches) */
+  guild_id?: Snowflake;
+  /** sorting position of the channel */
+  position?: number;
+  /** explicit permission overwrites for members and roles */
+  permission_overwrites?: Overwrite[];
+  /** the name of the channel (1-100 characters) */
+  name?: string;
+  /** the channel topic (0-1024 characters) */
+  topic?: string | null;
+  /** whether the channel is nsfw */
+  nsfw?: boolean;
+  /** the id of the last message sent in this channel (may not point to an existing or valid message) */
+  last_message_id?: Snowflake | null;
+  /** the bitrate (in bits) of the voice channel */
+  bitrate?: number;
+  /** the user limit of the voice channel */
+  user_limit?: number;
+  /** amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages or manage_channel, are unaffected */
+  rate_limit_per_user?: number;
+  /** the recipients of the DM */
+  recipients?: User[];
+  /** icon hash */
+  icon?: string | null;
+  /** id of the creator of the group DM or thread */
+  owner_id?: Snowflake;
+  /** application id of the group DM creator if it is bot-created */
+  application_id?: Snowflake;
+  /** for guild channels: id of the parent category for a channel (each parent category can contain up to 50 channels), for threads: id of the text channel this thread was created */
+  parent_id?: Snowflake | null;
+  /** when the last pinned message was pinned. This may be null in events such as GUILD_CREATE when a message is not pinned. */
+  last_pin_timestamp?: string | null;
+  /** voice region id for the voice channel, automatic when set to null */
+  rtc_region?: string | null;
+  /** the camera video quality mode of the voice channel, 1 when not present */
+  video_quality_mode?: VideoQualityMode;
+  /** an approximate count of messages in a thread, stops counting at 50 */
+  message_count?: number;
+  /** an approximate count of users in a thread, stops counting at 50 */
+  member_count?: number;
+  /** thread-specific fields not needed by other channels */
+  thread_metadata?: ThreadMetadatum;
+  /** thread member object for the current user, if they have joined the thread, only included on certain API endpoints */
+  member?: ThreadMember;
+}
+export interface Message {
+  /** id of the message */
+  id: Snowflake;
+  /** id of the channel the message was sent in */
+  channel_id: Snowflake;
+  /** id of the guild the message was sent in */
+  guild_id?: Snowflake;
+  /** the author of this message (not guaranteed to be a valid user, see below) */
+  author: User;
+  /** member properties for this message's author */
+  member?: GuildMember;
+  /** contents of the message */
+  content: string;
+  /** when this message was sent */
+  timestamp: string;
+  /** when this message was edited (or null if never) */
+  edited_timestamp?: string | null;
+  /** whether this was a TTS message */
+  tts: boolean;
+  /** whether this message mentions everyone */
+  mention_everyone: boolean;
+  /** users specifically mentioned in the message */
+  mentions: User[];
+  /** roles specifically mentioned in this message */
+  mention_roles: Snowflake[];
+  /** channels specifically mentioned in this message */
+  mention_channels?: ChannelMention[];
+  /** any attached files */
+  attachments: Attachment[];
+  /** any embedded content */
+  embeds: Embed[];
+  /** reactions to the message */
+  reactions?: Reaction[];
+  /** used for validating a message was sent */
+  nonce?: string;
+  /** whether this message is pinned */
+  pinned: boolean;
+  /** if the message is generated by a webhook, this is the webhook's id */
+  webhook_id?: Snowflake;
+  /** type of message */
+  type: MessageType;
+  /** sent with Rich Presence-related chat embeds */
+  activity?: MessageActivity;
+  /** sent with Rich Presence-related chat embeds */
+  application?: Application;
+  /** if the message is a response to an Interaction, this is the id of the interaction's application */
+  application_id?: Snowflake;
+  /** data showing the source of a crosspost, channel follow add, pin, or reply message */
+  message_reference?: MessageReference;
+  /** message flags combined as a bitfield */
+  flags?: number;
+  /** the stickers sent with the message (bots currently can only receive messages with stickers, not send) */
+  stickers?: MessageSticker[];
+  /** the message associated with the message_reference */
+  referenced_message?: Message | null;
+  /** sent if the message is a response to an Interaction */
+  interaction?: MessageInteraction;
+  /** the thread that was started from this message, includes thread member object */
+  thread?: Channel;
+  /** sent if the message contains components like buttons, action rows, or other interactive components */
+  components?: Component[];
+}
+export interface MessageActivity {
+  /** type of message activity */
+  type: MessageActivityType;
+  /** party_id from a Rich Presence event */
+  party_id?: string;
+}
+export interface MessageSticker {
+  /** id of the sticker */
+  id: Snowflake;
+  /** id of the pack the sticker is from */
+  pack_id: Snowflake;
+  /** name of the sticker */
+  name: string;
+  /** description of the sticker */
+  description: string;
+  /** a comma-separated list of tags for the sticker */
+  tags?: string;
+  /** sticker asset hash */
+  asset: string;
+  /** type of sticker format */
+  format_type: MessageStickerFormatType;
+}
+export interface MessageReference {
+  /** id of the originating message */
+  message_id?: Snowflake;
+  /** id of the originating message's channel */
+  channel_id?: Snowflake;
+  /** id of the originating message's guild */
+  guild_id?: Snowflake;
+  /** when sending, whether to error if the referenced message doesn't exist instead of sending as a normal (non-reply) message, default true */
+  fail_if_not_exists?: boolean;
+}
+export interface FollowedChannel {
+  /** source channel id */
+  channel_id: Snowflake;
+  /** created target webhook id */
+  webhook_id: Snowflake;
+}
+export interface Reaction {
+  /** times this emoji has been used to react */
+  count: number;
+  /** whether the current user reacted using this emoji */
+  me: boolean;
+  /** emoji information */
+  emoji: Emoji;
+}
+export interface Overwrite {
+  /** role or user id */
+  id: Snowflake;
+  /** either 0 (role) or 1 (member) */
+  type: number;
+  /** permission bit set */
+  allow: string;
+  /** permission bit set */
+  deny: string;
+}
+export interface ThreadMetadatum {
+  /** whether the thread is archived */
+  archived: boolean;
+  /** id of the user that last archived or unarchived the thread */
+  archiver_id?: Snowflake;
+  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
+  auto_archive_duration: number;
+  /** timestamp when the thread's archive status was last changed, used for calculating recent activity */
+  archive_timestamp: string;
+  /** when a thread is locked, only users with MANAGE_THREADS can unarchive it */
+  locked?: boolean;
+}
+export interface ThreadMember {
+  /** the id of the thread */
+  id?: Snowflake;
+  /** the id of the user */
+  user_id?: Snowflake;
+  /** the time the current user last joined the thread */
+  join_timestamp: string;
+  /** any user-thread settings, currently only used for notifications */
+  flags: number;
+}
+export interface Embed {
+  /** title of embed */
+  title?: string;
+  /** type of embed (always "rich" for webhook embeds) */
+  type?: EmbedType;
+  /** description of embed */
+  description?: string;
+  /** url of embed */
+  url?: string;
+  /** timestamp of embed content */
+  timestamp?: string;
+  /** color code of the embed */
+  color?: number;
+  /** footer information */
+  footer?: EmbedFooter;
+  /** image information */
+  image?: EmbedImage;
+  /** thumbnail information */
+  thumbnail?: EmbedThumbnail;
+  /** video information */
+  video?: EmbedVideo;
+  /** provider information */
+  provider?: EmbedProvider;
+  /** author information */
+  author?: EmbedAuthor;
+  /** fields information */
+  fields?: EmbedField[];
+}
+export interface EmbedThumbnail {
+  /** source url of thumbnail (only supports http(s) and attachments) */
+  url?: string;
+  /** a proxied url of the thumbnail */
+  proxy_url?: string;
+  /** height of thumbnail */
+  height?: number;
+  /** width of thumbnail */
+  width?: number;
+}
+export interface EmbedVideo {
+  /** source url of video */
+  url?: string;
+  /** a proxied url of the video */
+  proxy_url?: string;
+  /** height of video */
+  height?: number;
+  /** width of video */
+  width?: number;
+}
+export interface EmbedImage {
+  /** source url of image (only supports http(s) and attachments) */
+  url?: string;
+  /** a proxied url of the image */
+  proxy_url?: string;
+  /** height of image */
+  height?: number;
+  /** width of image */
+  width?: number;
+}
+export interface EmbedProvider {
+  /** name of provider */
+  name?: string;
+  /** url of provider */
+  url?: string;
+}
+export interface EmbedAuthor {
+  /** name of author */
+  name?: string;
+  /** url of author */
+  url?: string;
+  /** url of author icon (only supports http(s) and attachments) */
+  icon_url?: string;
+  /** a proxied url of author icon */
+  proxy_icon_url?: string;
+}
+export interface EmbedFooter {
+  /** footer text */
+  text: string;
+  /** url of footer icon (only supports http(s) and attachments) */
+  icon_url?: string;
+  /** a proxied url of footer icon */
+  proxy_icon_url?: string;
+}
+export interface EmbedField {
+  /** name of the field */
+  name: string;
+  /** value of the field */
+  value: string;
+  /** whether or not this field should display inline */
+  inline?: boolean;
+}
+export interface Attachment {
+  /** attachment id */
+  id: Snowflake;
+  /** name of file attached */
+  filename: string;
+  /** the attachment's media type */
+  content_type?: string;
+  /** size of file in bytes */
+  size: number;
+  /** source url of file */
+  url: string;
+  /** a proxied url of file */
+  proxy_url: string;
+  /** height of file (if image) */
+  height?: number | null;
+  /** width of file (if image) */
+  width?: number | null;
+}
+export interface ChannelMention {
+  /** id of the channel */
+  id: Snowflake;
+  /** id of the guild containing the channel */
+  guild_id: Snowflake;
+  /** the type of channel */
+  type: ChannelType;
+  /** the name of the channel */
+  name: string;
+}
+export interface AllowedMention {
+  /** An array of allowed mention types to parse from the content. */
+  parse: AllowedMentionType[];
+  /** Array of role_ids to mention (Max size of 100) */
+  roles: Snowflake[];
+  /** Array of user_ids to mention (Max size of 100) */
+  users: Snowflake[];
+  /** For replies, whether to mention the author of the message being replied to (default false) */
+  replied_user: boolean;
+}
+export interface ResponseBody {
+  /** the active threads */
+  threads: Channel[];
+  /** a thread member object for each returned thread the current user has joined */
+  members: ThreadMember[];
+  /** whether there are potentially additional threads that could be returned on a subsequent call */
+  has_more: boolean;
+}
+export interface ModifyChannelGroupDmParams {
+  /** 2-100 character channel name */
+  name: string;
+  /** base64 encoded icon */
+  icon: string;
+}
+export interface ModifyChannelGuildChannelParams {
+  /** 2-100 character channel name */
+  name: string;
+  /** the type of channel; only conversion between text and news is supported and only in guilds with the "NEWS" feature */
+  type: ChannelType;
+  /** the position of the channel in the left-hand listing */
+  position?: number | null;
+  /** 0-1024 character channel topic */
+  topic?: string | null;
+  /** whether the channel is nsfw */
+  nsfw?: boolean | null;
+  /** amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages or manage_channel, are unaffected */
+  rate_limit_per_user?: number | null;
+  /** the bitrate (in bits) of the voice channel; 8000 to 96000 (128000 for VIP servers) */
+  bitrate?: number | null;
+  /** the user limit of the voice channel; 0 refers to no limit, 1 to 99 refers to a user limit */
+  user_limit?: number | null;
+  /** channel or category-specific permissions */
+  permission_overwrites?: Overwrite[] | null;
+  /** id of the new parent category for a channel */
+  parent_id?: Snowflake | null;
+  /** channel voice region id, automatic when set to null */
+  rtc_region?: string | null;
+  /** the camera video quality mode of the voice channel */
+  video_quality_mode?: VideoQualityMode | null;
+}
+export interface ModifyChannelThreadParams {
+  /** 2-100 character channel name */
+  name: string;
+  /** whether the channel is archived */
+  archived: boolean;
+  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
+  auto_archive_duration: number;
+  /** when a thread is locked, only users with MANAGE_THREADS can unarchive it */
+  locked: boolean;
+  /** amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages, manage_thread, or manage_channel, are unaffected */
+  rate_limit_per_user?: number | null;
+}
+export interface GetChannelMessageParams {
+  /** get messages around this message ID */
+  around: Snowflake;
+  /** get messages before this message ID */
+  before: Snowflake;
+  /** get messages after this message ID */
+  after: Snowflake;
+  /** max number of messages to return (1-100) */
+  limit: number;
+}
+export interface CreateMessageParams {
+  /** the message contents (up to 2000 characters) */
+  content: string;
+  /** true if this is a TTS message */
+  tts: boolean;
+  /** the contents of the file being sent */
+  file: string;
+  /** embedded rich content (up to 6000 characters) */
+  embeds: Embed[];
+  /** embedded rich content, deprecated in favor of embeds */
+  embed: Embed;
+  /** JSON encoded body of non-file params */
+  payload_json: string;
+  /** allowed mentions for the message */
+  allowed_mentions: AllowedMention;
+  /** include to make your message a reply */
+  message_reference: MessageReference;
+  /** the components to include with the message */
+  components: Component[];
+}
+export interface GetReactionParams {
+  /** get users after this user ID */
+  after: Snowflake;
+  /** max number of users to return (1-100) */
+  limit: number;
+}
+export interface EditMessageParams {
+  /** the message contents (up to 2000 characters) */
+  content: string;
+  /** embedded rich content (up to 6000 characters) */
+  embeds: Embed[];
+  /** embedded rich content, deprecated in favor of embeds */
+  embed: Embed;
+  /** edit the flags of a message (only SUPPRESS_EMBEDS can currently be set/unset) */
+  flags: number;
+  /** the contents of the file being sent/edited */
+  file: string;
+  /** JSON encoded body of non-file params (multipart/form-data only) */
+  payload_json: string;
+  /** allowed mentions for the message */
+  allowed_mentions: AllowedMention;
+  /** attached files to keep */
+  attachments: Attachment[];
+  /** the components to include with the message */
+  components: Component[];
+}
+export interface BulkDeleteMessageParams {
+  /** an array of message ids to delete (2-100) */
+  messages: Snowflake[];
+}
+export interface EditChannelPermissionParams {
+  /** the bitwise value of all allowed permissions */
+  allow: string;
+  /** the bitwise value of all disallowed permissions */
+  deny: string;
+  /** 0 for a role or 1 for a member */
+  type: number;
+}
+export interface CreateChannelInviteParams {
+  /** duration of invite in seconds before expiry, or 0 for never. between 0 and 604800 (7 days) */
+  max_age: number;
+  /** max number of uses or 0 for unlimited. between 0 and 100 */
+  max_uses: number;
+  /** whether this invite only grants temporary membership */
+  temporary: boolean;
+  /** if true, don't try to reuse a similar invite (useful for creating many unique one time use invites) */
+  unique: boolean;
+  /** the type of target for this voice channel invite */
+  target_type: InviteTargetType;
+  /** the id of the user whose stream to display for this invite, required if target_type is 1, the user must be streaming in the channel */
+  target_user_id: Snowflake;
+  /** the id of the embedded application to open for this invite, required if target_type is 2, the application must have the EMBEDDED flag */
+  target_application_id: Snowflake;
+}
+export interface FollowNewsChannelParams {
+  /** id of target channel */
+  webhook_channel_id: Snowflake;
+}
+export interface GroupDmAddRecipientParams {
+  /** access token of a user that has granted your app the gdm.join scope */
+  access_token: string;
+  /** nickname of the user being added */
+  nick: string;
+}
+export interface StartThreadWithMessageParams {
+  /** 2-100 character channel name */
+  name: string;
+  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
+  auto_archive_duration: number;
+}
+export interface StartThreadWithoutMessageParams {
+  /** 2-100 character channel name */
+  name: string;
+  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
+  auto_archive_duration: number;
+}
+export interface ListPublicArchivedThreadParams {
+  /** returns threads before this timestamp */
+  before?: string;
+  /** optional maximum number of threads to return */
+  limit?: number;
+}
+export interface ListPrivateArchivedThreadParams {
+  /** returns threads before this timestamp */
+  before?: string;
+  /** optional maximum number of threads to return */
+  limit?: number;
+}
+export interface ListJoinedPrivateArchivedThreadParams {
+  /** returns threads before this id */
+  before?: Snowflake;
+  /** optional maximum number of threads to return */
+  limit?: number;
+}
+export enum ChannelType {
+  /** a text channel within a server */
+  GUILD_TEXT = 0,
+  /** a direct message between users */
+  DM = 1,
+  /** a voice channel within a server */
+  GUILD_VOICE = 2,
+  /** a direct message between multiple users */
+  GROUP_DM = 3,
+  /** an organizational category that contains up to 50 channels */
+  GUILD_CATEGORY = 4,
+  /** a channel that users can follow and crosspost into their own server */
+  GUILD_NEWS = 5,
+  /** a channel in which game developers can sell their game on Discord */
+  GUILD_STORE = 6,
+  /** a temporary sub-channel within a GUILD_NEWS channel */
+  GUILD_NEWS_THREAD = 10,
+  /** a temporary sub-channel within a GUILD_TEXT channel */
+  GUILD_PUBLIC_THREAD = 11,
+  /** a temporary sub-channel within a GUILD_TEXT channel that is only viewable by those invited and those with the MANAGE_THREADS permission */
+  GUILD_PRIVATE_THREAD = 12,
+  /** a voice channel for hosting events with an audience */
+  GUILD_STAGE_VOICE = 13,
+}
+export enum VideoQualityMode {
+  /** Discord chooses the quality for optimal performance */
+  AUTO = 1,
+  /** 720p */
+  FULL = 2,
+}
+export enum MessageType {
+  DEFAULT = 0,
+  RECIPIENT_ADD = 1,
+  RECIPIENT_REMOVE = 2,
+  CALL = 3,
+  CHANNEL_NAME_CHANGE = 4,
+  CHANNEL_ICON_CHANGE = 5,
+  CHANNEL_PINNED_MESSAGE = 6,
+  GUILD_MEMBER_JOIN = 7,
+  USER_PREMIUM_GUILD_SUBSCRIPTION = 8,
+  USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_1 = 9,
+  USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_2 = 10,
+  USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_3 = 11,
+  CHANNEL_FOLLOW_ADD = 12,
+  GUILD_DISCOVERY_DISQUALIFIED = 14,
+  GUILD_DISCOVERY_REQUALIFIED = 15,
+  GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING = 16,
+  GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING = 17,
+  THREAD_CREATED = 18,
+  REPLY = 19,
+  APPLICATION_COMMAND = 20,
+  THREAD_STARTER_MESSAGE = 21,
+  GUILD_INVITE_REMINDER = 22,
+}
+export enum MessageActivityType {
+  JOIN = 1,
+  SPECTATE = 2,
+  LISTEN = 3,
+  JOIN_REQUEST = 5,
+}
+export enum MessageStickerFormatType {
+  PNG = 1,
+  APNG = 2,
+  LOTTIE = 3,
+}
+export enum EmbedType {
+  /** generic embed rendered from embed attributes */
+  RICH = "rich",
+  /** image embed */
+  IMAGE = "image",
+  /** video embed */
+  VIDEO = "video",
+  /** animated gif image embed rendered as a video embed */
+  GIFV = "gifv",
+  /** article embed */
+  ARTICLE = "article",
+  /** link embed */
+  LINK = "link",
+}
+export enum AllowedMentionType {
+  /** Controls role mentions */
+  ROLE_MENTIONS = "roles",
+  /** Controls user mentions */
+  USER_MENTIONS = "users",
+  /** Controls @everyone and @here mentions */
+  EVERYONE_MENTIONS = "everyone",
+}
+export const MessageFlag = {
+  /** this message has been published to subscribed channels (via Channel Following) */
+  CROSSPOSTED: 1 << 0,
+  /** this message originated from a message in another channel (via Channel Following) */
+  IS_CROSSPOST: 1 << 1,
+  /** do not include any embeds when serializing this message */
+  SUPPRESS_EMBEDS: 1 << 2,
+  /** the source message for this crosspost has been deleted (via Channel Following) */
+  SOURCE_MESSAGE_DELETED: 1 << 3,
+  /** this message came from the urgent message system */
+  URGENT: 1 << 4,
+  /** this message has an associated thread, with the same id as the message */
+  HAS_THREAD: 1 << 5,
+  /** this message is only visible to the user who invoked the Interaction */
+  EPHEMERAL: 1 << 6,
+  /** this message is an Interaction Response and the bot is "thinking" */
+  LOADING: 1 << 7,
+} as const;
+export type ModifyChannelParams =
+  | ModifyChannelGroupDmParams
+  | ModifyChannelGuildChannelParams
+  | ModifyChannelThreadParams;
+export interface Invite {
+  /** the invite code (unique ID) */
+  code: string;
+  /** the guild this invite is for */
+  guild?: Guild;
+  /** the channel this invite is for */
+  channel: Channel;
+  /** the user who created the invite */
+  inviter?: User;
+  /** the type of target for this voice channel invite */
+  target_type?: InviteTargetType;
+  /** the user whose stream to display for this voice channel stream invite */
+  target_user?: User;
+  /** the embedded application to open for this voice channel embedded application invite */
+  target_application?: Application;
+  /** approximate count of online members, returned from the GET /invites/<code> endpoint when with_counts is true */
+  approximate_presence_count?: number;
+  /** approximate count of total members, returned from the GET /invites/<code> endpoint when with_counts is true */
+  approximate_member_count?: number;
+  /** the expiration date of this invite, returned from the GET /invites/<code> endpoint when with_expiration is true */
+  expires_at?: string | null;
+}
+export interface InviteMetadatum {
+  /** number of times this invite has been used */
+  uses: number;
+  /** max number of times this invite can be used */
+  max_uses: number;
+  /** duration (in seconds) after which the invite expires */
+  max_age: number;
+  /** whether this invite only grants temporary membership */
+  temporary: boolean;
+  /** when this invite was created */
+  created_at: string;
+}
+export interface GetInviteParams {
+  /** whether the invite should contain approximate member counts */
+  with_counts?: boolean;
+  /** whether the invite should contain the expiration date */
+  with_expiration?: boolean;
+}
+export enum InviteTargetType {
+  STREAM = 1,
+  EMBEDDED_APPLICATION = 2,
 }
 export interface Guild {
   /** guild id */
@@ -1531,417 +1658,287 @@ export const SystemChannelFlag = {
   /** Suppress server setup tips */
   SUPPRESS_GUILD_REMINDER_NOTIFICATIONS: 1 << 2,
 } as const;
-export interface Channel {
-  /** the id of this channel */
-  id: Snowflake;
-  /** the type of channel */
-  type: ChannelType;
-  /** the id of the guild (may be missing for some channel objects received over gateway guild dispatches) */
-  guild_id?: Snowflake;
-  /** sorting position of the channel */
-  position?: number;
-  /** explicit permission overwrites for members and roles */
-  permission_overwrites?: Overwrite[];
-  /** the name of the channel (1-100 characters) */
-  name?: string;
-  /** the channel topic (0-1024 characters) */
-  topic?: string | null;
-  /** whether the channel is nsfw */
-  nsfw?: boolean;
-  /** the id of the last message sent in this channel (may not point to an existing or valid message) */
-  last_message_id?: Snowflake | null;
-  /** the bitrate (in bits) of the voice channel */
-  bitrate?: number;
-  /** the user limit of the voice channel */
-  user_limit?: number;
-  /** amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages or manage_channel, are unaffected */
-  rate_limit_per_user?: number;
-  /** the recipients of the DM */
-  recipients?: User[];
-  /** icon hash */
-  icon?: string | null;
-  /** id of the creator of the group DM or thread */
-  owner_id?: Snowflake;
-  /** application id of the group DM creator if it is bot-created */
-  application_id?: Snowflake;
-  /** for guild channels: id of the parent category for a channel (each parent category can contain up to 50 channels), for threads: id of the text channel this thread was created */
-  parent_id?: Snowflake | null;
-  /** when the last pinned message was pinned. This may be null in events such as GUILD_CREATE when a message is not pinned. */
-  last_pin_timestamp?: string | null;
-  /** voice region id for the voice channel, automatic when set to null */
-  rtc_region?: string | null;
-  /** the camera video quality mode of the voice channel, 1 when not present */
-  video_quality_mode?: VideoQualityMode;
-  /** an approximate count of messages in a thread, stops counting at 50 */
-  message_count?: number;
-  /** an approximate count of users in a thread, stops counting at 50 */
-  member_count?: number;
-  /** thread-specific fields not needed by other channels */
-  thread_metadata?: ThreadMetadatum;
-  /** thread member object for the current user, if they have joined the thread, only included on certain API endpoints */
-  member?: ThreadMember;
-}
-export interface Message {
-  /** id of the message */
-  id: Snowflake;
-  /** id of the channel the message was sent in */
-  channel_id: Snowflake;
-  /** id of the guild the message was sent in */
-  guild_id?: Snowflake;
-  /** the author of this message (not guaranteed to be a valid user, see below) */
-  author: User;
-  /** member properties for this message's author */
-  member?: GuildMember;
-  /** contents of the message */
-  content: string;
-  /** when this message was sent */
-  timestamp: string;
-  /** when this message was edited (or null if never) */
-  edited_timestamp?: string | null;
-  /** whether this was a TTS message */
-  tts: boolean;
-  /** whether this message mentions everyone */
-  mention_everyone: boolean;
-  /** users specifically mentioned in the message */
-  mentions: User[];
-  /** roles specifically mentioned in this message */
-  mention_roles: Snowflake[];
-  /** channels specifically mentioned in this message */
-  mention_channels?: ChannelMention[];
-  /** any attached files */
-  attachments: Attachment[];
-  /** any embedded content */
-  embeds: Embed[];
-  /** reactions to the message */
-  reactions?: Reaction[];
-  /** used for validating a message was sent */
-  nonce?: string;
-  /** whether this message is pinned */
-  pinned: boolean;
-  /** if the message is generated by a webhook, this is the webhook's id */
-  webhook_id?: Snowflake;
-  /** type of message */
-  type: MessageType;
-  /** sent with Rich Presence-related chat embeds */
-  activity?: MessageActivity;
-  /** sent with Rich Presence-related chat embeds */
-  application?: Application;
-  /** if the message is a response to an Interaction, this is the id of the interaction's application */
-  application_id?: Snowflake;
-  /** data showing the source of a crosspost, channel follow add, pin, or reply message */
-  message_reference?: MessageReference;
-  /** message flags combined as a bitfield */
-  flags?: number;
-  /** the stickers sent with the message (bots currently can only receive messages with stickers, not send) */
-  stickers?: MessageSticker[];
-  /** the message associated with the message_reference */
-  referenced_message?: Message | null;
-  /** sent if the message is a response to an Interaction */
-  interaction?: MessageInteraction;
-  /** the thread that was started from this message, includes thread member object */
-  thread?: Channel;
-  /** sent if the message contains components like buttons, action rows, or other interactive components */
-  components?: Component[];
-}
-export interface MessageActivity {
-  /** type of message activity */
-  type: MessageActivityType;
-  /** party_id from a Rich Presence event */
-  party_id?: string;
-}
-export interface MessageSticker {
-  /** id of the sticker */
-  id: Snowflake;
-  /** id of the pack the sticker is from */
-  pack_id: Snowflake;
-  /** name of the sticker */
+export interface GuildTemplate {
+  /** the template code (unique ID) */
+  code: string;
+  /** template name */
   name: string;
-  /** description of the sticker */
-  description: string;
-  /** a comma-separated list of tags for the sticker */
-  tags?: string;
-  /** sticker asset hash */
-  asset: string;
-  /** type of sticker format */
-  format_type: MessageStickerFormatType;
+  /** the description for the template */
+  description?: string | null;
+  /** number of times this template has been used */
+  usage_count: number;
+  /** the ID of the user who created the template */
+  creator_id: Snowflake;
+  /** the user who created the template */
+  creator: User;
+  /** when this template was created */
+  created_at: string;
+  /** when this template was last synced to the source guild */
+  updated_at: string;
+  /** the ID of the guild this template is based on */
+  source_guild_id: Snowflake;
+  /** the guild snapshot this template contains */
+  serialized_source_guild: Guild;
+  /** whether the template has unsynced changes */
+  is_dirty?: boolean | null;
 }
-export interface MessageReference {
-  /** id of the originating message */
-  message_id?: Snowflake;
-  /** id of the originating message's channel */
-  channel_id?: Snowflake;
-  /** id of the originating message's guild */
-  guild_id?: Snowflake;
-  /** when sending, whether to error if the referenced message doesn't exist instead of sending as a normal (non-reply) message, default true */
-  fail_if_not_exists?: boolean;
-}
-export interface FollowedChannel {
-  /** source channel id */
-  channel_id: Snowflake;
-  /** created target webhook id */
-  webhook_id: Snowflake;
-}
-export interface Reaction {
-  /** times this emoji has been used to react */
-  count: number;
-  /** whether the current user reacted using this emoji */
-  me: boolean;
-  /** emoji information */
-  emoji: Emoji;
-}
-export interface Overwrite {
-  /** role or user id */
-  id: Snowflake;
-  /** either 0 (role) or 1 (member) */
-  type: number;
-  /** permission bit set */
-  allow: string;
-  /** permission bit set */
-  deny: string;
-}
-export interface ThreadMetadatum {
-  /** whether the thread is archived */
-  archived: boolean;
-  /** id of the user that last archived or unarchived the thread */
-  archiver_id?: Snowflake;
-  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
-  auto_archive_duration: number;
-  /** timestamp when the thread's archive status was last changed, used for calculating recent activity */
-  archive_timestamp: string;
-  /** when a thread is locked, only users with MANAGE_THREADS can unarchive it */
-  locked?: boolean;
-}
-export interface ThreadMember {
-  /** the id of the thread */
-  id: Snowflake;
-  /** the id of the user */
-  user_id: Snowflake;
-  /** the time the current user last joined the thread */
-  join_timestamp: string;
-  /** any user-thread settings, currently only used for notifications */
-  flags: number;
-}
-export interface Embed {
-  /** title of embed */
-  title?: string;
-  /** type of embed (always "rich" for webhook embeds) */
-  type?: EmbedType;
-  /** description of embed */
-  description?: string;
-  /** url of embed */
-  url?: string;
-  /** timestamp of embed content */
-  timestamp?: string;
-  /** color code of the embed */
-  color?: number;
-  /** footer information */
-  footer?: EmbedFooter;
-  /** image information */
-  image?: EmbedImage;
-  /** thumbnail information */
-  thumbnail?: EmbedThumbnail;
-  /** video information */
-  video?: EmbedVideo;
-  /** provider information */
-  provider?: EmbedProvider;
-  /** author information */
-  author?: EmbedAuthor;
-  /** fields information */
-  fields?: EmbedField[];
-}
-export interface EmbedThumbnail {
-  /** source url of thumbnail (only supports http(s) and attachments) */
-  url?: string;
-  /** a proxied url of the thumbnail */
-  proxy_url?: string;
-  /** height of thumbnail */
-  height?: number;
-  /** width of thumbnail */
-  width?: number;
-}
-export interface EmbedVideo {
-  /** source url of video */
-  url?: string;
-  /** a proxied url of the video */
-  proxy_url?: string;
-  /** height of video */
-  height?: number;
-  /** width of video */
-  width?: number;
-}
-export interface EmbedImage {
-  /** source url of image (only supports http(s) and attachments) */
-  url?: string;
-  /** a proxied url of the image */
-  proxy_url?: string;
-  /** height of image */
-  height?: number;
-  /** width of image */
-  width?: number;
-}
-export interface EmbedProvider {
-  /** name of provider */
-  name?: string;
-  /** url of provider */
-  url?: string;
-}
-export interface EmbedAuthor {
-  /** name of author */
-  name?: string;
-  /** url of author */
-  url?: string;
-  /** url of author icon (only supports http(s) and attachments) */
-  icon_url?: string;
-  /** a proxied url of author icon */
-  proxy_icon_url?: string;
-}
-export interface EmbedFooter {
-  /** footer text */
-  text: string;
-  /** url of footer icon (only supports http(s) and attachments) */
-  icon_url?: string;
-  /** a proxied url of footer icon */
-  proxy_icon_url?: string;
-}
-export interface EmbedField {
-  /** name of the field */
+export interface CreateGuildFromGuildTemplateParams {
+  /** name of the guild (2-100 characters) */
   name: string;
-  /** value of the field */
-  value: string;
-  /** whether or not this field should display inline */
-  inline?: boolean;
+  /** base64 128x128 image for the guild icon */
+  icon?: string;
 }
-export interface Attachment {
-  /** attachment id */
-  id: Snowflake;
-  /** name of file attached */
-  filename: string;
-  /** the attachment's media type */
-  content_type?: string;
-  /** size of file in bytes */
-  size: number;
-  /** source url of file */
-  url: string;
-  /** a proxied url of file */
-  proxy_url: string;
-  /** height of file (if image) */
-  height?: number | null;
-  /** width of file (if image) */
-  width?: number | null;
+export interface CreateGuildTemplateParams {
+  /** name of the template (1-100 characters) */
+  name: string;
+  /** description for the template (0-120 characters) */
+  description?: string | null;
 }
-export interface ChannelMention {
-  /** id of the channel */
+export interface ModifyGuildTemplateParams {
+  /** name of the template (1-100 characters) */
+  name?: string;
+  /** description for the template (0-120 characters) */
+  description?: string | null;
+}
+export interface StageInstance {
+  /** The id of this Stage instance */
   id: Snowflake;
-  /** id of the guild containing the channel */
+  /** The guild id of the associated Stage channel */
   guild_id: Snowflake;
-  /** the type of channel */
-  type: ChannelType;
-  /** the name of the channel */
+  /** The id of the associated Stage channel */
+  channel_id: Snowflake;
+  /** The topic of the Stage instance (1-120 characters) */
+  topic: string;
+  /** The privacy level of the Stage instance */
+  privacy_level: PrivacyLevel;
+  /** Whether or not Stage discovery is disabled */
+  discoverable_disabled: boolean;
+}
+export interface CreateStageInstanceParams {
+  /** The id of the Stage channel */
+  channel_id: Snowflake;
+  /** The topic of the Stage instance (1-120 characters) */
+  topic: string;
+  /** The privacy level of the Stage instance (default GUILD_ONLY) */
+  privacy_level?: PrivacyLevel;
+}
+export interface UpdateStageInstanceParams {
+  /** The topic of the Stage instance (1-120 characters) */
+  topic?: string;
+  /** The privacy level of the Stage instance */
+  privacy_level?: PrivacyLevel;
+}
+export enum PrivacyLevel {
+  /** The Stage instance is visible publicly, such as on Stage discovery. */
+  PUBLIC = 1,
+  /** The Stage instance is visible to only guild members. */
+  GUILD_ONLY = 2,
+}
+export interface User {
+  /** the user's id */
+  id: Snowflake;
+  /** the user's username, not unique across the platform */
+  username: string;
+  /** the user's 4-digit discord-tag */
+  discriminator: string;
+  /** the user's avatar hash */
+  avatar?: string | null;
+  /** whether the user belongs to an OAuth2 application */
+  bot?: boolean;
+  /** whether the user is an Official Discord System user (part of the urgent message system) */
+  system?: boolean;
+  /** whether the user has two factor enabled on their account */
+  mfa_enabled?: boolean;
+  /** the user's chosen language option */
+  locale?: string;
+  /** whether the email on this account has been verified */
+  verified?: boolean;
+  /** the user's email */
+  email?: string | null;
+  /** the flags on a user's account */
+  flags?: number;
+  /** the type of Nitro subscription on a user's account */
+  premium_type?: PremiumType;
+  /** the public flags on a user's account */
+  public_flags?: number;
+}
+export interface Connection {
+  /** id of the connection account */
+  id: string;
+  /** the username of the connection account */
   name: string;
+  /** the service of the connection (twitch, youtube) */
+  type: string;
+  /** whether the connection is revoked */
+  revoked?: boolean;
+  /** an array of partial server integrations */
+  integrations?: Integration[];
+  /** whether the connection is verified */
+  verified: boolean;
+  /** whether friend sync is enabled for this connection */
+  friend_sync: boolean;
+  /** whether activities related to this connection will be shown in presence updates */
+  show_activity: boolean;
+  /** visibility of this connection */
+  visibility: VisibilityType;
 }
-export interface AllowedMention {
-  /** An array of allowed mention types to parse from the content. */
-  parse: AllowedMentionType[];
-  /** Array of role_ids to mention (Max size of 100) */
-  roles: Snowflake[];
-  /** Array of user_ids to mention (Max size of 100) */
-  users: Snowflake[];
-  /** For replies, whether to mention the author of the message being replied to (default false) */
-  replied_user: boolean;
+export interface ModifyCurrentUserParams {
+  /** user's username, if changed may cause the user's discriminator to be randomized. */
+  username: string;
+  /** if passed, modifies the user's avatar */
+  avatar?: string | null;
 }
-export interface ResponseBody {
-  /** the active threads */
-  threads: Channel[];
-  /** a thread member object for each returned thread the current user has joined */
-  members: ThreadMember[];
-  /** whether there are potentially additional threads that could be returned on a subsequent call */
-  has_more: boolean;
-}
-export interface ModifyChannelGroupDmParams {
-  /** 2-100 character channel name */
-  name: string;
-  /** base64 encoded icon */
-  icon: string;
-}
-export interface ModifyChannelGuildChannelParams {
-  /** 2-100 character channel name */
-  name: string;
-  /** the type of channel; only conversion between text and news is supported and only in guilds with the "NEWS" feature */
-  type: ChannelType;
-  /** the position of the channel in the left-hand listing */
-  position?: number | null;
-  /** 0-1024 character channel topic */
-  topic?: string | null;
-  /** whether the channel is nsfw */
-  nsfw?: boolean | null;
-  /** amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages or manage_channel, are unaffected */
-  rate_limit_per_user?: number | null;
-  /** the bitrate (in bits) of the voice channel; 8000 to 96000 (128000 for VIP servers) */
-  bitrate?: number | null;
-  /** the user limit of the voice channel; 0 refers to no limit, 1 to 99 refers to a user limit */
-  user_limit?: number | null;
-  /** channel or category-specific permissions */
-  permission_overwrites?: Overwrite[] | null;
-  /** id of the new parent category for a channel */
-  parent_id?: Snowflake | null;
-  /** channel voice region id, automatic when set to null */
-  rtc_region?: string | null;
-  /** the camera video quality mode of the voice channel */
-  video_quality_mode?: VideoQualityMode | null;
-}
-export interface ModifyChannelThreadParams {
-  /** 2-100 character channel name */
-  name: string;
-  /** whether the channel is archived */
-  archived: boolean;
-  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
-  auto_archive_duration: number;
-  /** when a thread is locked, only users with MANAGE_THREADS can unarchive it */
-  locked: boolean;
-  /** amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages, manage_thread, or manage_channel, are unaffected */
-  rate_limit_per_user?: number | null;
-}
-export interface GetChannelMessageParams {
-  /** get messages around this message ID */
-  around: Snowflake;
-  /** get messages before this message ID */
+export interface GetCurrentUserGuildParams {
+  /** get guilds before this guild ID */
   before: Snowflake;
-  /** get messages after this message ID */
+  /** get guilds after this guild ID */
   after: Snowflake;
-  /** max number of messages to return (1-100) */
+  /** max number of guilds to return (1-200) */
   limit: number;
 }
-export interface CreateMessageParams {
+export interface CreateDmParams {
+  /** the recipient to open a DM channel with */
+  recipient_id: Snowflake;
+}
+export interface CreateGroupDmParams {
+  /** access tokens of users that have granted your app the gdm.join scope */
+  access_tokens: string[];
+  /** a dictionary of user ids to their respective nicknames */
+  nicks: Record<string, string>;
+}
+export enum PremiumType {
+  NONE = 0,
+  NITRO_CLASSIC = 1,
+  NITRO = 2,
+}
+export enum VisibilityType {
+  /** invisible to everyone except the user themselves */
+  NONE = 0,
+  /** visible to everyone */
+  EVERYONE = 1,
+}
+export const UserFlag = {
+  DISCORD_EMPLOYEE: 1 << 0,
+  PARTNERED_SERVER_OWNER: 1 << 1,
+  HYPE_SQUAD_EVENTS: 1 << 2,
+  BUG_HUNTER_LEVEL_1: 1 << 3,
+  HOUSE_BRAVERY: 1 << 6,
+  HOUSE_BRILLIANCE: 1 << 7,
+  HOUSE_BALANCE: 1 << 8,
+  EARLY_SUPPORTER: 1 << 9,
+  TEAM_USER: 1 << 10,
+  BUG_HUNTER_LEVEL_2: 1 << 14,
+  VERIFIED_BOT: 1 << 16,
+  EARLY_VERIFIED_BOT_DEVELOPER: 1 << 17,
+  DISCORD_CERTIFIED_MODERATOR: 1 << 18,
+} as const;
+export interface VoiceState {
+  /** the guild id this voice state is for */
+  guild_id?: Snowflake;
+  /** the channel id this user is connected to */
+  channel_id?: Snowflake | null;
+  /** the user id this voice state is for */
+  user_id: Snowflake;
+  /** the guild member this voice state is for */
+  member?: GuildMember;
+  /** the session id for this voice state */
+  session_id: string;
+  /** whether this user is deafened by the server */
+  deaf: boolean;
+  /** whether this user is muted by the server */
+  mute: boolean;
+  /** whether this user is locally deafened */
+  self_deaf: boolean;
+  /** whether this user is locally muted */
+  self_mute: boolean;
+  /** whether this user is streaming using "Go Live" */
+  self_stream?: boolean;
+  /** whether this user's camera is enabled */
+  self_video: boolean;
+  /** whether this user is muted by the current user */
+  suppress: boolean;
+  /** the time at which the user requested to speak */
+  request_to_speak_timestamp?: string | null;
+}
+export interface VoiceRegion {
+  /** unique ID for the region */
+  id: string;
+  /** name of the region */
+  name: string;
+  /** true if this is a vip-only server */
+  vip: boolean;
+  /** true for a single server that is closest to the current user's client */
+  optimal: boolean;
+  /** whether this is a deprecated voice region (avoid switching to these) */
+  deprecated: boolean;
+  /** whether this is a custom voice region (used for events/etc) */
+  custom: boolean;
+}
+export interface Webhook {
+  /** the id of the webhook */
+  id: Snowflake;
+  /** the type of the webhook */
+  type: WebhookType;
+  /** the guild id this webhook is for, if any */
+  guild_id?: Snowflake | null;
+  /** the channel id this webhook is for, if any */
+  channel_id?: Snowflake | null;
+  /** the user this webhook was created by (not returned when getting a webhook with its token) */
+  user?: User;
+  /** the default name of the webhook */
+  name?: string | null;
+  /** the default user avatar hash of the webhook */
+  avatar?: string | null;
+  /** the secure token of the webhook (returned for Incoming Webhooks) */
+  token?: string;
+  /** the bot/OAuth2 application that created this webhook */
+  application_id?: Snowflake | null;
+  /** the guild of the channel that this webhook is following (returned for Channel Follower Webhooks) */
+  source_guild?: Guild;
+  /** the channel that this webhook is following (returned for Channel Follower Webhooks) */
+  source_channel?: Channel;
+  /** the url used for executing the webhook (returned by the webhooks OAuth2 flow) */
+  url?: string;
+}
+export interface CreateWebhookParams {
+  /** name of the webhook (1-80 characters) */
+  name: string;
+  /** image for the default webhook avatar */
+  avatar?: string | null;
+}
+export interface ModifyWebhookParams {
+  /** the default name of the webhook */
+  name: string;
+  /** image for the default webhook avatar */
+  avatar?: string | null;
+  /** the new channel id this webhook should be moved to */
+  channel_id: Snowflake;
+}
+export interface ExecuteWebhookParams {
   /** the message contents (up to 2000 characters) */
   content: string;
+  /** override the default username of the webhook */
+  username: string;
+  /** override the default avatar of the webhook */
+  avatar_url: string;
   /** true if this is a TTS message */
   tts: boolean;
   /** the contents of the file being sent */
   file: string;
   /** embedded rich content */
-  embed: Embed;
+  embeds: Embed[];
   /** JSON encoded body of non-file params */
   payload_json: string;
   /** allowed mentions for the message */
   allowed_mentions: AllowedMention;
-  /** include to make your message a reply */
-  message_reference: MessageReference;
   /** the components to include with the message */
   components: Component[];
 }
-export interface GetReactionParams {
-  /** get users after this user ID */
-  after: Snowflake;
-  /** max number of users to return (1-100) */
-  limit: number;
-}
-export interface EditMessageParams {
+export interface EditWebhookMessageParams {
   /** the message contents (up to 2000 characters) */
   content: string;
   /** embedded rich content */
-  embed: Embed;
-  /** edit the flags of a message (only SUPPRESS_EMBEDS can currently be set/unset) */
-  flags: number;
+  embeds: Embed[];
   /** the contents of the file being sent/edited */
   file: string;
   /** JSON encoded body of non-file params (multipart/form-data only) */
@@ -1953,183 +1950,14 @@ export interface EditMessageParams {
   /** the components to include with the message */
   components: Component[];
 }
-export interface BulkDeleteMessageParams {
-  /** an array of message ids to delete (2-100) */
-  messages: Snowflake[];
+export enum WebhookType {
+  /** Incoming Webhooks can post messages to channels with a generated token */
+  INCOMING = 1,
+  /** Channel Follower Webhooks are internal webhooks used with Channel Following to post new messages into channels */
+  CHANNEL_FOLLOWER = 2,
+  /** Application webhooks are webhooks used with Interactions */
+  APPLICATION = 3,
 }
-export interface EditChannelPermissionParams {
-  /** the bitwise value of all allowed permissions */
-  allow: string;
-  /** the bitwise value of all disallowed permissions */
-  deny: string;
-  /** 0 for a role or 1 for a member */
-  type: number;
-}
-export interface CreateChannelInviteParams {
-  /** duration of invite in seconds before expiry, or 0 for never. between 0 and 604800 (7 days) */
-  max_age: number;
-  /** max number of uses or 0 for unlimited. between 0 and 100 */
-  max_uses: number;
-  /** whether this invite only grants temporary membership */
-  temporary: boolean;
-  /** if true, don't try to reuse a similar invite (useful for creating many unique one time use invites) */
-  unique: boolean;
-  /** the type of target for this voice channel invite */
-  target_type: InviteTargetType;
-  /** the id of the user whose stream to display for this invite, required if target_type is 1, the user must be streaming in the channel */
-  target_user_id: Snowflake;
-  /** the id of the embedded application to open for this invite, required if target_type is 2, the application must have the EMBEDDED flag */
-  target_application_id: Snowflake;
-}
-export interface FollowNewsChannelParams {
-  /** id of target channel */
-  webhook_channel_id: Snowflake;
-}
-export interface GroupDmAddRecipientParams {
-  /** access token of a user that has granted your app the gdm.join scope */
-  access_token: string;
-  /** nickname of the user being added */
-  nick: string;
-}
-export interface StartThreadWithMessageParams {
-  /** 2-100 character channel name */
-  name: string;
-  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
-  auto_archive_duration: number;
-}
-export interface StartThreadWithoutMessageParams {
-  /** 2-100 character channel name */
-  name: string;
-  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
-  auto_archive_duration: number;
-}
-export interface ListPublicArchivedThreadParams {
-  /** returns threads before this timestamp */
-  before?: string;
-  /** optional maximum number of threads to return */
-  limit?: number;
-}
-export interface ListPrivateArchivedThreadParams {
-  /** returns threads before this timestamp */
-  before?: string;
-  /** optional maximum number of threads to return */
-  limit?: number;
-}
-export interface ListJoinedPrivateArchivedThreadParams {
-  /** returns threads before this id */
-  before?: Snowflake;
-  /** optional maximum number of threads to return */
-  limit?: number;
-}
-export enum ChannelType {
-  /** a text channel within a server */
-  GUILD_TEXT = 0,
-  /** a direct message between users */
-  DM = 1,
-  /** a voice channel within a server */
-  GUILD_VOICE = 2,
-  /** a direct message between multiple users */
-  GROUP_DM = 3,
-  /** an organizational category that contains up to 50 channels */
-  GUILD_CATEGORY = 4,
-  /** a channel that users can follow and crosspost into their own server */
-  GUILD_NEWS = 5,
-  /** a channel in which game developers can sell their game on Discord */
-  GUILD_STORE = 6,
-  /** a temporary sub-channel within a GUILD_NEWS channel */
-  GUILD_NEWS_THREAD = 10,
-  /** a temporary sub-channel within a GUILD_TEXT channel */
-  GUILD_PUBLIC_THREAD = 11,
-  /** a temporary sub-channel within a GUILD_TEXT channel that is only viewable by those invited and those with the MANAGE_THREADS permission */
-  GUILD_PRIVATE_THREAD = 12,
-  /** a voice channel for hosting events with an audience */
-  GUILD_STAGE_VOICE = 13,
-}
-export enum VideoQualityMode {
-  /** Discord chooses the quality for optimal performance */
-  AUTO = 1,
-  /** 720p */
-  FULL = 2,
-}
-export enum MessageType {
-  DEFAULT = 0,
-  RECIPIENT_ADD = 1,
-  RECIPIENT_REMOVE = 2,
-  CALL = 3,
-  CHANNEL_NAME_CHANGE = 4,
-  CHANNEL_ICON_CHANGE = 5,
-  CHANNEL_PINNED_MESSAGE = 6,
-  GUILD_MEMBER_JOIN = 7,
-  USER_PREMIUM_GUILD_SUBSCRIPTION = 8,
-  USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_1 = 9,
-  USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_2 = 10,
-  USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_3 = 11,
-  CHANNEL_FOLLOW_ADD = 12,
-  GUILD_DISCOVERY_DISQUALIFIED = 14,
-  GUILD_DISCOVERY_REQUALIFIED = 15,
-  GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING = 16,
-  GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING = 17,
-  THREAD_CREATED = 18,
-  REPLY = 19,
-  APPLICATION_COMMAND = 20,
-  THREAD_STARTER_MESSAGE = 21,
-  GUILD_INVITE_REMINDER = 22,
-}
-export enum MessageActivityType {
-  JOIN = 1,
-  SPECTATE = 2,
-  LISTEN = 3,
-  JOIN_REQUEST = 5,
-}
-export enum MessageStickerFormatType {
-  PNG = 1,
-  APNG = 2,
-  LOTTIE = 3,
-}
-export enum EmbedType {
-  /** generic embed rendered from embed attributes */
-  RICH = "rich",
-  /** image embed */
-  IMAGE = "image",
-  /** video embed */
-  VIDEO = "video",
-  /** animated gif image embed rendered as a video embed */
-  GIFV = "gifv",
-  /** article embed */
-  ARTICLE = "article",
-  /** link embed */
-  LINK = "link",
-}
-export enum AllowedMentionType {
-  /** Controls role mentions */
-  ROLE_MENTIONS = "roles",
-  /** Controls user mentions */
-  USER_MENTIONS = "users",
-  /** Controls @everyone and @here mentions */
-  EVERYONE_MENTIONS = "everyone",
-}
-export const MessageFlag = {
-  /** this message has been published to subscribed channels (via Channel Following) */
-  CROSSPOSTED: 1 << 0,
-  /** this message originated from a message in another channel (via Channel Following) */
-  IS_CROSSPOST: 1 << 1,
-  /** do not include any embeds when serializing this message */
-  SUPPRESS_EMBEDS: 1 << 2,
-  /** the source message for this crosspost has been deleted (via Channel Following) */
-  SOURCE_MESSAGE_DELETED: 1 << 3,
-  /** this message came from the urgent message system */
-  URGENT: 1 << 4,
-  /** this message has an associated thread, with the same id as the message */
-  HAS_THREAD: 1 << 5,
-  /** this message is only visible to the user who invoked the Interaction */
-  EPHEMERAL: 1 << 6,
-  /** this message is an Interaction Response and the bot is "thinking" */
-  LOADING: 1 << 7,
-} as const;
-export type ModifyChannelParams =
-  | ModifyChannelGroupDmParams
-  | ModifyChannelGuildChannelParams
-  | ModifyChannelThreadParams;
 export interface Identify {
   /** authentication token */
   token: string;
@@ -2769,6 +2597,182 @@ export type InteractionCreateEvent = Interaction;
 export type StageInstanceCreateEvent = StageInstance;
 export type StageInstanceUpdateEvent = StageInstance;
 export type StageInstanceDeleteEvent = StageInstance;
+export enum GatewayOpcode {
+  /** An event was dispatched. */
+  DISPATCH = 0,
+  /** Fired periodically by the client to keep the connection alive. */
+  HEARTBEAT = 1,
+  /** Starts a new session during the initial handshake. */
+  IDENTIFY = 2,
+  /** Update the client's presence. */
+  PRESENCE_UPDATE = 3,
+  /** Used to join/leave or move between voice channels. */
+  VOICE_STATE_UPDATE = 4,
+  /** Resume a previous session that was disconnected. */
+  RESUME = 6,
+  /** You should attempt to reconnect and resume immediately. */
+  RECONNECT = 7,
+  /** Request information about offline guild members in a large guild. */
+  REQUEST_GUILD_MEMBERS = 8,
+  /** The session has been invalidated. You should reconnect and identify/resume accordingly. */
+  INVALID_SESSION = 9,
+  /** Sent immediately after connecting, contains the heartbeat_interval to use. */
+  HELLO = 10,
+  /** Sent in response to receiving a heartbeat to acknowledge that it has been received. */
+  HEARTBEAT_ACK = 11,
+}
+export enum VoiceOpcode {
+  /** Begin a voice websocket connection. */
+  IDENTIFY = 0,
+  /** Select the voice protocol. */
+  SELECT_PROTOCOL = 1,
+  /** Complete the websocket handshake. */
+  READY = 2,
+  /** Keep the websocket connection alive. */
+  HEARTBEAT = 3,
+  /** Describe the session. */
+  SESSION_DESCRIPTION = 4,
+  /** Indicate which users are speaking. */
+  SPEAKING = 5,
+  /** Sent to acknowledge a received client heartbeat. */
+  HEARTBEAT_ACK = 6,
+  /** Resume a connection. */
+  RESUME = 7,
+  /** Time to wait between sending heartbeats in milliseconds. */
+  HELLO = 8,
+  /** Acknowledge a successful session resume. */
+  RESUMED = 9,
+  /** A client has disconnected from the voice channel */
+  CLIENT_DISCONNECT = 13,
+}
+export interface Role {
+  /** role id */
+  id: Snowflake;
+  /** role name */
+  name: string;
+  /** integer representation of hexadecimal color code */
+  color: number;
+  /** if this role is pinned in the user listing */
+  hoist: boolean;
+  /** position of this role */
+  position: number;
+  /** permission bit set */
+  permissions: string;
+  /** whether this role is managed by an integration */
+  managed: boolean;
+  /** whether this role is mentionable */
+  mentionable: boolean;
+  /** the tags this role has */
+  tags?: RoleTag;
+}
+export interface RoleTag {
+  /** the id of the bot this role belongs to */
+  bot_id?: Snowflake;
+  /** the id of the integration this role belongs to */
+  integration_id?: Snowflake;
+  /** whether this is the guild's premium subscriber role */
+  premium_subscriber?: null;
+}
+export const PermissionFlag = {
+  /** Allows creation of instant invites */
+  CREATE_INSTANT_INVITE: BigInt(1) << BigInt(0),
+  /** Allows kicking members */
+  KICK_MEMBERS: BigInt(1) << BigInt(1),
+  /** Allows banning members */
+  BAN_MEMBERS: BigInt(1) << BigInt(2),
+  /** Allows all permissions and bypasses channel permission overwrites */
+  ADMINISTRATOR: BigInt(1) << BigInt(3),
+  /** Allows management and editing of channels */
+  MANAGE_CHANNELS: BigInt(1) << BigInt(4),
+  /** Allows management and editing of the guild */
+  MANAGE_GUILD: BigInt(1) << BigInt(5),
+  /** Allows for the addition of reactions to messages */
+  ADD_REACTIONS: BigInt(1) << BigInt(6),
+  /** Allows for viewing of audit logs */
+  VIEW_AUDIT_LOG: BigInt(1) << BigInt(7),
+  /** Allows for using priority speaker in a voice channel */
+  PRIORITY_SPEAKER: BigInt(1) << BigInt(8),
+  /** Allows the user to go live */
+  STREAM: BigInt(1) << BigInt(9),
+  /** Allows guild members to view a channel, which includes reading messages in text channels */
+  VIEW_CHANNEL: BigInt(1) << BigInt(10),
+  /** Allows for sending messages in a channel */
+  SEND_MESSAGES: BigInt(1) << BigInt(11),
+  /** Allows for sending of /tts messages */
+  SEND_TTS_MESSAGES: BigInt(1) << BigInt(12),
+  /** Allows for deletion of other users messages */
+  MANAGE_MESSAGES: BigInt(1) << BigInt(13),
+  /** Links sent by users with this permission will be auto-embedded */
+  EMBED_LINKS: BigInt(1) << BigInt(14),
+  /** Allows for uploading images and files */
+  ATTACH_FILES: BigInt(1) << BigInt(15),
+  /** Allows for reading of message history */
+  READ_MESSAGE_HISTORY: BigInt(1) << BigInt(16),
+  /** Allows for using the @everyone tag to notify all users in a channel, and the @here tag to notify all online users in a channel */
+  MENTION_EVERYONE: BigInt(1) << BigInt(17),
+  /** Allows the usage of custom emojis from other servers */
+  USE_EXTERNAL_EMOJIS: BigInt(1) << BigInt(18),
+  /** Allows for viewing guild insights */
+  VIEW_GUILD_INSIGHTS: BigInt(1) << BigInt(19),
+  /** Allows for joining of a voice channel */
+  CONNECT: BigInt(1) << BigInt(20),
+  /** Allows for speaking in a voice channel */
+  SPEAK: BigInt(1) << BigInt(21),
+  /** Allows for muting members in a voice channel */
+  MUTE_MEMBERS: BigInt(1) << BigInt(22),
+  /** Allows for deafening of members in a voice channel */
+  DEAFEN_MEMBERS: BigInt(1) << BigInt(23),
+  /** Allows for moving of members between voice channels */
+  MOVE_MEMBERS: BigInt(1) << BigInt(24),
+  /** Allows for using voice-activity-detection in a voice channel */
+  USE_VAD: BigInt(1) << BigInt(25),
+  /** Allows for modification of own nickname */
+  CHANGE_NICKNAME: BigInt(1) << BigInt(26),
+  /** Allows for modification of other users nicknames */
+  MANAGE_NICKNAMES: BigInt(1) << BigInt(27),
+  /** Allows management and editing of roles */
+  MANAGE_ROLES: BigInt(1) << BigInt(28),
+  /** Allows management and editing of webhooks */
+  MANAGE_WEBHOOKS: BigInt(1) << BigInt(29),
+  /** Allows management and editing of emojis */
+  MANAGE_EMOJIS: BigInt(1) << BigInt(30),
+  /** Allows members to use slash commands in text channels */
+  USE_SLASH_COMMANDS: BigInt(1) << BigInt(31),
+  /** Allows for requesting to speak in stage channels. (This permission is under active development and may be changed or removed.) */
+  REQUEST_TO_SPEAK: BigInt(1) << BigInt(32),
+  /** Allows for deleting and archiving threads, and viewing all private threads */
+  MANAGE_THREADS: BigInt(1) << BigInt(34),
+  /** Allows for creating and participating in threads */
+  USE_PUBLIC_THREADS: BigInt(1) << BigInt(35),
+  /** Allows for creating and participating in private threads */
+  USE_PRIVATE_THREADS: BigInt(1) << BigInt(36),
+} as const;
+export interface Team {
+  /** a hash of the image of the team's icon */
+  icon?: string | null;
+  /** the unique id of the team */
+  id: Snowflake;
+  /** the members of the team */
+  members: TeamMember[];
+  /** the name of the team */
+  name: string;
+  /** the user id of the current team owner */
+  owner_user_id: Snowflake;
+}
+export interface TeamMember {
+  /** the user's membership state on the team */
+  membership_state: MembershipState;
+  /** will always be ["*"] */
+  permissions: string[];
+  /** the id of the parent team of which they are a member */
+  team_id: Snowflake;
+  /** the avatar, discriminator, id, and username of the user */
+  user: User;
+}
+export enum MembershipState {
+  INVITED = 1,
+  ACCEPTED = 2,
+}
 export type Route<P, O> = {
   method: string;
   url: string;
@@ -2776,198 +2780,6 @@ export type Route<P, O> = {
   options?: O;
 };
 export interface Endpoints<O> {
-  /** Returns a list of emoji objects for the given guild. */
-  listGuildEmojis: (guildId: string, options?: O) => Promise<Emoji[]>;
-  /** Returns an emoji object for the given guild and emoji IDs. */
-  getGuildEmoji: (
-    guildId: string,
-    emojiId: string,
-    options?: O,
-  ) => Promise<Emoji>;
-  /** Create a new emoji for the guild. Requires the MANAGE_EMOJIS permission. Returns the new emoji object on success. Fires a Guild Emojis Update Gateway event. */
-  createGuildEmoji: (
-    guildId: string,
-    params: Partial<CreateGuildEmojiParams>,
-    options?: O,
-  ) => Promise<Emoji>;
-  /** Modify the given emoji. Requires the MANAGE_EMOJIS permission. Returns the updated emoji object on success. Fires a Guild Emojis Update Gateway event. */
-  modifyGuildEmoji: (
-    guildId: string,
-    emojiId: string,
-    params: Partial<ModifyGuildEmojiParams>,
-    options?: O,
-  ) => Promise<Emoji>;
-  /** Delete the given emoji. Requires the MANAGE_EMOJIS permission. Returns 204 No Content on success. Fires a Guild Emojis Update Gateway event. */
-  deleteGuildEmoji: (
-    guildId: string,
-    emojiId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Returns a guild template object for the given code. */
-  getGuildTemplate: (
-    templateCode: string,
-    options?: O,
-  ) => Promise<GuildTemplate>;
-  /** Create a new guild based on a template. Returns a guild object on success. Fires a Guild Create Gateway event. */
-  createGuildFromGuildTemplate: (
-    templateCode: string,
-    params: Partial<CreateGuildFromGuildTemplateParams>,
-    options?: O,
-  ) => Promise<Guild>;
-  /** Returns an array of guild template objects. Requires the MANAGE_GUILD permission. */
-  getGuildTemplates: (guildId: string, options?: O) => Promise<GuildTemplate[]>;
-  /** Creates a template for the guild. Requires the MANAGE_GUILD permission. Returns the created guild template object on success. */
-  createGuildTemplate: (
-    guildId: string,
-    params: Partial<CreateGuildTemplateParams>,
-    options?: O,
-  ) => Promise<GuildTemplate>;
-  /** Syncs the template to the guild's current state. Requires the MANAGE_GUILD permission. Returns the guild template object on success. */
-  syncGuildTemplate: (
-    guildId: string,
-    templateCode: string,
-    options?: O,
-  ) => Promise<GuildTemplate>;
-  /** Modifies the template's metadata. Requires the MANAGE_GUILD permission. Returns the guild template object on success. */
-  modifyGuildTemplate: (
-    guildId: string,
-    templateCode: string,
-    params: Partial<ModifyGuildTemplateParams>,
-    options?: O,
-  ) => Promise<GuildTemplate>;
-  /** Deletes the template. Requires the MANAGE_GUILD permission. Returns the deleted guild template object on success. */
-  deleteGuildTemplate: (
-    guildId: string,
-    templateCode: string,
-    options?: O,
-  ) => Promise<GuildTemplate>;
-  /** Returns an invite object for the given code. */
-  getInvite: (
-    inviteCode: string,
-    params: Partial<GetInviteParams>,
-    options?: O,
-  ) => Promise<Invite>;
-  /** Delete an invite. Requires the MANAGE_CHANNELS permission on the channel this invite belongs to, or MANAGE_GUILD to remove any invite across the guild. Returns an invite object on success. Fires a Invite Delete Gateway event. */
-  deleteInvite: (inviteCode: string, options?: O) => Promise<Invite>;
-  /** Returns the user object of the requester's account. For OAuth2, this requires the identify scope, which will return the object without an email, and optionally the email scope, which returns the object with an email. */
-  getCurrentUser: (options?: O) => Promise<User>;
-  /** Returns a user object for a given user ID. */
-  getUser: (userId: string, options?: O) => Promise<User>;
-  /** Modify the requester's user account settings. Returns a user object on success. */
-  modifyCurrentUser: (
-    params: Partial<ModifyCurrentUserParams>,
-    options?: O,
-  ) => Promise<User>;
-  /** Returns a list of partial guild objects the current user is a member of. Requires the guilds OAuth2 scope. */
-  getCurrentUserGuilds: (
-    params: Partial<GetCurrentUserGuildParams>,
-    options?: O,
-  ) => Promise<Guild[]>;
-  /** Leave a guild. Returns a 204 empty response on success. */
-  leaveGuild: (guildId: string, options?: O) => Promise<any>;
-  /** Create a new DM channel with a user. Returns a DM channel object. */
-  createDm: (params: Partial<CreateDmParams>, options?: O) => Promise<Channel>;
-  /** Create a new group DM channel with multiple users. Returns a DM channel object. This endpoint was intended to be used with the now-deprecated GameBridge SDK. DMs created with this endpoint will not be shown in the Discord client */
-  createGroupDm: (
-    params: Partial<CreateGroupDmParams>,
-    options?: O,
-  ) => Promise<Channel>;
-  /** Returns a list of connection objects. Requires the connections OAuth2 scope. */
-  getUserConnections: (options?: O) => Promise<Connection[]>;
-  /** Creates a new Stage instance associated to a Stage channel. */
-  createStageInstance: (
-    params: Partial<CreateStageInstanceParams>,
-    options?: O,
-  ) => Promise<any>;
-  /** Gets the stage instance associated with the Stage channel, if it exists. */
-  getStageInstance: (channelId: string, options?: O) => Promise<any>;
-  /** Updates fields of an existing Stage instance. */
-  updateStageInstance: (
-    channelId: string,
-    params: Partial<UpdateStageInstanceParams>,
-    options?: O,
-  ) => Promise<any>;
-  /** Deletes the Stage instance. */
-  deleteStageInstance: (channelId: string, options?: O) => Promise<any>;
-  /** Returns an array of voice region objects that can be used when creating servers. */
-  listVoiceRegions: (options?: O) => Promise<VoiceRegion[]>;
-  /** Returns an audit log object for the guild. Requires the 'VIEW_AUDIT_LOG' permission. */
-  getGuildAuditLog: (
-    guildId: string,
-    params: Partial<GetGuildAuditLogParams>,
-    options?: O,
-  ) => Promise<AuditLog>;
-  /** Create a new webhook. Requires the MANAGE_WEBHOOKS permission. Returns a webhook object on success. Webhook names follow our naming restrictions that can be found in our Usernames and Nicknames documentation, with the following additional stipulations: */
-  createWebhook: (
-    channelId: string,
-    params: Partial<CreateWebhookParams>,
-    options?: O,
-  ) => Promise<Webhook>;
-  /** Returns a list of channel webhook objects. Requires the MANAGE_WEBHOOKS permission. */
-  getChannelWebhooks: (channelId: string, options?: O) => Promise<Webhook[]>;
-  /** Returns a list of guild webhook objects. Requires the MANAGE_WEBHOOKS permission. */
-  getGuildWebhooks: (guildId: string, options?: O) => Promise<Webhook[]>;
-  /** Returns the new webhook object for the given id. */
-  getWebhook: (webhookId: string, options?: O) => Promise<Webhook>;
-  /** Same as above, except this call does not require authentication and returns no user in the webhook object. */
-  getWebhookWithToken: (
-    webhookId: string,
-    webhookToken: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Modify a webhook. Requires the MANAGE_WEBHOOKS permission. Returns the updated webhook object on success. */
-  modifyWebhook: (
-    webhookId: string,
-    params: Partial<ModifyWebhookParams>,
-    options?: O,
-  ) => Promise<Webhook>;
-  /** Same as above, except this call does not require authentication, does not accept a channel_id parameter in the body, and does not return a user in the webhook object. */
-  modifyWebhookWithToken: (
-    webhookId: string,
-    webhookToken: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Delete a webhook permanently. Requires the MANAGE_WEBHOOKS permission. Returns a 204 NO CONTENT response on success. */
-  deleteWebhook: (webhookId: string, options?: O) => Promise<any>;
-  /** Same as above, except this call does not require authentication. */
-  deleteWebhookWithToken: (
-    webhookId: string,
-    webhookToken: string,
-    options?: O,
-  ) => Promise<any>;
-  executeWebhook: (
-    webhookId: string,
-    webhookToken: string,
-    params: Partial<ExecuteWebhookParams>,
-    options?: O,
-  ) => Promise<any>;
-  /** Refer to Slack's documentation for more information. We do not support Slack's channel, icon_emoji, mrkdwn, or mrkdwn_in properties. */
-  executeSlackCompatibleWebhook: (
-    webhookId: string,
-    webhookToken: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Add a new webhook to your GitHub repo (in the repo's settings), and use this endpoint as the "Payload URL." You can choose what events your Discord channel receives by choosing the "Let me select individual events" option and selecting individual events for the new webhook you're configuring. */
-  executeGitHubCompatibleWebhook: (
-    webhookId: string,
-    webhookToken: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Returns a previously-sent webhook message from the same token. Returns a message object on success. */
-  getWebhookMessage: (
-    webhookId: string,
-    webhookToken: string,
-    messageId: string,
-    options?: O,
-  ) => Promise<Message>;
-  /** Edits a previously-sent webhook message from the same token. Returns a message object on success. */
-  editWebhookMessage: (
-    webhookId: string,
-    webhookToken: string,
-    messageId: string,
-    params: Partial<EditWebhookMessageParams>,
-    options?: O,
-  ) => Promise<Message>;
   /** Fetch all of the global commands for your application. Returns an array of ApplicationCommand objects. */
   getGlobalApplicationCommands: (
     applicationId: string,
@@ -3111,6 +2923,257 @@ export interface Endpoints<O> {
     params: Partial<GuildApplicationCommandPermission[]>,
     options?: O,
   ) => Promise<GuildApplicationCommandPermission[]>;
+  /** Returns an audit log object for the guild. Requires the 'VIEW_AUDIT_LOG' permission. */
+  getGuildAuditLog: (
+    guildId: string,
+    params: Partial<GetGuildAuditLogParams>,
+    options?: O,
+  ) => Promise<AuditLog>;
+  /** Returns a list of emoji objects for the given guild. */
+  listGuildEmojis: (guildId: string, options?: O) => Promise<Emoji[]>;
+  /** Returns an emoji object for the given guild and emoji IDs. */
+  getGuildEmoji: (
+    guildId: string,
+    emojiId: string,
+    options?: O,
+  ) => Promise<Emoji>;
+  /** Create a new emoji for the guild. Requires the MANAGE_EMOJIS permission. Returns the new emoji object on success. Fires a Guild Emojis Update Gateway event. */
+  createGuildEmoji: (
+    guildId: string,
+    params: Partial<CreateGuildEmojiParams>,
+    options?: O,
+  ) => Promise<Emoji>;
+  /** Modify the given emoji. Requires the MANAGE_EMOJIS permission. Returns the updated emoji object on success. Fires a Guild Emojis Update Gateway event. */
+  modifyGuildEmoji: (
+    guildId: string,
+    emojiId: string,
+    params: Partial<ModifyGuildEmojiParams>,
+    options?: O,
+  ) => Promise<Emoji>;
+  /** Delete the given emoji. Requires the MANAGE_EMOJIS permission. Returns 204 No Content on success. Fires a Guild Emojis Update Gateway event. */
+  deleteGuildEmoji: (
+    guildId: string,
+    emojiId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Get a channel by ID. Returns a channel object.  If the channel is a thread, a thread member object is included in the returned result. */
+  getChannel: (channelId: string, options?: O) => Promise<Channel>;
+  /** Update a channel's settings. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. All JSON parameters are optional. */
+  modifyChannel: (
+    channelId: string,
+    params: Partial<ModifyChannelParams>,
+    options?: O,
+  ) => Promise<Channel>;
+  /** Delete a channel, or close a private message. Requires the MANAGE_CHANNELS permission for the guild, or MANAGE_THREADS if the channel is a thread. Deleting a category does not delete its child channels; they will have their parent_id removed and a Channel Update Gateway event will fire for each of them. Returns a channel object on success. Fires a Channel Delete Gateway event (or Thread Delete if the channel was a thread). */
+  deletecloseChannel: (channelId: string, options?: O) => Promise<Channel>;
+  /** Returns the messages for a channel. If operating on a guild channel, this endpoint requires the VIEW_CHANNEL permission to be present on the current user. If the current user is missing the 'READ_MESSAGE_HISTORY' permission in the channel then this will return no messages (since they cannot read the message history). Returns an array of message objects on success. */
+  getChannelMessages: (
+    channelId: string,
+    params: Partial<GetChannelMessageParams>,
+    options?: O,
+  ) => Promise<Message[]>;
+  /** Returns a specific message in the channel. If operating on a guild channel, this endpoint requires the 'READ_MESSAGE_HISTORY' permission to be present on the current user. Returns a message object on success. */
+  getChannelMessage: (
+    channelId: string,
+    messageId: string,
+    options?: O,
+  ) => Promise<Message>;
+  createMessage: (
+    channelId: string,
+    params: Partial<CreateMessageParams>,
+    options?: O,
+  ) => Promise<Message>;
+  /** Crosspost a message in a News Channel to following channels. This endpoint requires the 'SEND_MESSAGES' permission, if the current user sent the message, or additionally the 'MANAGE_MESSAGES' permission, for all other messages, to be present for the current user. */
+  crosspostMessage: (
+    channelId: string,
+    messageId: string,
+    options?: O,
+  ) => Promise<Message>;
+  /** Create a reaction for the message. This endpoint requires the 'READ_MESSAGE_HISTORY' permission to be present on the current user. Additionally, if nobody else has reacted to the message using this emoji, this endpoint requires the 'ADD_REACTIONS' permission to be present on the current user. Returns a 204 empty response on success.
+The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
+  createReaction: (
+    channelId: string,
+    messageId: string,
+    emoji: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Delete a reaction the current user has made for the message. Returns a 204 empty response on success.
+The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
+  deleteOwnReaction: (
+    channelId: string,
+    messageId: string,
+    emoji: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Deletes another user's reaction. This endpoint requires the 'MANAGE_MESSAGES' permission to be present on the current user. Returns a 204 empty response on success.
+The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
+  deleteUserReaction: (
+    channelId: string,
+    messageId: string,
+    emoji: string,
+    userId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Get a list of users that reacted with this emoji. Returns an array of user objects on success.
+The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
+  getReactions: (
+    channelId: string,
+    messageId: string,
+    emoji: string,
+    params: Partial<GetReactionParams>,
+    options?: O,
+  ) => Promise<User[]>;
+  /** Deletes all reactions on a message. This endpoint requires the 'MANAGE_MESSAGES' permission to be present on the current user. Fires a Message Reaction Remove All Gateway event. */
+  deleteAllReactions: (
+    channelId: string,
+    messageId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Deletes all the reactions for a given emoji on a message. This endpoint requires the MANAGE_MESSAGES permission to be present on the current user. Fires a Message Reaction Remove Emoji Gateway event.
+The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
+  deleteAllReactionsForEmoji: (
+    channelId: string,
+    messageId: string,
+    emoji: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Edit a previously sent message. The fields content, embeds, and flags can be edited by the original message author. Other users can only edit flags and only if they have the MANAGE_MESSAGES permission in the corresponding channel. When specifying flags, ensure to include all previously set flags/bits in addition to ones that you are modifying. Only flags documented in the table below may be modified by users (unsupported flag changes are currently ignored without error). */
+  editMessage: (
+    channelId: string,
+    messageId: string,
+    params: Partial<EditMessageParams>,
+    options?: O,
+  ) => Promise<Message>;
+  /** Delete a message. If operating on a guild channel and trying to delete a message that was not sent by the current user, this endpoint requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. Fires a Message Delete Gateway event. */
+  deleteMessage: (
+    channelId: string,
+    messageId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Delete multiple messages in a single request. This endpoint can only be used on guild channels and requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. Fires a Message Delete Bulk Gateway event. */
+  bulkDeleteMessages: (
+    channelId: string,
+    params: Partial<BulkDeleteMessageParams>,
+    options?: O,
+  ) => Promise<any>;
+  /** Edit the channel permission overwrites for a user or role in a channel. Only usable for guild channels. Requires the MANAGE_ROLES permission. Only permissions your bot has in the guild or channel can be allowed/denied (unless your bot has a MANAGE_ROLES overwrite in the channel). Returns a 204 empty response on success. For more information about permissions, see permissions. */
+  editChannelPermissions: (
+    channelId: string,
+    overwriteId: string,
+    params: Partial<EditChannelPermissionParams>,
+    options?: O,
+  ) => Promise<any>;
+  /** Returns a list of invite objects (with invite metadata) for the channel. Only usable for guild channels. Requires the MANAGE_CHANNELS permission. */
+  getChannelInvites: (channelId: string, options?: O) => Promise<Invite[]>;
+  /** Create a new invite object for the channel. Only usable for guild channels. Requires the CREATE_INSTANT_INVITE permission. All JSON parameters for this route are optional, however the request body is not. If you are not sending any fields, you still have to send an empty JSON object ({}). Returns an invite object. Fires an Invite Create Gateway event. */
+  createChannelInvite: (
+    channelId: string,
+    params: Partial<CreateChannelInviteParams>,
+    options?: O,
+  ) => Promise<Invite>;
+  /** Delete a channel permission overwrite for a user or role in a channel. Only usable for guild channels. Requires the MANAGE_ROLES permission. Returns a 204 empty response on success. For more information about permissions, see permissions */
+  deleteChannelPermission: (
+    channelId: string,
+    overwriteId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Follow a News Channel to send messages to a target channel. Requires the MANAGE_WEBHOOKS permission in the target channel. Returns a followed channel object. */
+  followNewsChannel: (
+    channelId: string,
+    params: Partial<FollowNewsChannelParams>,
+    options?: O,
+  ) => Promise<FollowedChannel>;
+  /** Post a typing indicator for the specified channel. Generally bots should not implement this route. However, if a bot is responding to a command and expects the computation to take a few seconds, this endpoint may be called to let the user know that the bot is processing their message. Returns a 204 empty response on success. Fires a Typing Start Gateway event. */
+  triggerTypingIndicator: (channelId: string, options?: O) => Promise<any>;
+  /** Returns all pinned messages in the channel as an array of message objects. */
+  getPinnedMessages: (channelId: string, options?: O) => Promise<Message[]>;
+  /** Pin a message in a channel. Requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. */
+  pinMessage: (
+    channelId: string,
+    messageId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Unpin a message in a channel. Requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. */
+  unpinMessage: (
+    channelId: string,
+    messageId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Adds a recipient to a Group DM using their access token. */
+  groupDmAddRecipient: (
+    channelId: string,
+    userId: string,
+    params: Partial<GroupDmAddRecipientParams>,
+    options?: O,
+  ) => Promise<any>;
+  /** Removes a recipient from a Group DM. */
+  groupDmRemoveRecipient: (
+    channelId: string,
+    userId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Creates a new thread from an existing message. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. Fires a Thread Create Gateway event. */
+  startThreadWithMessage: (
+    channelId: string,
+    messageId: string,
+    params: Partial<StartThreadWithMessageParams>,
+    options?: O,
+  ) => Promise<Channel>;
+  /** Creates a new thread that is not connected to an existing message. The created thread is always a GUILD_PRIVATE_THREAD. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. Fires a Thread Create Gateway event. */
+  startThreadWithoutMessage: (
+    channelId: string,
+    params: Partial<StartThreadWithoutMessageParams>,
+    options?: O,
+  ) => Promise<Channel>;
+  /** Adds the current user to a thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
+  joinThread: (channelId: string, options?: O) => Promise<any>;
+  /** Adds another member to a thread. Requires the ability to send messages in the thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
+  addThreadMember: (
+    channelId: string,
+    userId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Removes the current user from a thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
+  leaveThread: (channelId: string, options?: O) => Promise<any>;
+  /** Removes another member from a thread. Requires the MANAGE_THREADS permission or that you are the creator of the thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
+  removeThreadMember: (
+    channelId: string,
+    userId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Returns array of thread members objects that are members of the thread. */
+  listThreadMembers: (
+    channelId: string,
+    options?: O,
+  ) => Promise<ThreadMember[]>;
+  /** Returns all active threads in the channel, including public and private threads. Threads are ordered by their id, in descending order. Requires the READ_MESSAGE_HISTORY permission. */
+  listActiveThreads: (channelId: string, options?: O) => Promise<any>;
+  /** Returns archived threads in the channel that are public. When called on a GUILD_TEXT channel, returns threads of type GUILD_PUBLIC_THREAD. When called on a GUILD_NEWS channel returns threads of type GUILD_NEWS_THREAD. Threads are ordered by archive_timestamp, in descending order. Requires the READ_MESSAGE_HISTORY permission. */
+  listPublicArchivedThreads: (
+    channelId: string,
+    params: Partial<ListPublicArchivedThreadParams>,
+    options?: O,
+  ) => Promise<ChannelType>;
+  /** Returns archived threads in the channel that are of type GUILD_PRIVATE_THREAD. Threads are ordered by archive_timestamp, in descending order. Requires both the READ_MESSAGE_HISTORY and MANAGE_THREADS permissions. */
+  listPrivateArchivedThreads: (
+    channelId: string,
+    params: Partial<ListPrivateArchivedThreadParams>,
+    options?: O,
+  ) => Promise<ChannelType>;
+  /** Returns archived threads in the channel that are of type GUILD_PRIVATE_THREAD, and the user has joined. Threads are ordered by their id, in descending order. Requires the READ_MESSAGE_HISTORY permission. */
+  listJoinedPrivateArchivedThreads: (
+    channelId: string,
+    params: Partial<ListJoinedPrivateArchivedThreadParams>,
+    options?: O,
+  ) => Promise<ChannelType>;
+  /** Returns an invite object for the given code. */
+  getInvite: (
+    inviteCode: string,
+    params: Partial<GetInviteParams>,
+    options?: O,
+  ) => Promise<Invite>;
+  /** Delete an invite. Requires the MANAGE_CHANNELS permission on the channel this invite belongs to, or MANAGE_GUILD to remove any invite across the guild. Returns an invite object on success. Fires a Invite Delete Gateway event. */
+  deleteInvite: (inviteCode: string, options?: O) => Promise<Invite>;
   /** Create a new guild. Returns a guild object on success. Fires a Guild Create Gateway event. */
   createGuild: (
     params: Partial<CreateGuildParams>,
@@ -3319,216 +3382,157 @@ export interface Endpoints<O> {
     params: Partial<UpdateUserVoiceStateParams>,
     options?: O,
   ) => Promise<any>;
-  /** Get a channel by ID. Returns a channel object.  If the channel is a thread, a thread member object is included in the returned result. */
-  getChannel: (channelId: string, options?: O) => Promise<Channel>;
-  /** Update a channel's settings. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. All JSON parameters are optional. */
-  modifyChannel: (
+  /** Returns a guild template object for the given code. */
+  getGuildTemplate: (
+    templateCode: string,
+    options?: O,
+  ) => Promise<GuildTemplate>;
+  /** Create a new guild based on a template. Returns a guild object on success. Fires a Guild Create Gateway event. */
+  createGuildFromGuildTemplate: (
+    templateCode: string,
+    params: Partial<CreateGuildFromGuildTemplateParams>,
+    options?: O,
+  ) => Promise<Guild>;
+  /** Returns an array of guild template objects. Requires the MANAGE_GUILD permission. */
+  getGuildTemplates: (guildId: string, options?: O) => Promise<GuildTemplate[]>;
+  /** Creates a template for the guild. Requires the MANAGE_GUILD permission. Returns the created guild template object on success. */
+  createGuildTemplate: (
+    guildId: string,
+    params: Partial<CreateGuildTemplateParams>,
+    options?: O,
+  ) => Promise<GuildTemplate>;
+  /** Syncs the template to the guild's current state. Requires the MANAGE_GUILD permission. Returns the guild template object on success. */
+  syncGuildTemplate: (
+    guildId: string,
+    templateCode: string,
+    options?: O,
+  ) => Promise<GuildTemplate>;
+  /** Modifies the template's metadata. Requires the MANAGE_GUILD permission. Returns the guild template object on success. */
+  modifyGuildTemplate: (
+    guildId: string,
+    templateCode: string,
+    params: Partial<ModifyGuildTemplateParams>,
+    options?: O,
+  ) => Promise<GuildTemplate>;
+  /** Deletes the template. Requires the MANAGE_GUILD permission. Returns the deleted guild template object on success. */
+  deleteGuildTemplate: (
+    guildId: string,
+    templateCode: string,
+    options?: O,
+  ) => Promise<GuildTemplate>;
+  /** Creates a new Stage instance associated to a Stage channel. */
+  createStageInstance: (
+    params: Partial<CreateStageInstanceParams>,
+    options?: O,
+  ) => Promise<any>;
+  /** Gets the stage instance associated with the Stage channel, if it exists. */
+  getStageInstance: (channelId: string, options?: O) => Promise<any>;
+  /** Updates fields of an existing Stage instance. */
+  updateStageInstance: (
     channelId: string,
-    params: Partial<ModifyChannelParams>,
+    params: Partial<UpdateStageInstanceParams>,
+    options?: O,
+  ) => Promise<any>;
+  /** Deletes the Stage instance. */
+  deleteStageInstance: (channelId: string, options?: O) => Promise<any>;
+  /** Returns the user object of the requester's account. For OAuth2, this requires the identify scope, which will return the object without an email, and optionally the email scope, which returns the object with an email. */
+  getCurrentUser: (options?: O) => Promise<User>;
+  /** Returns a user object for a given user ID. */
+  getUser: (userId: string, options?: O) => Promise<User>;
+  /** Modify the requester's user account settings. Returns a user object on success. */
+  modifyCurrentUser: (
+    params: Partial<ModifyCurrentUserParams>,
+    options?: O,
+  ) => Promise<User>;
+  /** Returns a list of partial guild objects the current user is a member of. Requires the guilds OAuth2 scope. */
+  getCurrentUserGuilds: (
+    params: Partial<GetCurrentUserGuildParams>,
+    options?: O,
+  ) => Promise<Guild[]>;
+  /** Leave a guild. Returns a 204 empty response on success. */
+  leaveGuild: (guildId: string, options?: O) => Promise<any>;
+  /** Create a new DM channel with a user. Returns a DM channel object. */
+  createDm: (params: Partial<CreateDmParams>, options?: O) => Promise<Channel>;
+  /** Create a new group DM channel with multiple users. Returns a DM channel object. This endpoint was intended to be used with the now-deprecated GameBridge SDK. DMs created with this endpoint will not be shown in the Discord client */
+  createGroupDm: (
+    params: Partial<CreateGroupDmParams>,
     options?: O,
   ) => Promise<Channel>;
-  /** Delete a channel, or close a private message. Requires the MANAGE_CHANNELS permission for the guild, or MANAGE_THREADS if the channel is a thread. Deleting a category does not delete its child channels; they will have their parent_id removed and a Channel Update Gateway event will fire for each of them. Returns a channel object on success. Fires a Channel Delete Gateway event (or Thread Delete if the channel was a thread). */
-  deletecloseChannel: (channelId: string, options?: O) => Promise<Channel>;
-  /** Returns the messages for a channel. If operating on a guild channel, this endpoint requires the VIEW_CHANNEL permission to be present on the current user. If the current user is missing the 'READ_MESSAGE_HISTORY' permission in the channel then this will return no messages (since they cannot read the message history). Returns an array of message objects on success. */
-  getChannelMessages: (
+  /** Returns a list of connection objects. Requires the connections OAuth2 scope. */
+  getUserConnections: (options?: O) => Promise<Connection[]>;
+  /** Returns an array of voice region objects that can be used when creating servers. */
+  listVoiceRegions: (options?: O) => Promise<VoiceRegion[]>;
+  /** Create a new webhook. Requires the MANAGE_WEBHOOKS permission. Returns a webhook object on success. Webhook names follow our naming restrictions that can be found in our Usernames and Nicknames documentation, with the following additional stipulations: */
+  createWebhook: (
     channelId: string,
-    params: Partial<GetChannelMessageParams>,
+    params: Partial<CreateWebhookParams>,
     options?: O,
-  ) => Promise<Message[]>;
-  /** Returns a specific message in the channel. If operating on a guild channel, this endpoint requires the 'READ_MESSAGE_HISTORY' permission to be present on the current user. Returns a message object on success. */
-  getChannelMessage: (
-    channelId: string,
+  ) => Promise<Webhook>;
+  /** Returns a list of channel webhook objects. Requires the MANAGE_WEBHOOKS permission. */
+  getChannelWebhooks: (channelId: string, options?: O) => Promise<Webhook[]>;
+  /** Returns a list of guild webhook objects. Requires the MANAGE_WEBHOOKS permission. */
+  getGuildWebhooks: (guildId: string, options?: O) => Promise<Webhook[]>;
+  /** Returns the new webhook object for the given id. */
+  getWebhook: (webhookId: string, options?: O) => Promise<Webhook>;
+  /** Same as above, except this call does not require authentication and returns no user in the webhook object. */
+  getWebhookWithToken: (
+    webhookId: string,
+    webhookToken: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Modify a webhook. Requires the MANAGE_WEBHOOKS permission. Returns the updated webhook object on success. */
+  modifyWebhook: (
+    webhookId: string,
+    params: Partial<ModifyWebhookParams>,
+    options?: O,
+  ) => Promise<Webhook>;
+  /** Same as above, except this call does not require authentication, does not accept a channel_id parameter in the body, and does not return a user in the webhook object. */
+  modifyWebhookWithToken: (
+    webhookId: string,
+    webhookToken: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Delete a webhook permanently. Requires the MANAGE_WEBHOOKS permission. Returns a 204 NO CONTENT response on success. */
+  deleteWebhook: (webhookId: string, options?: O) => Promise<any>;
+  /** Same as above, except this call does not require authentication. */
+  deleteWebhookWithToken: (
+    webhookId: string,
+    webhookToken: string,
+    options?: O,
+  ) => Promise<any>;
+  executeWebhook: (
+    webhookId: string,
+    webhookToken: string,
+    params: Partial<ExecuteWebhookParams>,
+    options?: O,
+  ) => Promise<any>;
+  /** Refer to Slack's documentation for more information. We do not support Slack's channel, icon_emoji, mrkdwn, or mrkdwn_in properties. */
+  executeSlackCompatibleWebhook: (
+    webhookId: string,
+    webhookToken: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Add a new webhook to your GitHub repo (in the repo's settings), and use this endpoint as the "Payload URL." You can choose what events your Discord channel receives by choosing the "Let me select individual events" option and selecting individual events for the new webhook you're configuring. */
+  executeGitHubCompatibleWebhook: (
+    webhookId: string,
+    webhookToken: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Returns a previously-sent webhook message from the same token. Returns a message object on success. */
+  getWebhookMessage: (
+    webhookId: string,
+    webhookToken: string,
     messageId: string,
     options?: O,
   ) => Promise<Message>;
-  createMessage: (
-    channelId: string,
-    params: Partial<CreateMessageParams>,
+  /** Edits a previously-sent webhook message from the same token. Returns a message object on success. */
+  editWebhookMessage: (
+    webhookId: string,
+    webhookToken: string,
+    messageId: string,
+    params: Partial<EditWebhookMessageParams>,
     options?: O,
   ) => Promise<Message>;
-  /** Crosspost a message in a News Channel to following channels. This endpoint requires the 'SEND_MESSAGES' permission, if the current user sent the message, or additionally the 'MANAGE_MESSAGES' permission, for all other messages, to be present for the current user. */
-  crosspostMessage: (
-    channelId: string,
-    messageId: string,
-    options?: O,
-  ) => Promise<Message>;
-  /** Create a reaction for the message. This endpoint requires the 'READ_MESSAGE_HISTORY' permission to be present on the current user. Additionally, if nobody else has reacted to the message using this emoji, this endpoint requires the 'ADD_REACTIONS' permission to be present on the current user. Returns a 204 empty response on success.
-The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
-  createReaction: (
-    channelId: string,
-    messageId: string,
-    emoji: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Delete a reaction the current user has made for the message. Returns a 204 empty response on success.
-The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
-  deleteOwnReaction: (
-    channelId: string,
-    messageId: string,
-    emoji: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Deletes another user's reaction. This endpoint requires the 'MANAGE_MESSAGES' permission to be present on the current user. Returns a 204 empty response on success.
-The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
-  deleteUserReaction: (
-    channelId: string,
-    messageId: string,
-    emoji: string,
-    userId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Get a list of users that reacted with this emoji. Returns an array of user objects on success.
-The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
-  getReactions: (
-    channelId: string,
-    messageId: string,
-    emoji: string,
-    params: Partial<GetReactionParams>,
-    options?: O,
-  ) => Promise<User[]>;
-  /** Deletes all reactions on a message. This endpoint requires the 'MANAGE_MESSAGES' permission to be present on the current user. Fires a Message Reaction Remove All Gateway event. */
-  deleteAllReactions: (
-    channelId: string,
-    messageId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Deletes all the reactions for a given emoji on a message. This endpoint requires the MANAGE_MESSAGES permission to be present on the current user. Fires a Message Reaction Remove Emoji Gateway event.
-The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
-  deleteAllReactionsForEmoji: (
-    channelId: string,
-    messageId: string,
-    emoji: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Edit a previously sent message. The fields content, embed, and flags can be edited by the original message author. Other users can only edit flags and only if they have the MANAGE_MESSAGES permission in the corresponding channel. When specifying flags, ensure to include all previously set flags/bits in addition to ones that you are modifying. Only flags documented in the table below may be modified by users (unsupported flag changes are currently ignored without error). */
-  editMessage: (
-    channelId: string,
-    messageId: string,
-    params: Partial<EditMessageParams>,
-    options?: O,
-  ) => Promise<Message>;
-  /** Delete a message. If operating on a guild channel and trying to delete a message that was not sent by the current user, this endpoint requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. Fires a Message Delete Gateway event. */
-  deleteMessage: (
-    channelId: string,
-    messageId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Delete multiple messages in a single request. This endpoint can only be used on guild channels and requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. Fires a Message Delete Bulk Gateway event. */
-  bulkDeleteMessages: (
-    channelId: string,
-    params: Partial<BulkDeleteMessageParams>,
-    options?: O,
-  ) => Promise<any>;
-  /** Edit the channel permission overwrites for a user or role in a channel. Only usable for guild channels. Requires the MANAGE_ROLES permission. Only permissions your bot has in the guild or channel can be allowed/denied (unless your bot has a MANAGE_ROLES overwrite in the channel). Returns a 204 empty response on success. For more information about permissions, see permissions. */
-  editChannelPermissions: (
-    channelId: string,
-    overwriteId: string,
-    params: Partial<EditChannelPermissionParams>,
-    options?: O,
-  ) => Promise<any>;
-  /** Returns a list of invite objects (with invite metadata) for the channel. Only usable for guild channels. Requires the MANAGE_CHANNELS permission. */
-  getChannelInvites: (channelId: string, options?: O) => Promise<Invite[]>;
-  /** Create a new invite object for the channel. Only usable for guild channels. Requires the CREATE_INSTANT_INVITE permission. All JSON parameters for this route are optional, however the request body is not. If you are not sending any fields, you still have to send an empty JSON object ({}). Returns an invite object. Fires an Invite Create Gateway event. */
-  createChannelInvite: (
-    channelId: string,
-    params: Partial<CreateChannelInviteParams>,
-    options?: O,
-  ) => Promise<Invite>;
-  /** Delete a channel permission overwrite for a user or role in a channel. Only usable for guild channels. Requires the MANAGE_ROLES permission. Returns a 204 empty response on success. For more information about permissions, see permissions */
-  deleteChannelPermission: (
-    channelId: string,
-    overwriteId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Follow a News Channel to send messages to a target channel. Requires the MANAGE_WEBHOOKS permission in the target channel. Returns a followed channel object. */
-  followNewsChannel: (
-    channelId: string,
-    params: Partial<FollowNewsChannelParams>,
-    options?: O,
-  ) => Promise<FollowedChannel>;
-  /** Post a typing indicator for the specified channel. Generally bots should not implement this route. However, if a bot is responding to a command and expects the computation to take a few seconds, this endpoint may be called to let the user know that the bot is processing their message. Returns a 204 empty response on success. Fires a Typing Start Gateway event. */
-  triggerTypingIndicator: (channelId: string, options?: O) => Promise<any>;
-  /** Returns all pinned messages in the channel as an array of message objects. */
-  getPinnedMessages: (channelId: string, options?: O) => Promise<Message[]>;
-  /** Pin a message in a channel. Requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. */
-  pinMessage: (
-    channelId: string,
-    messageId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Unpin a message in a channel. Requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. */
-  unpinMessage: (
-    channelId: string,
-    messageId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Adds a recipient to a Group DM using their access token. */
-  groupDmAddRecipient: (
-    channelId: string,
-    userId: string,
-    params: Partial<GroupDmAddRecipientParams>,
-    options?: O,
-  ) => Promise<any>;
-  /** Removes a recipient from a Group DM. */
-  groupDmRemoveRecipient: (
-    channelId: string,
-    userId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Creates a new thread from an existing message. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. Fires a Thread Create Gateway event. */
-  startThreadWithMessage: (
-    channelId: string,
-    messageId: string,
-    params: Partial<StartThreadWithMessageParams>,
-    options?: O,
-  ) => Promise<Channel>;
-  /** Creates a new thread that is not connected to an existing message. The created thread is always a GUILD_PRIVATE_THREAD. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. Fires a Thread Create Gateway event. */
-  startThreadWithoutMessage: (
-    channelId: string,
-    params: Partial<StartThreadWithoutMessageParams>,
-    options?: O,
-  ) => Promise<Channel>;
-  /** Adds the current user to a thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
-  joinThread: (channelId: string, options?: O) => Promise<any>;
-  /** Adds another member to a thread. Requires the ability to send messages in the thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
-  addThreadMember: (
-    channelId: string,
-    userId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Removes the current user from a thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
-  leaveThread: (channelId: string, options?: O) => Promise<any>;
-  /** Removes another member from a thread. Requires the MANAGE_THREADS permission or that you are the creator of the thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
-  removeThreadMember: (
-    channelId: string,
-    userId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Returns array of thread members objects that are members of the thread. */
-  listThreadMembers: (
-    channelId: string,
-    options?: O,
-  ) => Promise<ThreadMember[]>;
-  /** Returns all active threads in the channel, including public and private threads. Threads are ordered by their id, in descending order. Requires the READ_MESSAGE_HISTORY permission. */
-  listActiveThreads: (channelId: string, options?: O) => Promise<any>;
-  /** Returns archived threads in the channel that are public. When called on a GUILD_TEXT channel, returns threads of type GUILD_PUBLIC_THREAD. When called on a GUILD_NEWS channel returns threads of type GUILD_NEWS_THREAD. Threads are ordered by archive_timestamp, in descending order. Requires the READ_MESSAGE_HISTORY permission. */
-  listPublicArchivedThreads: (
-    channelId: string,
-    params: Partial<ListPublicArchivedThreadParams>,
-    options?: O,
-  ) => Promise<ChannelType>;
-  /** Returns archived threads in the channel that are of type GUILD_PRIVATE_THREAD. Threads are ordered by archive_timestamp, in descending order. Requires both the READ_MESSAGE_HISTORY and MANAGE_THREADS permissions. */
-  listPrivateArchivedThreads: (
-    channelId: string,
-    params: Partial<ListPrivateArchivedThreadParams>,
-    options?: O,
-  ) => Promise<ChannelType>;
-  /** Returns archived threads in the channel that are of type GUILD_PRIVATE_THREAD, and the user has joined. Threads are ordered by their id, in descending order. Requires the READ_MESSAGE_HISTORY permission. */
-  listJoinedPrivateArchivedThreads: (
-    channelId: string,
-    params: Partial<ListJoinedPrivateArchivedThreadParams>,
-    options?: O,
-  ) => Promise<ChannelType>;
   getGateway: (options?: O) => Promise<any>;
   getGatewayBot: (options?: O) => Promise<any>;
 }
@@ -3536,275 +3540,6 @@ export function createRoutes<O = any>(
   fetch: <R, P>(route: Route<P, O>) => Promise<R>,
 ): Endpoints<O> {
   return {
-    listGuildEmojis: (guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/emojis`,
-        options,
-      }),
-    getGuildEmoji: (guildId, emojiId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/emojis/${emojiId}`,
-        options,
-      }),
-    createGuildEmoji: (guildId, params, options) =>
-      fetch({
-        method: "POST",
-        url: `/guilds/${guildId}/emojis`,
-        params,
-        options,
-      }),
-    modifyGuildEmoji: (guildId, emojiId, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/guilds/${guildId}/emojis/${emojiId}`,
-        params,
-        options,
-      }),
-    deleteGuildEmoji: (guildId, emojiId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/guilds/${guildId}/emojis/${emojiId}`,
-        options,
-      }),
-    getGuildTemplate: (templateCode, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/templates/${templateCode}`,
-        options,
-      }),
-    createGuildFromGuildTemplate: (templateCode, params, options) =>
-      fetch({
-        method: "POST",
-        url: `/guilds/templates/${templateCode}`,
-        params,
-        options,
-      }),
-    getGuildTemplates: (guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/templates`,
-        options,
-      }),
-    createGuildTemplate: (guildId, params, options) =>
-      fetch({
-        method: "POST",
-        url: `/guilds/${guildId}/templates`,
-        params,
-        options,
-      }),
-    syncGuildTemplate: (guildId, templateCode, options) =>
-      fetch({
-        method: "PUT",
-        url: `/guilds/${guildId}/templates/${templateCode}`,
-        options,
-      }),
-    modifyGuildTemplate: (guildId, templateCode, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/guilds/${guildId}/templates/${templateCode}`,
-        params,
-        options,
-      }),
-    deleteGuildTemplate: (guildId, templateCode, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/guilds/${guildId}/templates/${templateCode}`,
-        options,
-      }),
-    getInvite: (inviteCode, params, options) =>
-      fetch({
-        method: "GET",
-        url: `/invites/${inviteCode}`,
-        params,
-        options,
-      }),
-    deleteInvite: (inviteCode, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/invites/${inviteCode}`,
-        options,
-      }),
-    getCurrentUser: (options) =>
-      fetch({
-        method: "GET",
-        url: `/users/@me`,
-        options,
-      }),
-    getUser: (userId, options) =>
-      fetch({
-        method: "GET",
-        url: `/users/${userId}`,
-        options,
-      }),
-    modifyCurrentUser: (params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/users/@me`,
-        params,
-        options,
-      }),
-    getCurrentUserGuilds: (params, options) =>
-      fetch({
-        method: "GET",
-        url: `/users/@me/guilds`,
-        params,
-        options,
-      }),
-    leaveGuild: (guildId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/users/@me/guilds/${guildId}`,
-        options,
-      }),
-    createDm: (params, options) =>
-      fetch({
-        method: "POST",
-        url: `/users/@me/channels`,
-        params,
-        options,
-      }),
-    createGroupDm: (params, options) =>
-      fetch({
-        method: "POST",
-        url: `/users/@me/channels`,
-        params,
-        options,
-      }),
-    getUserConnections: (options) =>
-      fetch({
-        method: "GET",
-        url: `/users/@me/connections`,
-        options,
-      }),
-    createStageInstance: (params, options) =>
-      fetch({
-        method: "POST",
-        url: `/stage-instances`,
-        params,
-        options,
-      }),
-    getStageInstance: (channelId, options) =>
-      fetch({
-        method: "GET",
-        url: `/stage-instances/${channelId}`,
-        options,
-      }),
-    updateStageInstance: (channelId, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/stage-instances/${channelId}`,
-        params,
-        options,
-      }),
-    deleteStageInstance: (channelId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/stage-instances/${channelId}`,
-        options,
-      }),
-    listVoiceRegions: (options) =>
-      fetch({
-        method: "GET",
-        url: `/voice/regions`,
-        options,
-      }),
-    getGuildAuditLog: (guildId, params, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/audit-logs`,
-        params,
-        options,
-      }),
-    createWebhook: (channelId, params, options) =>
-      fetch({
-        method: "POST",
-        url: `/channels/${channelId}/webhooks`,
-        params,
-        options,
-      }),
-    getChannelWebhooks: (channelId, options) =>
-      fetch({
-        method: "GET",
-        url: `/channels/${channelId}/webhooks`,
-        options,
-      }),
-    getGuildWebhooks: (guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/webhooks`,
-        options,
-      }),
-    getWebhook: (webhookId, options) =>
-      fetch({
-        method: "GET",
-        url: `/webhooks/${webhookId}`,
-        options,
-      }),
-    getWebhookWithToken: (webhookId, webhookToken, options) =>
-      fetch({
-        method: "GET",
-        url: `/webhooks/${webhookId}/${webhookToken}`,
-        options,
-      }),
-    modifyWebhook: (webhookId, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/webhooks/${webhookId}`,
-        params,
-        options,
-      }),
-    modifyWebhookWithToken: (webhookId, webhookToken, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/webhooks/${webhookId}/${webhookToken}`,
-        options,
-      }),
-    deleteWebhook: (webhookId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/webhooks/${webhookId}`,
-        options,
-      }),
-    deleteWebhookWithToken: (webhookId, webhookToken, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/webhooks/${webhookId}/${webhookToken}`,
-        options,
-      }),
-    executeWebhook: (webhookId, webhookToken, params, options) =>
-      fetch({
-        method: "POST",
-        url: `/webhooks/${webhookId}/${webhookToken}`,
-        params,
-        options,
-      }),
-    executeSlackCompatibleWebhook: (webhookId, webhookToken, options) =>
-      fetch({
-        method: "POST",
-        url: `/webhooks/${webhookId}/${webhookToken}/slack`,
-        options,
-      }),
-    executeGitHubCompatibleWebhook: (webhookId, webhookToken, options) =>
-      fetch({
-        method: "POST",
-        url: `/webhooks/${webhookId}/${webhookToken}/github`,
-        options,
-      }),
-    getWebhookMessage: (webhookId, webhookToken, messageId, options) =>
-      fetch({
-        method: "GET",
-        url: `/webhooks/${webhookId}/${webhookToken}/messages/${messageId}`,
-        options,
-      }),
-    editWebhookMessage: (webhookId, webhookToken, messageId, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/webhooks/${webhookId}/${webhookToken}/messages/${messageId}`,
-        params,
-        options,
-      }),
     getGlobalApplicationCommands: (applicationId, options) =>
       fetch({
         method: "GET",
@@ -4002,6 +3737,301 @@ export function createRoutes<O = any>(
         method: "PUT",
         url: `/applications/${applicationId}/guilds/${guildId}/commands/permissions`,
         params,
+        options,
+      }),
+    getGuildAuditLog: (guildId, params, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/audit-logs`,
+        params,
+        options,
+      }),
+    listGuildEmojis: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/emojis`,
+        options,
+      }),
+    getGuildEmoji: (guildId, emojiId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/emojis/${emojiId}`,
+        options,
+      }),
+    createGuildEmoji: (guildId, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/guilds/${guildId}/emojis`,
+        params,
+        options,
+      }),
+    modifyGuildEmoji: (guildId, emojiId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/guilds/${guildId}/emojis/${emojiId}`,
+        params,
+        options,
+      }),
+    deleteGuildEmoji: (guildId, emojiId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/guilds/${guildId}/emojis/${emojiId}`,
+        options,
+      }),
+    getChannel: (channelId, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}`,
+        options,
+      }),
+    modifyChannel: (channelId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/channels/${channelId}`,
+        params,
+        options,
+      }),
+    deletecloseChannel: (channelId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}`,
+        options,
+      }),
+    getChannelMessages: (channelId, params, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/messages`,
+        params,
+        options,
+      }),
+    getChannelMessage: (channelId, messageId, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/messages/${messageId}`,
+        options,
+      }),
+    createMessage: (channelId, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/channels/${channelId}/messages`,
+        params,
+        options,
+      }),
+    crosspostMessage: (channelId, messageId, options) =>
+      fetch({
+        method: "POST",
+        url: `/channels/${channelId}/messages/${messageId}/crosspost`,
+        options,
+      }),
+    createReaction: (channelId, messageId, emoji, options) =>
+      fetch({
+        method: "PUT",
+        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}/@me`,
+        options,
+      }),
+    deleteOwnReaction: (channelId, messageId, emoji, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}/@me`,
+        options,
+      }),
+    deleteUserReaction: (channelId, messageId, emoji, userId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}/${userId}`,
+        options,
+      }),
+    getReactions: (channelId, messageId, emoji, params, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}`,
+        params,
+        options,
+      }),
+    deleteAllReactions: (channelId, messageId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}/messages/${messageId}/reactions`,
+        options,
+      }),
+    deleteAllReactionsForEmoji: (channelId, messageId, emoji, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}`,
+        options,
+      }),
+    editMessage: (channelId, messageId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/channels/${channelId}/messages/${messageId}`,
+        params,
+        options,
+      }),
+    deleteMessage: (channelId, messageId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}/messages/${messageId}`,
+        options,
+      }),
+    bulkDeleteMessages: (channelId, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/channels/${channelId}/messages/bulk-delete`,
+        params,
+        options,
+      }),
+    editChannelPermissions: (channelId, overwriteId, params, options) =>
+      fetch({
+        method: "PUT",
+        url: `/channels/${channelId}/permissions/${overwriteId}`,
+        params,
+        options,
+      }),
+    getChannelInvites: (channelId, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/invites`,
+        options,
+      }),
+    createChannelInvite: (channelId, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/channels/${channelId}/invites`,
+        params,
+        options,
+      }),
+    deleteChannelPermission: (channelId, overwriteId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}/permissions/${overwriteId}`,
+        options,
+      }),
+    followNewsChannel: (channelId, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/channels/${channelId}/followers`,
+        params,
+        options,
+      }),
+    triggerTypingIndicator: (channelId, options) =>
+      fetch({
+        method: "POST",
+        url: `/channels/${channelId}/typing`,
+        options,
+      }),
+    getPinnedMessages: (channelId, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/pins`,
+        options,
+      }),
+    pinMessage: (channelId, messageId, options) =>
+      fetch({
+        method: "PUT",
+        url: `/channels/${channelId}/pins/${messageId}`,
+        options,
+      }),
+    unpinMessage: (channelId, messageId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}/pins/${messageId}`,
+        options,
+      }),
+    groupDmAddRecipient: (channelId, userId, params, options) =>
+      fetch({
+        method: "PUT",
+        url: `/channels/${channelId}/recipients/${userId}`,
+        params,
+        options,
+      }),
+    groupDmRemoveRecipient: (channelId, userId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}/recipients/${userId}`,
+        options,
+      }),
+    startThreadWithMessage: (channelId, messageId, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/channels/${channelId}/messages/${messageId}/threads`,
+        params,
+        options,
+      }),
+    startThreadWithoutMessage: (channelId, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/channels/${channelId}/threads`,
+        params,
+        options,
+      }),
+    joinThread: (channelId, options) =>
+      fetch({
+        method: "PUT",
+        url: `/channels/${channelId}/thread-members/@me`,
+        options,
+      }),
+    addThreadMember: (channelId, userId, options) =>
+      fetch({
+        method: "PUT",
+        url: `/channels/${channelId}/thread-members/${userId}`,
+        options,
+      }),
+    leaveThread: (channelId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}/thread-members/@me`,
+        options,
+      }),
+    removeThreadMember: (channelId, userId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}/thread-members/${userId}`,
+        options,
+      }),
+    listThreadMembers: (channelId, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/thread-members`,
+        options,
+      }),
+    listActiveThreads: (channelId, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/threads/active`,
+        options,
+      }),
+    listPublicArchivedThreads: (channelId, params, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/threads/archived/public`,
+        params,
+        options,
+      }),
+    listPrivateArchivedThreads: (channelId, params, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/threads/archived/private`,
+        params,
+        options,
+      }),
+    listJoinedPrivateArchivedThreads: (channelId, params, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/users/@me/threads/archived/private`,
+        params,
+        options,
+      }),
+    getInvite: (inviteCode, params, options) =>
+      fetch({
+        method: "GET",
+        url: `/invites/${inviteCode}`,
+        params,
+        options,
+      }),
+    deleteInvite: (inviteCode, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/invites/${inviteCode}`,
         options,
       }),
     createGuild: (params, options) =>
@@ -4270,246 +4300,220 @@ export function createRoutes<O = any>(
         params,
         options,
       }),
-    getChannel: (channelId, options) =>
+    getGuildTemplate: (templateCode, options) =>
       fetch({
         method: "GET",
-        url: `/channels/${channelId}`,
+        url: `/guilds/templates/${templateCode}`,
         options,
       }),
-    modifyChannel: (channelId, params, options) =>
+    createGuildFromGuildTemplate: (templateCode, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/guilds/templates/${templateCode}`,
+        params,
+        options,
+      }),
+    getGuildTemplates: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/templates`,
+        options,
+      }),
+    createGuildTemplate: (guildId, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/guilds/${guildId}/templates`,
+        params,
+        options,
+      }),
+    syncGuildTemplate: (guildId, templateCode, options) =>
+      fetch({
+        method: "PUT",
+        url: `/guilds/${guildId}/templates/${templateCode}`,
+        options,
+      }),
+    modifyGuildTemplate: (guildId, templateCode, params, options) =>
       fetch({
         method: "PATCH",
-        url: `/channels/${channelId}`,
+        url: `/guilds/${guildId}/templates/${templateCode}`,
         params,
         options,
       }),
-    deletecloseChannel: (channelId, options) =>
+    deleteGuildTemplate: (guildId, templateCode, options) =>
       fetch({
         method: "DELETE",
-        url: `/channels/${channelId}`,
+        url: `/guilds/${guildId}/templates/${templateCode}`,
         options,
       }),
-    getChannelMessages: (channelId, params, options) =>
-      fetch({
-        method: "GET",
-        url: `/channels/${channelId}/messages`,
-        params,
-        options,
-      }),
-    getChannelMessage: (channelId, messageId, options) =>
-      fetch({
-        method: "GET",
-        url: `/channels/${channelId}/messages/${messageId}`,
-        options,
-      }),
-    createMessage: (channelId, params, options) =>
+    createStageInstance: (params, options) =>
       fetch({
         method: "POST",
-        url: `/channels/${channelId}/messages`,
+        url: `/stage-instances`,
         params,
         options,
       }),
-    crosspostMessage: (channelId, messageId, options) =>
-      fetch({
-        method: "POST",
-        url: `/channels/${channelId}/messages/${messageId}/crosspost`,
-        options,
-      }),
-    createReaction: (channelId, messageId, emoji, options) =>
-      fetch({
-        method: "PUT",
-        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}/@me`,
-        options,
-      }),
-    deleteOwnReaction: (channelId, messageId, emoji, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}/@me`,
-        options,
-      }),
-    deleteUserReaction: (channelId, messageId, emoji, userId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}/${userId}`,
-        options,
-      }),
-    getReactions: (channelId, messageId, emoji, params, options) =>
+    getStageInstance: (channelId, options) =>
       fetch({
         method: "GET",
-        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}`,
-        params,
+        url: `/stage-instances/${channelId}`,
         options,
       }),
-    deleteAllReactions: (channelId, messageId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/channels/${channelId}/messages/${messageId}/reactions`,
-        options,
-      }),
-    deleteAllReactionsForEmoji: (channelId, messageId, emoji, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}`,
-        options,
-      }),
-    editMessage: (channelId, messageId, params, options) =>
+    updateStageInstance: (channelId, params, options) =>
       fetch({
         method: "PATCH",
-        url: `/channels/${channelId}/messages/${messageId}`,
+        url: `/stage-instances/${channelId}`,
         params,
         options,
       }),
-    deleteMessage: (channelId, messageId, options) =>
+    deleteStageInstance: (channelId, options) =>
       fetch({
         method: "DELETE",
-        url: `/channels/${channelId}/messages/${messageId}`,
+        url: `/stage-instances/${channelId}`,
         options,
       }),
-    bulkDeleteMessages: (channelId, params, options) =>
-      fetch({
-        method: "POST",
-        url: `/channels/${channelId}/messages/bulk-delete`,
-        params,
-        options,
-      }),
-    editChannelPermissions: (channelId, overwriteId, params, options) =>
-      fetch({
-        method: "PUT",
-        url: `/channels/${channelId}/permissions/${overwriteId}`,
-        params,
-        options,
-      }),
-    getChannelInvites: (channelId, options) =>
+    getCurrentUser: (options) =>
       fetch({
         method: "GET",
-        url: `/channels/${channelId}/invites`,
+        url: `/users/@me`,
         options,
       }),
-    createChannelInvite: (channelId, params, options) =>
+    getUser: (userId, options) =>
       fetch({
-        method: "POST",
-        url: `/channels/${channelId}/invites`,
+        method: "GET",
+        url: `/users/${userId}`,
+        options,
+      }),
+    modifyCurrentUser: (params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/users/@me`,
         params,
         options,
       }),
-    deleteChannelPermission: (channelId, overwriteId, options) =>
+    getCurrentUserGuilds: (params, options) =>
+      fetch({
+        method: "GET",
+        url: `/users/@me/guilds`,
+        params,
+        options,
+      }),
+    leaveGuild: (guildId, options) =>
       fetch({
         method: "DELETE",
-        url: `/channels/${channelId}/permissions/${overwriteId}`,
+        url: `/users/@me/guilds/${guildId}`,
         options,
       }),
-    followNewsChannel: (channelId, params, options) =>
+    createDm: (params, options) =>
       fetch({
         method: "POST",
-        url: `/channels/${channelId}/followers`,
+        url: `/users/@me/channels`,
         params,
         options,
       }),
-    triggerTypingIndicator: (channelId, options) =>
+    createGroupDm: (params, options) =>
       fetch({
         method: "POST",
-        url: `/channels/${channelId}/typing`,
-        options,
-      }),
-    getPinnedMessages: (channelId, options) =>
-      fetch({
-        method: "GET",
-        url: `/channels/${channelId}/pins`,
-        options,
-      }),
-    pinMessage: (channelId, messageId, options) =>
-      fetch({
-        method: "PUT",
-        url: `/channels/${channelId}/pins/${messageId}`,
-        options,
-      }),
-    unpinMessage: (channelId, messageId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/channels/${channelId}/pins/${messageId}`,
-        options,
-      }),
-    groupDmAddRecipient: (channelId, userId, params, options) =>
-      fetch({
-        method: "PUT",
-        url: `/channels/${channelId}/recipients/${userId}`,
+        url: `/users/@me/channels`,
         params,
         options,
       }),
-    groupDmRemoveRecipient: (channelId, userId, options) =>
+    getUserConnections: (options) =>
       fetch({
-        method: "DELETE",
-        url: `/channels/${channelId}/recipients/${userId}`,
+        method: "GET",
+        url: `/users/@me/connections`,
         options,
       }),
-    startThreadWithMessage: (channelId, messageId, params, options) =>
+    listVoiceRegions: (options) =>
+      fetch({
+        method: "GET",
+        url: `/voice/regions`,
+        options,
+      }),
+    createWebhook: (channelId, params, options) =>
       fetch({
         method: "POST",
-        url: `/channels/${channelId}/messages/${messageId}/threads`,
+        url: `/channels/${channelId}/webhooks`,
         params,
         options,
       }),
-    startThreadWithoutMessage: (channelId, params, options) =>
+    getChannelWebhooks: (channelId, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/webhooks`,
+        options,
+      }),
+    getGuildWebhooks: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/webhooks`,
+        options,
+      }),
+    getWebhook: (webhookId, options) =>
+      fetch({
+        method: "GET",
+        url: `/webhooks/${webhookId}`,
+        options,
+      }),
+    getWebhookWithToken: (webhookId, webhookToken, options) =>
+      fetch({
+        method: "GET",
+        url: `/webhooks/${webhookId}/${webhookToken}`,
+        options,
+      }),
+    modifyWebhook: (webhookId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/webhooks/${webhookId}`,
+        params,
+        options,
+      }),
+    modifyWebhookWithToken: (webhookId, webhookToken, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/webhooks/${webhookId}/${webhookToken}`,
+        options,
+      }),
+    deleteWebhook: (webhookId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/webhooks/${webhookId}`,
+        options,
+      }),
+    deleteWebhookWithToken: (webhookId, webhookToken, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/webhooks/${webhookId}/${webhookToken}`,
+        options,
+      }),
+    executeWebhook: (webhookId, webhookToken, params, options) =>
       fetch({
         method: "POST",
-        url: `/channels/${channelId}/threads`,
+        url: `/webhooks/${webhookId}/${webhookToken}`,
         params,
         options,
       }),
-    joinThread: (channelId, options) =>
+    executeSlackCompatibleWebhook: (webhookId, webhookToken, options) =>
       fetch({
-        method: "PUT",
-        url: `/channels/${channelId}/thread-members/@me`,
+        method: "POST",
+        url: `/webhooks/${webhookId}/${webhookToken}/slack`,
         options,
       }),
-    addThreadMember: (channelId, userId, options) =>
+    executeGitHubCompatibleWebhook: (webhookId, webhookToken, options) =>
       fetch({
-        method: "PUT",
-        url: `/channels/${channelId}/thread-members/${userId}`,
+        method: "POST",
+        url: `/webhooks/${webhookId}/${webhookToken}/github`,
         options,
       }),
-    leaveThread: (channelId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/channels/${channelId}/thread-members/@me`,
-        options,
-      }),
-    removeThreadMember: (channelId, userId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/channels/${channelId}/thread-members/${userId}`,
-        options,
-      }),
-    listThreadMembers: (channelId, options) =>
+    getWebhookMessage: (webhookId, webhookToken, messageId, options) =>
       fetch({
         method: "GET",
-        url: `/channels/${channelId}/thread-members`,
+        url: `/webhooks/${webhookId}/${webhookToken}/messages/${messageId}`,
         options,
       }),
-    listActiveThreads: (channelId, options) =>
+    editWebhookMessage: (webhookId, webhookToken, messageId, params, options) =>
       fetch({
-        method: "GET",
-        url: `/channels/${channelId}/threads/active`,
-        options,
-      }),
-    listPublicArchivedThreads: (channelId, params, options) =>
-      fetch({
-        method: "GET",
-        url: `/channels/${channelId}/threads/archived/public`,
-        params,
-        options,
-      }),
-    listPrivateArchivedThreads: (channelId, params, options) =>
-      fetch({
-        method: "GET",
-        url: `/channels/${channelId}/threads/archived/private`,
-        params,
-        options,
-      }),
-    listJoinedPrivateArchivedThreads: (channelId, params, options) =>
-      fetch({
-        method: "GET",
-        url: `/channels/${channelId}/users/@me/threads/archived/private`,
+        method: "PATCH",
+        url: `/webhooks/${webhookId}/${webhookToken}/messages/${messageId}`,
         params,
         options,
       }),

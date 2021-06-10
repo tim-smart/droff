@@ -16,10 +16,10 @@ Simple Discord client powered by RxJS and Axios
 yarn add droff
 ```
 
-If you want more performance:
+If you want more performance (erlpack not supported on Node 16):
 
 ```
-yarn add bufferutil
+yarn add bufferutil erlpack
 ```
 
 ## What's missing

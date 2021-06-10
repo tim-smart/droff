@@ -8,7 +8,6 @@ import Axios, {
 } from "axios";
 import { createRoutes } from "../types";
 import * as RateLimits from "./rate-limits";
-import FormData from "form-data";
 
 const VERSION = 9;
 
@@ -52,6 +51,11 @@ const handleError = (err: AxiosError) => {
   )} ${JSON.stringify(err.response?.data, null, 2)}`;
   throw err;
 };
+
+interface FormData {
+  append: (key: string, value: unknown) => void;
+  getHeaders: () => Record<string, string>;
+}
 
 export const routes = (client: AxiosInstance) =>
   createRoutes<AxiosRequestConfig>(

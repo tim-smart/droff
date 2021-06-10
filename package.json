@@ -27,9 +27,7 @@
   "dependencies": {
     "axios": "^0.21.1",
     "erlpack": "^0.1.3",
-    "form-data": "^4.0.0",
     "fp-ts": "^2.10.5",
-    "fp-ts-std": "^0.10.0",
     "immutable": "^4.0.0-rc.12",
     "reconnecting-ws": "^2.0.4",
     "rxjs": "^7.0.0",

@@ -1,9 +1,12 @@
 export const memoize = <T>(fn: (arg: string) => T) => {
-  let cache: T;
+  const cache = new Map<string, T>();
 
   return (arg: string) => {
-    if (cache) return cache;
-    cache = fn(arg);
-    return cache;
+    const val = cache.get(arg);
+    if (val) return val;
+
+    const newVal = fn(arg);
+    cache.set(arg, newVal);
+    return newVal;
   };
 };

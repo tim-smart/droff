@@ -38,7 +38,7 @@ const createCodec = (): Codec => {
   } catch (_) {}
   return {
     encode: JSON.stringify,
-    decode: (blob) => JSON.parse(blob.toString()),
+    decode: (blob) => JSON.parse(blob.toString("utf8")),
     encoding: "json",
   };
 };

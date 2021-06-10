@@ -63,6 +63,14 @@ export const watch$ = <T>(
     RxO.shareReplay(1),
   );
 
+type CacheResult<
+  M extends { [key: string]: Rx.Observable<GuildSnowflakeMap<any>> },
+> = { guild: Guild } & {
+  [K in keyof M]: M[K] extends Rx.Observable<GuildSnowflakeMap<infer V>>
+    ? SnowflakeMap<V>
+    : never;
+};
+
 export const withCaches =
   (guilds$: Rx.Observable<GuildMap>) =>
   <M extends { [key: string]: Rx.Observable<GuildSnowflakeMap<any>> }>(
@@ -73,37 +81,42 @@ export const withCaches =
     const obValues = obEntries.map((e) => e[1]);
 
     return <T>(guildID: (resource: T) => Snowflake | undefined) =>
-      (source$: Rx.Observable<T>) =>
-        source$.pipe(
+      (
+        source$: Rx.Observable<T>,
+      ): Rx.Observable<readonly [T, CacheResult<M> | undefined]> => {
+        const guild$ = source$.pipe(
           RxO.withLatestFrom(guilds$),
-          RxO.withLatestFrom(...obValues),
-          RxO.map(([[resource, guilds], ...results]) => {
+          RxO.map(([resource, guilds]) => {
             const guild = guilds.get(guildID(resource)!);
-            if (!guild) return [resource, undefined] as const;
+            return [resource, guild ? { guild } : undefined] as const;
+          }),
+        );
+        if (obValues.length === 0) return guild$ as any;
+
+        return guild$.pipe(
+          RxO.withLatestFrom(...obValues),
+          RxO.map(([[resource, cache], ...results]) => {
+            if (!cache) return [resource, undefined] as const;
+            const guild = cache.guild;
 
             const resultMap = obKeys.reduce(
               (map, key, index) => ({
                 ...map,
                 [key]: results[index].get(guild.id, Map()),
               }),
-              {} as {
-                [K in keyof M]: M[K] extends Rx.Observable<
-                  GuildSnowflakeMap<infer V>
-                >
-                  ? SnowflakeMap<V>
-                  : never;
-              },
+              {} as CacheResult<M>,
             );
 
             return [
               resource,
               {
-                guild,
                 ...resultMap,
+                guild,
               },
             ] as const;
           }),
         );
+      };
   };
 
 export const onlyWithGuild =

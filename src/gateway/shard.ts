@@ -64,6 +64,7 @@ export function create({
   });
 
   return {
+    id: shard,
     conn,
     send: conn.send,
     raw$: conn.raw$,

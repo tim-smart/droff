@@ -27,34 +27,42 @@ export const create =
   }: Options) => {
     const rateLimit = RL.rateLimit(rateLimitStore);
 
+    const createShard = (id: [number, number], baseURL: string) =>
+      Shard.create({
+        token,
+        baseURL,
+        intents: intents | GatewayIntents.GUILDS,
+        shard: id,
+        rateLimit,
+      });
+
+    // Start shards with rate limits
     const shards$ = Rx.from(routes.getGatewayBot()).pipe(
       RxO.flatMap(({ url, shards, session_start_limit: limit }) => {
         const ids = shardIDs === "auto" ? [...Array(shards).keys()] : shardIDs;
         const count = shardIDs === "auto" ? ids.length : shardCount;
-
-        return Rx.from(ids).pipe(
-          RxO.groupBy((id) => id % limit.max_concurrency),
-          RxO.flatMap((id$) =>
-            id$.pipe(
-              rateLimit(`gateway.sessions.${id$.key}`, 5500, 1),
-              RxO.concatMap((id) => {
-                const shard = Shard.create({
-                  token,
-                  baseURL: url,
-                  intents: intents | GatewayIntents.GUILDS,
-                  shard: [id, count],
-                  rateLimit,
-                });
-
-                return shard.ready$.pipe(
-                  RxO.first(),
-                  RxO.map(() => shard),
-                );
-              }),
-            ),
-          ),
-        );
+        return ids.map((id) => ({
+          id,
+          count,
+          url,
+          concurrency: limit.max_concurrency,
+        }));
       }),
+
+      RxO.groupBy(({ id, concurrency }) => id % concurrency),
+      RxO.flatMap((id$) =>
+        id$.pipe(
+          rateLimit(`gateway.sessions.${id$.key}`, 5500, 1),
+          RxO.concatMap(({ id, count, url }) => {
+            const shard = createShard([id, count], url);
+            return shard.ready$.pipe(
+              RxO.first(),
+              RxO.map(() => shard),
+            );
+          }),
+        ),
+      ),
+
       RxO.share(),
     );
 

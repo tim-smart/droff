@@ -14,7 +14,7 @@ export interface Store {
   getBucketForRoute: (route: string) => Promise<O.Option<BucketDetails>>;
   putBucketRoute: (route: string, bucketKey: string) => Promise<void>;
 
-  wait: (key: string, window: number, limit: number) => Promise<void>;
+  maybeWait: (key: string, window: number, limit: number) => Promise<void>;
 }
 
 interface Counter {
@@ -65,6 +65,6 @@ export const createMemoryStore = (): Store => {
       routes.set(route, bucket);
     },
 
-    wait,
+    maybeWait: wait,
   };
 };

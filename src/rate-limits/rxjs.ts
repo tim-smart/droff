@@ -7,7 +7,9 @@ export const rateLimit =
   (key: string, window: number, limit: number) =>
   <T>(source$: Rx.Observable<T>) =>
     source$.pipe(
-      RxO.concatMap((item) => store.wait(key, window, limit).then(() => item)),
+      RxO.concatMap((item) =>
+        store.maybeWait(key, window, limit).then(() => item),
+      ),
     );
 
 export type RateLimitOp = ReturnType<typeof rateLimit>;

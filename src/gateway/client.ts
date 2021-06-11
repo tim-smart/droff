@@ -108,7 +108,8 @@ export const create =
       dispatch$: dispatchListen,
       dispatchWithShard$: dispatchWithShardListen,
       latest$: dispatchLatest,
-      shards$: shardsAcc$,
+      shards$: shards$,
+      shardsArray$: shardsAcc$,
       close,
       reconnect,
     };

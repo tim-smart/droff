@@ -70,6 +70,7 @@ export const create =
       RxO.scan((acc, shard) => [...acc, shard], [] as Shard.Shard[]),
       RxO.shareReplay(1),
     );
+    const shardsSub = shardsAcc$.subscribe();
 
     function close() {
       shardsAcc$
@@ -78,6 +79,7 @@ export const create =
           RxO.tap((shards) => shards.forEach((s) => s.close())),
         )
         .subscribe();
+      shardsSub.unsubscribe();
     }
 
     function reconnect() {

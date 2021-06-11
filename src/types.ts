@@ -471,6 +471,8 @@ export interface Channel {
   thread_metadata?: ThreadMetadatum;
   /** thread member object for the current user, if they have joined the thread, only included on certain API endpoints */
   member?: ThreadMember;
+  /** default duration for newly created threads, in minutes, to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
+  default_auto_archive_duration?: number;
 }
 export type ChannelCreateEvent = Channel;
 export type ChannelDeleteEvent = Channel;
@@ -725,10 +727,81 @@ export function createRoutes<O = any>(
   fetch: <R, P>(route: Route<P, O>) => Promise<R>,
 ): Endpoints<O> {
   return {
-    getGlobalApplicationCommands: (applicationId, options) =>
+    addGuildMember: (guildId, userId, params, options) =>
       fetch({
-        method: "GET",
+        method: "PUT",
+        url: `/guilds/${guildId}/members/${userId}`,
+        params,
+        options,
+      }),
+    addGuildMemberRole: (guildId, userId, roleId, options) =>
+      fetch({
+        method: "PUT",
+        url: `/guilds/${guildId}/members/${userId}/roles/${roleId}`,
+        options,
+      }),
+    addThreadMember: (channelId, userId, options) =>
+      fetch({
+        method: "PUT",
+        url: `/channels/${channelId}/thread-members/${userId}`,
+        options,
+      }),
+    batchEditApplicationCommandPermissions: (
+      applicationId,
+      guildId,
+      params,
+      options,
+    ) =>
+      fetch({
+        method: "PUT",
+        url: `/applications/${applicationId}/guilds/${guildId}/commands/permissions`,
+        params,
+        options,
+      }),
+    beginGuildPrune: (guildId, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/guilds/${guildId}/prune`,
+        params,
+        options,
+      }),
+    bulkDeleteMessages: (channelId, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/channels/${channelId}/messages/bulk-delete`,
+        params,
+        options,
+      }),
+    bulkOverwriteGlobalApplicationCommands: (applicationId, options) =>
+      fetch({
+        method: "PUT",
         url: `/applications/${applicationId}/commands`,
+        options,
+      }),
+    bulkOverwriteGuildApplicationCommands: (applicationId, guildId, options) =>
+      fetch({
+        method: "PUT",
+        url: `/applications/${applicationId}/guilds/${guildId}/commands`,
+        options,
+      }),
+    createChannelInvite: (channelId, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/channels/${channelId}/invites`,
+        params,
+        options,
+      }),
+    createDm: (params, options) =>
+      fetch({
+        method: "POST",
+        url: `/users/@me/channels`,
+        params,
+        options,
+      }),
+    createFollowupMessage: (applicationId, interactionToken, options) =>
+      fetch({
+        method: "POST",
+        url: `/webhooks/${applicationId}/${interactionToken}`,
         options,
       }),
     createGlobalApplicationCommand: (applicationId, params, options) =>
@@ -738,35 +811,18 @@ export function createRoutes<O = any>(
         params,
         options,
       }),
-    getGlobalApplicationCommand: (applicationId, commandId, options) =>
+    createGroupDm: (params, options) =>
       fetch({
-        method: "GET",
-        url: `/applications/${applicationId}/commands/${commandId}`,
-        options,
-      }),
-    editGlobalApplicationCommand: (applicationId, commandId, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/applications/${applicationId}/commands/${commandId}`,
+        method: "POST",
+        url: `/users/@me/channels`,
         params,
         options,
       }),
-    deleteGlobalApplicationCommand: (applicationId, commandId, options) =>
+    createGuild: (params, options) =>
       fetch({
-        method: "DELETE",
-        url: `/applications/${applicationId}/commands/${commandId}`,
-        options,
-      }),
-    getGuildApplicationCommands: (applicationId, guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/applications/${applicationId}/guilds/${guildId}/commands`,
-        options,
-      }),
-    bulkOverwriteGlobalApplicationCommands: (applicationId, options) =>
-      fetch({
-        method: "PUT",
-        url: `/applications/${applicationId}/commands`,
+        method: "POST",
+        url: `/guilds`,
+        params,
         options,
       }),
     createGuildApplicationCommand: (applicationId, guildId, params, options) =>
@@ -776,40 +832,46 @@ export function createRoutes<O = any>(
         params,
         options,
       }),
-    getGuildApplicationCommand: (applicationId, guildId, commandId, options) =>
+    createGuildBan: (guildId, userId, params, options) =>
       fetch({
-        method: "GET",
-        url: `/applications/${applicationId}/guilds/${guildId}/commands/${commandId}`,
-        options,
-      }),
-    editGuildApplicationCommand: (
-      applicationId,
-      guildId,
-      commandId,
-      params,
-      options,
-    ) =>
-      fetch({
-        method: "PATCH",
-        url: `/applications/${applicationId}/guilds/${guildId}/commands/${commandId}`,
+        method: "PUT",
+        url: `/guilds/${guildId}/bans/${userId}`,
         params,
         options,
       }),
-    deleteGuildApplicationCommand: (
-      applicationId,
-      guildId,
-      commandId,
-      options,
-    ) =>
+    createGuildChannel: (guildId, params, options) =>
       fetch({
-        method: "DELETE",
-        url: `/applications/${applicationId}/guilds/${guildId}/commands/${commandId}`,
+        method: "POST",
+        url: `/guilds/${guildId}/channels`,
+        params,
         options,
       }),
-    bulkOverwriteGuildApplicationCommands: (applicationId, guildId, options) =>
+    createGuildEmoji: (guildId, params, options) =>
       fetch({
-        method: "PUT",
-        url: `/applications/${applicationId}/guilds/${guildId}/commands`,
+        method: "POST",
+        url: `/guilds/${guildId}/emojis`,
+        params,
+        options,
+      }),
+    createGuildFromGuildTemplate: (templateCode, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/guilds/templates/${templateCode}`,
+        params,
+        options,
+      }),
+    createGuildRole: (guildId, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/guilds/${guildId}/roles`,
+        params,
+        options,
+      }),
+    createGuildTemplate: (guildId, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/guilds/${guildId}/templates`,
+        params,
         options,
       }),
     createInteractionResponse: (
@@ -824,51 +886,61 @@ export function createRoutes<O = any>(
         params,
         options,
       }),
-    getOriginalInteractionResponse: (
-      applicationId,
-      interactionToken,
-      options,
-    ) =>
-      fetch({
-        method: "GET",
-        url: `/webhooks/${applicationId}/${interactionToken}/messages/@original`,
-        options,
-      }),
-    editOriginalInteractionResponse: (
-      applicationId,
-      interactionToken,
-      options,
-    ) =>
-      fetch({
-        method: "PATCH",
-        url: `/webhooks/${applicationId}/${interactionToken}/messages/@original`,
-        options,
-      }),
-    deleteOriginalInteractionResponse: (
-      applicationId,
-      interactionToken,
-      options,
-    ) =>
-      fetch({
-        method: "DELETE",
-        url: `/webhooks/${applicationId}/${interactionToken}/messages/@original`,
-        options,
-      }),
-    createFollowupMessage: (applicationId, interactionToken, options) =>
+    createMessage: (channelId, params, options) =>
       fetch({
         method: "POST",
-        url: `/webhooks/${applicationId}/${interactionToken}`,
+        url: `/channels/${channelId}/messages`,
+        params,
         options,
       }),
-    editFollowupMessage: (
-      applicationId,
-      interactionToken,
-      messageId,
-      options,
-    ) =>
+    createReaction: (channelId, messageId, emoji, options) =>
       fetch({
-        method: "PATCH",
-        url: `/webhooks/${applicationId}/${interactionToken}/messages/${messageId}`,
+        method: "PUT",
+        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}/@me`,
+        options,
+      }),
+    createStageInstance: (params, options) =>
+      fetch({
+        method: "POST",
+        url: `/stage-instances`,
+        params,
+        options,
+      }),
+    createWebhook: (channelId, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/channels/${channelId}/webhooks`,
+        params,
+        options,
+      }),
+    crosspostMessage: (channelId, messageId, options) =>
+      fetch({
+        method: "POST",
+        url: `/channels/${channelId}/messages/${messageId}/crosspost`,
+        options,
+      }),
+    deleteAllReactions: (channelId, messageId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}/messages/${messageId}/reactions`,
+        options,
+      }),
+    deleteAllReactionsForEmoji: (channelId, messageId, emoji, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}`,
+        options,
+      }),
+    deleteChannelPermission: (channelId, overwriteId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}/permissions/${overwriteId}`,
+        options,
+      }),
+    deletecloseChannel: (channelId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}`,
         options,
       }),
     deleteFollowupMessage: (
@@ -882,21 +954,103 @@ export function createRoutes<O = any>(
         url: `/webhooks/${applicationId}/${interactionToken}/messages/${messageId}`,
         options,
       }),
-    getGuildApplicationCommandPermissions: (applicationId, guildId, options) =>
+    deleteGlobalApplicationCommand: (applicationId, commandId, options) =>
       fetch({
-        method: "GET",
-        url: `/applications/${applicationId}/guilds/${guildId}/commands/permissions`,
+        method: "DELETE",
+        url: `/applications/${applicationId}/commands/${commandId}`,
         options,
       }),
-    getApplicationCommandPermissions: (
+    deleteGuild: (guildId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/guilds/${guildId}`,
+        options,
+      }),
+    deleteGuildApplicationCommand: (
       applicationId,
       guildId,
       commandId,
       options,
     ) =>
       fetch({
-        method: "GET",
-        url: `/applications/${applicationId}/guilds/${guildId}/commands/${commandId}/permissions`,
+        method: "DELETE",
+        url: `/applications/${applicationId}/guilds/${guildId}/commands/${commandId}`,
+        options,
+      }),
+    deleteGuildEmoji: (guildId, emojiId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/guilds/${guildId}/emojis/${emojiId}`,
+        options,
+      }),
+    deleteGuildIntegration: (guildId, integrationId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/guilds/${guildId}/integrations/${integrationId}`,
+        options,
+      }),
+    deleteGuildRole: (guildId, roleId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/guilds/${guildId}/roles/${roleId}`,
+        options,
+      }),
+    deleteGuildTemplate: (guildId, templateCode, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/guilds/${guildId}/templates/${templateCode}`,
+        options,
+      }),
+    deleteInvite: (inviteCode, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/invites/${inviteCode}`,
+        options,
+      }),
+    deleteMessage: (channelId, messageId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}/messages/${messageId}`,
+        options,
+      }),
+    deleteOriginalInteractionResponse: (
+      applicationId,
+      interactionToken,
+      options,
+    ) =>
+      fetch({
+        method: "DELETE",
+        url: `/webhooks/${applicationId}/${interactionToken}/messages/@original`,
+        options,
+      }),
+    deleteOwnReaction: (channelId, messageId, emoji, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}/@me`,
+        options,
+      }),
+    deleteStageInstance: (channelId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/stage-instances/${channelId}`,
+        options,
+      }),
+    deleteUserReaction: (channelId, messageId, emoji, userId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}/${userId}`,
+        options,
+      }),
+    deleteWebhook: (webhookId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/webhooks/${webhookId}`,
+        options,
+      }),
+    deleteWebhookWithToken: (webhookId, webhookToken, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/webhooks/${webhookId}/${webhookToken}`,
         options,
       }),
     editApplicationCommandPermissions: (
@@ -912,137 +1066,42 @@ export function createRoutes<O = any>(
         params,
         options,
       }),
-    batchEditApplicationCommandPermissions: (
+    editChannelPermissions: (channelId, overwriteId, params, options) =>
+      fetch({
+        method: "PUT",
+        url: `/channels/${channelId}/permissions/${overwriteId}`,
+        params,
+        options,
+      }),
+    editFollowupMessage: (
+      applicationId,
+      interactionToken,
+      messageId,
+      options,
+    ) =>
+      fetch({
+        method: "PATCH",
+        url: `/webhooks/${applicationId}/${interactionToken}/messages/${messageId}`,
+        options,
+      }),
+    editGlobalApplicationCommand: (applicationId, commandId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/applications/${applicationId}/commands/${commandId}`,
+        params,
+        options,
+      }),
+    editGuildApplicationCommand: (
       applicationId,
       guildId,
+      commandId,
       params,
       options,
     ) =>
       fetch({
-        method: "PUT",
-        url: `/applications/${applicationId}/guilds/${guildId}/commands/permissions`,
-        params,
-        options,
-      }),
-    getGuildAuditLog: (guildId, params, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/audit-logs`,
-        params,
-        options,
-      }),
-    listGuildEmojis: (guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/emojis`,
-        options,
-      }),
-    getGuildEmoji: (guildId, emojiId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/emojis/${emojiId}`,
-        options,
-      }),
-    createGuildEmoji: (guildId, params, options) =>
-      fetch({
-        method: "POST",
-        url: `/guilds/${guildId}/emojis`,
-        params,
-        options,
-      }),
-    modifyGuildEmoji: (guildId, emojiId, params, options) =>
-      fetch({
         method: "PATCH",
-        url: `/guilds/${guildId}/emojis/${emojiId}`,
+        url: `/applications/${applicationId}/guilds/${guildId}/commands/${commandId}`,
         params,
-        options,
-      }),
-    deleteGuildEmoji: (guildId, emojiId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/guilds/${guildId}/emojis/${emojiId}`,
-        options,
-      }),
-    getChannel: (channelId, options) =>
-      fetch({
-        method: "GET",
-        url: `/channels/${channelId}`,
-        options,
-      }),
-    modifyChannel: (channelId, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/channels/${channelId}`,
-        params,
-        options,
-      }),
-    deletecloseChannel: (channelId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/channels/${channelId}`,
-        options,
-      }),
-    getChannelMessages: (channelId, params, options) =>
-      fetch({
-        method: "GET",
-        url: `/channels/${channelId}/messages`,
-        params,
-        options,
-      }),
-    getChannelMessage: (channelId, messageId, options) =>
-      fetch({
-        method: "GET",
-        url: `/channels/${channelId}/messages/${messageId}`,
-        options,
-      }),
-    createMessage: (channelId, params, options) =>
-      fetch({
-        method: "POST",
-        url: `/channels/${channelId}/messages`,
-        params,
-        options,
-      }),
-    crosspostMessage: (channelId, messageId, options) =>
-      fetch({
-        method: "POST",
-        url: `/channels/${channelId}/messages/${messageId}/crosspost`,
-        options,
-      }),
-    createReaction: (channelId, messageId, emoji, options) =>
-      fetch({
-        method: "PUT",
-        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}/@me`,
-        options,
-      }),
-    deleteOwnReaction: (channelId, messageId, emoji, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}/@me`,
-        options,
-      }),
-    deleteUserReaction: (channelId, messageId, emoji, userId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}/${userId}`,
-        options,
-      }),
-    getReactions: (channelId, messageId, emoji, params, options) =>
-      fetch({
-        method: "GET",
-        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}`,
-        params,
-        options,
-      }),
-    deleteAllReactions: (channelId, messageId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/channels/${channelId}/messages/${messageId}/reactions`,
-        options,
-      }),
-    deleteAllReactionsForEmoji: (channelId, messageId, emoji, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}`,
         options,
       }),
     editMessage: (channelId, messageId, params, options) =>
@@ -1052,43 +1111,40 @@ export function createRoutes<O = any>(
         params,
         options,
       }),
-    deleteMessage: (channelId, messageId, options) =>
+    editOriginalInteractionResponse: (
+      applicationId,
+      interactionToken,
+      options,
+    ) =>
       fetch({
-        method: "DELETE",
-        url: `/channels/${channelId}/messages/${messageId}`,
+        method: "PATCH",
+        url: `/webhooks/${applicationId}/${interactionToken}/messages/@original`,
         options,
       }),
-    bulkDeleteMessages: (channelId, params, options) =>
+    editWebhookMessage: (webhookId, webhookToken, messageId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/webhooks/${webhookId}/${webhookToken}/messages/${messageId}`,
+        params,
+        options,
+      }),
+    executeGitHubCompatibleWebhook: (webhookId, webhookToken, options) =>
       fetch({
         method: "POST",
-        url: `/channels/${channelId}/messages/bulk-delete`,
-        params,
+        url: `/webhooks/${webhookId}/${webhookToken}/github`,
         options,
       }),
-    editChannelPermissions: (channelId, overwriteId, params, options) =>
-      fetch({
-        method: "PUT",
-        url: `/channels/${channelId}/permissions/${overwriteId}`,
-        params,
-        options,
-      }),
-    getChannelInvites: (channelId, options) =>
-      fetch({
-        method: "GET",
-        url: `/channels/${channelId}/invites`,
-        options,
-      }),
-    createChannelInvite: (channelId, params, options) =>
+    executeSlackCompatibleWebhook: (webhookId, webhookToken, options) =>
       fetch({
         method: "POST",
-        url: `/channels/${channelId}/invites`,
-        params,
+        url: `/webhooks/${webhookId}/${webhookToken}/slack`,
         options,
       }),
-    deleteChannelPermission: (channelId, overwriteId, options) =>
+    executeWebhook: (webhookId, webhookToken, params, options) =>
       fetch({
-        method: "DELETE",
-        url: `/channels/${channelId}/permissions/${overwriteId}`,
+        method: "POST",
+        url: `/webhooks/${webhookId}/${webhookToken}`,
+        params,
         options,
       }),
     followNewsChannel: (channelId, params, options) =>
@@ -1098,10 +1154,248 @@ export function createRoutes<O = any>(
         params,
         options,
       }),
-    triggerTypingIndicator: (channelId, options) =>
+    getApplicationCommandPermissions: (
+      applicationId,
+      guildId,
+      commandId,
+      options,
+    ) =>
       fetch({
-        method: "POST",
-        url: `/channels/${channelId}/typing`,
+        method: "GET",
+        url: `/applications/${applicationId}/guilds/${guildId}/commands/${commandId}/permissions`,
+        options,
+      }),
+    getChannel: (channelId, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}`,
+        options,
+      }),
+    getChannelInvites: (channelId, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/invites`,
+        options,
+      }),
+    getChannelMessage: (channelId, messageId, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/messages/${messageId}`,
+        options,
+      }),
+    getChannelMessages: (channelId, params, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/messages`,
+        params,
+        options,
+      }),
+    getChannelWebhooks: (channelId, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/webhooks`,
+        options,
+      }),
+    getCurrentUser: (options) =>
+      fetch({
+        method: "GET",
+        url: `/users/@me`,
+        options,
+      }),
+    getCurrentUserGuilds: (params, options) =>
+      fetch({
+        method: "GET",
+        url: `/users/@me/guilds`,
+        params,
+        options,
+      }),
+    getGateway: (options) =>
+      fetch({
+        method: "GET",
+        url: `/gateway`,
+        options,
+      }),
+    getGatewayBot: (options) =>
+      fetch({
+        method: "GET",
+        url: `/gateway/bot`,
+        options,
+      }),
+    getGlobalApplicationCommand: (applicationId, commandId, options) =>
+      fetch({
+        method: "GET",
+        url: `/applications/${applicationId}/commands/${commandId}`,
+        options,
+      }),
+    getGlobalApplicationCommands: (applicationId, options) =>
+      fetch({
+        method: "GET",
+        url: `/applications/${applicationId}/commands`,
+        options,
+      }),
+    getGuild: (guildId, params, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}`,
+        params,
+        options,
+      }),
+    getGuildApplicationCommand: (applicationId, guildId, commandId, options) =>
+      fetch({
+        method: "GET",
+        url: `/applications/${applicationId}/guilds/${guildId}/commands/${commandId}`,
+        options,
+      }),
+    getGuildApplicationCommandPermissions: (applicationId, guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/applications/${applicationId}/guilds/${guildId}/commands/permissions`,
+        options,
+      }),
+    getGuildApplicationCommands: (applicationId, guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/applications/${applicationId}/guilds/${guildId}/commands`,
+        options,
+      }),
+    getGuildAuditLog: (guildId, params, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/audit-logs`,
+        params,
+        options,
+      }),
+    getGuildBan: (guildId, userId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/bans/${userId}`,
+        options,
+      }),
+    getGuildBans: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/bans`,
+        options,
+      }),
+    getGuildChannels: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/channels`,
+        options,
+      }),
+    getGuildEmoji: (guildId, emojiId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/emojis/${emojiId}`,
+        options,
+      }),
+    getGuildIntegrations: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/integrations`,
+        options,
+      }),
+    getGuildInvites: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/invites`,
+        options,
+      }),
+    getGuildMember: (guildId, userId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/members/${userId}`,
+        options,
+      }),
+    getGuildPreview: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/preview`,
+        options,
+      }),
+    getGuildPruneCount: (guildId, params, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/prune`,
+        params,
+        options,
+      }),
+    getGuildRoles: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/roles`,
+        options,
+      }),
+    getGuildTemplate: (templateCode, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/templates/${templateCode}`,
+        options,
+      }),
+    getGuildTemplates: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/templates`,
+        options,
+      }),
+    getGuildVanityUrl: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/vanity-url`,
+        options,
+      }),
+    getGuildVoiceRegions: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/regions`,
+        options,
+      }),
+    getGuildWebhooks: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/webhooks`,
+        options,
+      }),
+    getGuildWelcomeScreen: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/welcome-screen`,
+        options,
+      }),
+    getGuildWidget: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/widget.json`,
+        options,
+      }),
+    getGuildWidgetImage: (guildId, params, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/widget.png`,
+        params,
+        options,
+      }),
+    getGuildWidgetSettings: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/widget`,
+        options,
+      }),
+    getInvite: (inviteCode, params, options) =>
+      fetch({
+        method: "GET",
+        url: `/invites/${inviteCode}`,
+        params,
+        options,
+      }),
+    getOriginalInteractionResponse: (
+      applicationId,
+      interactionToken,
+      options,
+    ) =>
+      fetch({
+        method: "GET",
+        url: `/webhooks/${applicationId}/${interactionToken}/messages/@original`,
         options,
       }),
     getPinnedMessages: (channelId, options) =>
@@ -1110,16 +1404,47 @@ export function createRoutes<O = any>(
         url: `/channels/${channelId}/pins`,
         options,
       }),
-    pinMessage: (channelId, messageId, options) =>
+    getReactions: (channelId, messageId, emoji, params, options) =>
       fetch({
-        method: "PUT",
-        url: `/channels/${channelId}/pins/${messageId}`,
+        method: "GET",
+        url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}`,
+        params,
         options,
       }),
-    unpinMessage: (channelId, messageId, options) =>
+    getStageInstance: (channelId, options) =>
       fetch({
-        method: "DELETE",
-        url: `/channels/${channelId}/pins/${messageId}`,
+        method: "GET",
+        url: `/stage-instances/${channelId}`,
+        options,
+      }),
+    getUser: (userId, options) =>
+      fetch({
+        method: "GET",
+        url: `/users/${userId}`,
+        options,
+      }),
+    getUserConnections: (options) =>
+      fetch({
+        method: "GET",
+        url: `/users/@me/connections`,
+        options,
+      }),
+    getWebhook: (webhookId, options) =>
+      fetch({
+        method: "GET",
+        url: `/webhooks/${webhookId}`,
+        options,
+      }),
+    getWebhookMessage: (webhookId, webhookToken, messageId, options) =>
+      fetch({
+        method: "GET",
+        url: `/webhooks/${webhookId}/${webhookToken}/messages/${messageId}`,
+        options,
+      }),
+    getWebhookWithToken: (webhookId, webhookToken, options) =>
+      fetch({
+        method: "GET",
+        url: `/webhooks/${webhookId}/${webhookToken}`,
         options,
       }),
     groupDmAddRecipient: (channelId, userId, params, options) =>
@@ -1133,6 +1458,209 @@ export function createRoutes<O = any>(
       fetch({
         method: "DELETE",
         url: `/channels/${channelId}/recipients/${userId}`,
+        options,
+      }),
+    joinThread: (channelId, options) =>
+      fetch({
+        method: "PUT",
+        url: `/channels/${channelId}/thread-members/@me`,
+        options,
+      }),
+    leaveGuild: (guildId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/users/@me/guilds/${guildId}`,
+        options,
+      }),
+    leaveThread: (channelId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}/thread-members/@me`,
+        options,
+      }),
+    listActiveThreads: (channelId, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/threads/active`,
+        options,
+      }),
+    listGuildEmojis: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/emojis`,
+        options,
+      }),
+    listGuildMembers: (guildId, params, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/members`,
+        params,
+        options,
+      }),
+    listJoinedPrivateArchivedThreads: (channelId, params, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/users/@me/threads/archived/private`,
+        params,
+        options,
+      }),
+    listPrivateArchivedThreads: (channelId, params, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/threads/archived/private`,
+        params,
+        options,
+      }),
+    listPublicArchivedThreads: (channelId, params, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/threads/archived/public`,
+        params,
+        options,
+      }),
+    listThreadMembers: (channelId, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/thread-members`,
+        options,
+      }),
+    listVoiceRegions: (options) =>
+      fetch({
+        method: "GET",
+        url: `/voice/regions`,
+        options,
+      }),
+    modifyChannel: (channelId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/channels/${channelId}`,
+        params,
+        options,
+      }),
+    modifyCurrentUser: (params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/users/@me`,
+        params,
+        options,
+      }),
+    modifyCurrentUserNick: (guildId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/guilds/${guildId}/members/@me/nick`,
+        params,
+        options,
+      }),
+    modifyGuild: (guildId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/guilds/${guildId}`,
+        params,
+        options,
+      }),
+    modifyGuildChannelPositions: (guildId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/guilds/${guildId}/channels`,
+        params,
+        options,
+      }),
+    modifyGuildEmoji: (guildId, emojiId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/guilds/${guildId}/emojis/${emojiId}`,
+        params,
+        options,
+      }),
+    modifyGuildMember: (guildId, userId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/guilds/${guildId}/members/${userId}`,
+        params,
+        options,
+      }),
+    modifyGuildRole: (guildId, roleId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/guilds/${guildId}/roles/${roleId}`,
+        params,
+        options,
+      }),
+    modifyGuildRolePositions: (guildId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/guilds/${guildId}/roles`,
+        params,
+        options,
+      }),
+    modifyGuildTemplate: (guildId, templateCode, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/guilds/${guildId}/templates/${templateCode}`,
+        params,
+        options,
+      }),
+    modifyGuildWelcomeScreen: (guildId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/guilds/${guildId}/welcome-screen`,
+        params,
+        options,
+      }),
+    modifyGuildWidget: (guildId, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/guilds/${guildId}/widget`,
+        options,
+      }),
+    modifyWebhook: (webhookId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/webhooks/${webhookId}`,
+        params,
+        options,
+      }),
+    modifyWebhookWithToken: (webhookId, webhookToken, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/webhooks/${webhookId}/${webhookToken}`,
+        options,
+      }),
+    pinMessage: (channelId, messageId, options) =>
+      fetch({
+        method: "PUT",
+        url: `/channels/${channelId}/pins/${messageId}`,
+        options,
+      }),
+    removeGuildBan: (guildId, userId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/guilds/${guildId}/bans/${userId}`,
+        options,
+      }),
+    removeGuildMember: (guildId, userId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/guilds/${guildId}/members/${userId}`,
+        options,
+      }),
+    removeGuildMemberRole: (guildId, userId, roleId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/guilds/${guildId}/members/${userId}/roles/${roleId}`,
+        options,
+      }),
+    removeThreadMember: (channelId, userId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/channels/${channelId}/thread-members/${userId}`,
+        options,
+      }),
+    searchGuildMembers: (guildId, params, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/members/search`,
+        params,
         options,
       }),
     startThreadWithMessage: (channelId, messageId, params, options) =>
@@ -1149,313 +1677,22 @@ export function createRoutes<O = any>(
         params,
         options,
       }),
-    joinThread: (channelId, options) =>
+    syncGuildTemplate: (guildId, templateCode, options) =>
       fetch({
         method: "PUT",
-        url: `/channels/${channelId}/thread-members/@me`,
+        url: `/guilds/${guildId}/templates/${templateCode}`,
         options,
       }),
-    addThreadMember: (channelId, userId, options) =>
-      fetch({
-        method: "PUT",
-        url: `/channels/${channelId}/thread-members/${userId}`,
-        options,
-      }),
-    leaveThread: (channelId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/channels/${channelId}/thread-members/@me`,
-        options,
-      }),
-    removeThreadMember: (channelId, userId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/channels/${channelId}/thread-members/${userId}`,
-        options,
-      }),
-    listThreadMembers: (channelId, options) =>
-      fetch({
-        method: "GET",
-        url: `/channels/${channelId}/thread-members`,
-        options,
-      }),
-    listActiveThreads: (channelId, options) =>
-      fetch({
-        method: "GET",
-        url: `/channels/${channelId}/threads/active`,
-        options,
-      }),
-    listPublicArchivedThreads: (channelId, params, options) =>
-      fetch({
-        method: "GET",
-        url: `/channels/${channelId}/threads/archived/public`,
-        params,
-        options,
-      }),
-    listPrivateArchivedThreads: (channelId, params, options) =>
-      fetch({
-        method: "GET",
-        url: `/channels/${channelId}/threads/archived/private`,
-        params,
-        options,
-      }),
-    listJoinedPrivateArchivedThreads: (channelId, params, options) =>
-      fetch({
-        method: "GET",
-        url: `/channels/${channelId}/users/@me/threads/archived/private`,
-        params,
-        options,
-      }),
-    createGuild: (params, options) =>
+    triggerTypingIndicator: (channelId, options) =>
       fetch({
         method: "POST",
-        url: `/guilds`,
-        params,
+        url: `/channels/${channelId}/typing`,
         options,
       }),
-    getGuild: (guildId, params, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}`,
-        params,
-        options,
-      }),
-    getGuildPreview: (guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/preview`,
-        options,
-      }),
-    modifyGuild: (guildId, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/guilds/${guildId}`,
-        params,
-        options,
-      }),
-    deleteGuild: (guildId, options) =>
+    unpinMessage: (channelId, messageId, options) =>
       fetch({
         method: "DELETE",
-        url: `/guilds/${guildId}`,
-        options,
-      }),
-    getGuildChannels: (guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/channels`,
-        options,
-      }),
-    createGuildChannel: (guildId, params, options) =>
-      fetch({
-        method: "POST",
-        url: `/guilds/${guildId}/channels`,
-        params,
-        options,
-      }),
-    modifyGuildChannelPositions: (guildId, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/guilds/${guildId}/channels`,
-        params,
-        options,
-      }),
-    getGuildMember: (guildId, userId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/members/${userId}`,
-        options,
-      }),
-    listGuildMembers: (guildId, params, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/members`,
-        params,
-        options,
-      }),
-    searchGuildMembers: (guildId, params, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/members/search`,
-        params,
-        options,
-      }),
-    addGuildMember: (guildId, userId, params, options) =>
-      fetch({
-        method: "PUT",
-        url: `/guilds/${guildId}/members/${userId}`,
-        params,
-        options,
-      }),
-    modifyGuildMember: (guildId, userId, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/guilds/${guildId}/members/${userId}`,
-        params,
-        options,
-      }),
-    modifyCurrentUserNick: (guildId, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/guilds/${guildId}/members/@me/nick`,
-        params,
-        options,
-      }),
-    addGuildMemberRole: (guildId, userId, roleId, options) =>
-      fetch({
-        method: "PUT",
-        url: `/guilds/${guildId}/members/${userId}/roles/${roleId}`,
-        options,
-      }),
-    removeGuildMemberRole: (guildId, userId, roleId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/guilds/${guildId}/members/${userId}/roles/${roleId}`,
-        options,
-      }),
-    removeGuildMember: (guildId, userId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/guilds/${guildId}/members/${userId}`,
-        options,
-      }),
-    getGuildBans: (guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/bans`,
-        options,
-      }),
-    getGuildBan: (guildId, userId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/bans/${userId}`,
-        options,
-      }),
-    createGuildBan: (guildId, userId, params, options) =>
-      fetch({
-        method: "PUT",
-        url: `/guilds/${guildId}/bans/${userId}`,
-        params,
-        options,
-      }),
-    removeGuildBan: (guildId, userId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/guilds/${guildId}/bans/${userId}`,
-        options,
-      }),
-    getGuildRoles: (guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/roles`,
-        options,
-      }),
-    createGuildRole: (guildId, params, options) =>
-      fetch({
-        method: "POST",
-        url: `/guilds/${guildId}/roles`,
-        params,
-        options,
-      }),
-    modifyGuildRolePositions: (guildId, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/guilds/${guildId}/roles`,
-        params,
-        options,
-      }),
-    modifyGuildRole: (guildId, roleId, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/guilds/${guildId}/roles/${roleId}`,
-        params,
-        options,
-      }),
-    deleteGuildRole: (guildId, roleId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/guilds/${guildId}/roles/${roleId}`,
-        options,
-      }),
-    getGuildPruneCount: (guildId, params, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/prune`,
-        params,
-        options,
-      }),
-    beginGuildPrune: (guildId, params, options) =>
-      fetch({
-        method: "POST",
-        url: `/guilds/${guildId}/prune`,
-        params,
-        options,
-      }),
-    getGuildVoiceRegions: (guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/regions`,
-        options,
-      }),
-    getGuildInvites: (guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/invites`,
-        options,
-      }),
-    getGuildIntegrations: (guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/integrations`,
-        options,
-      }),
-    deleteGuildIntegration: (guildId, integrationId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/guilds/${guildId}/integrations/${integrationId}`,
-        options,
-      }),
-    getGuildWidgetSettings: (guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/widget`,
-        options,
-      }),
-    modifyGuildWidget: (guildId, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/guilds/${guildId}/widget`,
-        options,
-      }),
-    getGuildWidget: (guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/widget.json`,
-        options,
-      }),
-    getGuildVanityUrl: (guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/vanity-url`,
-        options,
-      }),
-    getGuildWidgetImage: (guildId, params, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/widget.png`,
-        params,
-        options,
-      }),
-    getGuildWelcomeScreen: (guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/welcome-screen`,
-        options,
-      }),
-    modifyGuildWelcomeScreen: (guildId, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/guilds/${guildId}/welcome-screen`,
-        params,
+        url: `/channels/${channelId}/pins/${messageId}`,
         options,
       }),
     updateCurrentUserVoiceState: (guildId, params, options) =>
@@ -1465,142 +1702,6 @@ export function createRoutes<O = any>(
         params,
         options,
       }),
-    updateUserVoiceState: (guildId, userId, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/guilds/${guildId}/voice-states/${userId}`,
-        params,
-        options,
-      }),
-    listVoiceRegions: (options) =>
-      fetch({
-        method: "GET",
-        url: `/voice/regions`,
-        options,
-      }),
-    getGuildTemplate: (templateCode, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/templates/${templateCode}`,
-        options,
-      }),
-    createGuildFromGuildTemplate: (templateCode, params, options) =>
-      fetch({
-        method: "POST",
-        url: `/guilds/templates/${templateCode}`,
-        params,
-        options,
-      }),
-    getGuildTemplates: (guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/templates`,
-        options,
-      }),
-    createGuildTemplate: (guildId, params, options) =>
-      fetch({
-        method: "POST",
-        url: `/guilds/${guildId}/templates`,
-        params,
-        options,
-      }),
-    syncGuildTemplate: (guildId, templateCode, options) =>
-      fetch({
-        method: "PUT",
-        url: `/guilds/${guildId}/templates/${templateCode}`,
-        options,
-      }),
-    modifyGuildTemplate: (guildId, templateCode, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/guilds/${guildId}/templates/${templateCode}`,
-        params,
-        options,
-      }),
-    deleteGuildTemplate: (guildId, templateCode, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/guilds/${guildId}/templates/${templateCode}`,
-        options,
-      }),
-    getInvite: (inviteCode, params, options) =>
-      fetch({
-        method: "GET",
-        url: `/invites/${inviteCode}`,
-        params,
-        options,
-      }),
-    deleteInvite: (inviteCode, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/invites/${inviteCode}`,
-        options,
-      }),
-    getCurrentUser: (options) =>
-      fetch({
-        method: "GET",
-        url: `/users/@me`,
-        options,
-      }),
-    getUser: (userId, options) =>
-      fetch({
-        method: "GET",
-        url: `/users/${userId}`,
-        options,
-      }),
-    modifyCurrentUser: (params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/users/@me`,
-        params,
-        options,
-      }),
-    getCurrentUserGuilds: (params, options) =>
-      fetch({
-        method: "GET",
-        url: `/users/@me/guilds`,
-        params,
-        options,
-      }),
-    leaveGuild: (guildId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/users/@me/guilds/${guildId}`,
-        options,
-      }),
-    createDm: (params, options) =>
-      fetch({
-        method: "POST",
-        url: `/users/@me/channels`,
-        params,
-        options,
-      }),
-    createGroupDm: (params, options) =>
-      fetch({
-        method: "POST",
-        url: `/users/@me/channels`,
-        params,
-        options,
-      }),
-    getUserConnections: (options) =>
-      fetch({
-        method: "GET",
-        url: `/users/@me/connections`,
-        options,
-      }),
-    createStageInstance: (params, options) =>
-      fetch({
-        method: "POST",
-        url: `/stage-instances`,
-        params,
-        options,
-      }),
-    getStageInstance: (channelId, options) =>
-      fetch({
-        method: "GET",
-        url: `/stage-instances/${channelId}`,
-        options,
-      }),
     updateStageInstance: (channelId, params, options) =>
       fetch({
         method: "PATCH",
@@ -1608,110 +1709,11 @@ export function createRoutes<O = any>(
         params,
         options,
       }),
-    deleteStageInstance: (channelId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/stage-instances/${channelId}`,
-        options,
-      }),
-    createWebhook: (channelId, params, options) =>
-      fetch({
-        method: "POST",
-        url: `/channels/${channelId}/webhooks`,
-        params,
-        options,
-      }),
-    getChannelWebhooks: (channelId, options) =>
-      fetch({
-        method: "GET",
-        url: `/channels/${channelId}/webhooks`,
-        options,
-      }),
-    getGuildWebhooks: (guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/webhooks`,
-        options,
-      }),
-    getWebhook: (webhookId, options) =>
-      fetch({
-        method: "GET",
-        url: `/webhooks/${webhookId}`,
-        options,
-      }),
-    getWebhookWithToken: (webhookId, webhookToken, options) =>
-      fetch({
-        method: "GET",
-        url: `/webhooks/${webhookId}/${webhookToken}`,
-        options,
-      }),
-    modifyWebhook: (webhookId, params, options) =>
+    updateUserVoiceState: (guildId, userId, params, options) =>
       fetch({
         method: "PATCH",
-        url: `/webhooks/${webhookId}`,
+        url: `/guilds/${guildId}/voice-states/${userId}`,
         params,
-        options,
-      }),
-    modifyWebhookWithToken: (webhookId, webhookToken, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/webhooks/${webhookId}/${webhookToken}`,
-        options,
-      }),
-    deleteWebhook: (webhookId, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/webhooks/${webhookId}`,
-        options,
-      }),
-    deleteWebhookWithToken: (webhookId, webhookToken, options) =>
-      fetch({
-        method: "DELETE",
-        url: `/webhooks/${webhookId}/${webhookToken}`,
-        options,
-      }),
-    executeWebhook: (webhookId, webhookToken, params, options) =>
-      fetch({
-        method: "POST",
-        url: `/webhooks/${webhookId}/${webhookToken}`,
-        params,
-        options,
-      }),
-    executeSlackCompatibleWebhook: (webhookId, webhookToken, options) =>
-      fetch({
-        method: "POST",
-        url: `/webhooks/${webhookId}/${webhookToken}/slack`,
-        options,
-      }),
-    executeGitHubCompatibleWebhook: (webhookId, webhookToken, options) =>
-      fetch({
-        method: "POST",
-        url: `/webhooks/${webhookId}/${webhookToken}/github`,
-        options,
-      }),
-    getWebhookMessage: (webhookId, webhookToken, messageId, options) =>
-      fetch({
-        method: "GET",
-        url: `/webhooks/${webhookId}/${webhookToken}/messages/${messageId}`,
-        options,
-      }),
-    editWebhookMessage: (webhookId, webhookToken, messageId, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/webhooks/${webhookId}/${webhookToken}/messages/${messageId}`,
-        params,
-        options,
-      }),
-    getGateway: (options) =>
-      fetch({
-        method: "GET",
-        url: `/gateway`,
-        options,
-      }),
-    getGatewayBot: (options) =>
-      fetch({
-        method: "GET",
-        url: `/gateway/bot`,
         options,
       }),
   };
@@ -1927,78 +1929,127 @@ export interface Emoji {
   available?: boolean;
 }
 export interface Endpoints<O> {
-  /** Fetch all of the global commands for your application. Returns an array of ApplicationCommand objects. */
-  getGlobalApplicationCommands: (
-    applicationId: string,
+  /** Adds a user to the guild, provided you have a valid oauth2 access token for the user with the guilds.join scope. Returns a 201 Created with the guild member as the body, or 204 No Content if the user is already a member of the guild. Fires a Guild Member Add Gateway event. */
+  addGuildMember: (
+    guildId: string,
+    userId: string,
+    params: Partial<AddGuildMemberParams>,
     options?: O,
-  ) => Promise<ApplicationCommand[]>;
-  createGlobalApplicationCommand: (
-    applicationId: string,
-    params: Partial<CreateGlobalApplicationCommandParams>,
-    options?: O,
-  ) => Promise<ApplicationCommand>;
-  /** Fetch a global command for your application. Returns an ApplicationCommand object. */
-  getGlobalApplicationCommand: (
-    applicationId: string,
-    commandId: string,
-    options?: O,
-  ) => Promise<ApplicationCommand>;
-  editGlobalApplicationCommand: (
-    applicationId: string,
-    commandId: string,
-    params: Partial<EditGlobalApplicationCommandParams>,
-    options?: O,
-  ) => Promise<ApplicationCommand>;
-  /** Deletes a global command. Returns 204. */
-  deleteGlobalApplicationCommand: (
-    applicationId: string,
-    commandId: string,
+  ) => Promise<GuildMember>;
+  /** Adds a role to a guild member. Requires the MANAGE_ROLES permission. Returns a 204 empty response on success. Fires a Guild Member Update Gateway event. */
+  addGuildMemberRole: (
+    guildId: string,
+    userId: string,
+    roleId: string,
     options?: O,
   ) => Promise<any>;
-  /** Fetch all of the guild commands for your application for a specific guild. Returns an array of ApplicationCommand objects. */
-  getGuildApplicationCommands: (
+  /** Adds another member to a thread. Requires the ability to send messages in the thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
+  addThreadMember: (
+    channelId: string,
+    userId: string,
+    options?: O,
+  ) => Promise<any>;
+  batchEditApplicationCommandPermissions: (
     applicationId: string,
     guildId: string,
+    params: Partial<GuildApplicationCommandPermission[]>,
     options?: O,
-  ) => Promise<ApplicationCommand[]>;
+  ) => Promise<GuildApplicationCommandPermission[]>;
+  /** Begin a prune operation. Requires the KICK_MEMBERS permission. Returns an object with one 'pruned' key indicating the number of members that were removed in the prune operation. For large guilds it's recommended to set the compute_prune_count option to false, forcing 'pruned' to null. Fires multiple Guild Member Remove Gateway events. */
+  beginGuildPrune: (
+    guildId: string,
+    params: Partial<BeginGuildPruneParams>,
+    options?: O,
+  ) => Promise<any>;
+  /** Delete multiple messages in a single request. This endpoint can only be used on guild channels and requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. Fires a Message Delete Bulk Gateway event. */
+  bulkDeleteMessages: (
+    channelId: string,
+    params: Partial<BulkDeleteMessageParams>,
+    options?: O,
+  ) => Promise<any>;
   /** Takes a list of application commands, overwriting existing commands that are registered globally for this application. Updates will be available in all guilds after 1 hour. Returns 200 and a list of ApplicationCommand objects. Commands that do not already exist will count toward daily application command create limits. */
   bulkOverwriteGlobalApplicationCommands: (
     applicationId: string,
     options?: O,
   ) => Promise<ApplicationCommand[]>;
-  createGuildApplicationCommand: (
-    applicationId: string,
-    guildId: string,
-    params: Partial<CreateGuildApplicationCommandParams>,
-    options?: O,
-  ) => Promise<ApplicationCommand>;
-  /** Fetch a guild command for your application. Returns an ApplicationCommand object. */
-  getGuildApplicationCommand: (
-    applicationId: string,
-    guildId: string,
-    commandId: string,
-    options?: O,
-  ) => Promise<ApplicationCommand>;
-  editGuildApplicationCommand: (
-    applicationId: string,
-    guildId: string,
-    commandId: string,
-    params: Partial<EditGuildApplicationCommandParams>,
-    options?: O,
-  ) => Promise<ApplicationCommand>;
-  /** Delete a guild command. Returns 204 on success. */
-  deleteGuildApplicationCommand: (
-    applicationId: string,
-    guildId: string,
-    commandId: string,
-    options?: O,
-  ) => Promise<any>;
   /** Takes a list of application commands, overwriting existing commands for the guild. Returns 200 and a list of ApplicationCommand objects. */
   bulkOverwriteGuildApplicationCommands: (
     applicationId: string,
     guildId: string,
     options?: O,
   ) => Promise<ApplicationCommand[]>;
+  /** Create a new invite object for the channel. Only usable for guild channels. Requires the CREATE_INSTANT_INVITE permission. All JSON parameters for this route are optional, however the request body is not. If you are not sending any fields, you still have to send an empty JSON object ({}). Returns an invite object. Fires an Invite Create Gateway event. */
+  createChannelInvite: (
+    channelId: string,
+    params: Partial<CreateChannelInviteParams>,
+    options?: O,
+  ) => Promise<Invite>;
+  /** Create a new DM channel with a user. Returns a DM channel object. */
+  createDm: (params: Partial<CreateDmParams>, options?: O) => Promise<Channel>;
+  /** Create a followup message for an Interaction. Functions the same as Execute Webhook, but wait is always true, and flags can be set to 64 in the body to send an ephemeral message. The thread_id query parameter is not required (and is furthermore ignored) when using this endpoint for interaction followups. */
+  createFollowupMessage: (
+    applicationId: string,
+    interactionToken: string,
+    options?: O,
+  ) => Promise<any>;
+  createGlobalApplicationCommand: (
+    applicationId: string,
+    params: Partial<CreateGlobalApplicationCommandParams>,
+    options?: O,
+  ) => Promise<ApplicationCommand>;
+  /** Create a new group DM channel with multiple users. Returns a DM channel object. This endpoint was intended to be used with the now-deprecated GameBridge SDK. DMs created with this endpoint will not be shown in the Discord client */
+  createGroupDm: (
+    params: Partial<CreateGroupDmParams>,
+    options?: O,
+  ) => Promise<Channel>;
+  /** Create a new guild. Returns a guild object on success. Fires a Guild Create Gateway event. */
+  createGuild: (
+    params: Partial<CreateGuildParams>,
+    options?: O,
+  ) => Promise<Guild>;
+  createGuildApplicationCommand: (
+    applicationId: string,
+    guildId: string,
+    params: Partial<CreateGuildApplicationCommandParams>,
+    options?: O,
+  ) => Promise<ApplicationCommand>;
+  /** Create a guild ban, and optionally delete previous messages sent by the banned user. Requires the BAN_MEMBERS permission. Returns a 204 empty response on success. Fires a Guild Ban Add Gateway event. */
+  createGuildBan: (
+    guildId: string,
+    userId: string,
+    params: Partial<CreateGuildBanParams>,
+    options?: O,
+  ) => Promise<any>;
+  /** Create a new channel object for the guild. Requires the MANAGE_CHANNELS permission. If setting permission overwrites, only permissions your bot has in the guild can be allowed/denied. Setting MANAGE_ROLES permission in channels is only possible for guild administrators. Returns the new channel object on success. Fires a Channel Create Gateway event. */
+  createGuildChannel: (
+    guildId: string,
+    params: Partial<CreateGuildChannelParams>,
+    options?: O,
+  ) => Promise<Channel>;
+  /** Create a new emoji for the guild. Requires the MANAGE_EMOJIS permission. Returns the new emoji object on success. Fires a Guild Emojis Update Gateway event. */
+  createGuildEmoji: (
+    guildId: string,
+    params: Partial<CreateGuildEmojiParams>,
+    options?: O,
+  ) => Promise<Emoji>;
+  /** Create a new guild based on a template. Returns a guild object on success. Fires a Guild Create Gateway event. */
+  createGuildFromGuildTemplate: (
+    templateCode: string,
+    params: Partial<CreateGuildFromGuildTemplateParams>,
+    options?: O,
+  ) => Promise<Guild>;
+  /** Create a new role for the guild. Requires the MANAGE_ROLES permission. Returns the new role object on success. Fires a Guild Role Create Gateway event. All JSON params are optional. */
+  createGuildRole: (
+    guildId: string,
+    params: Partial<CreateGuildRoleParams>,
+    options?: O,
+  ) => Promise<Role>;
+  /** Creates a template for the guild. Requires the MANAGE_GUILD permission. Returns the created guild template object on success. */
+  createGuildTemplate: (
+    guildId: string,
+    params: Partial<CreateGuildTemplateParams>,
+    options?: O,
+  ) => Promise<GuildTemplate>;
   /** Create a response to an Interaction from the gateway. Takes an Interaction response. */
   createInteractionResponse: (
     interactionId: string,
@@ -2006,134 +2057,9 @@ export interface Endpoints<O> {
     params: Partial<InteractionResponse>,
     options?: O,
   ) => Promise<any>;
-  /** Returns the initial Interaction response. Functions the same as Get Webhook Message. */
-  getOriginalInteractionResponse: (
-    applicationId: string,
-    interactionToken: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Edits the initial Interaction response. Functions the same as Edit Webhook Message. */
-  editOriginalInteractionResponse: (
-    applicationId: string,
-    interactionToken: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Deletes the initial Interaction response. Returns 204 on success. */
-  deleteOriginalInteractionResponse: (
-    applicationId: string,
-    interactionToken: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Create a followup message for an Interaction. Functions the same as Execute Webhook, but wait is always true, and flags can be set to 64 in the body to send an ephemeral message. The thread_id query parameter is not required (and is furthermore ignored) when using this endpoint for interaction followups. */
-  createFollowupMessage: (
-    applicationId: string,
-    interactionToken: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Edits a followup message for an Interaction. Functions the same as Edit Webhook Message. */
-  editFollowupMessage: (
-    applicationId: string,
-    interactionToken: string,
-    messageId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Deletes a followup message for an Interaction. Returns 204 on success. */
-  deleteFollowupMessage: (
-    applicationId: string,
-    interactionToken: string,
-    messageId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Fetches command permissions for all commands for your application in a guild. Returns an array of GuildApplicationCommandPermissions objects. */
-  getGuildApplicationCommandPermissions: (
-    applicationId: string,
-    guildId: string,
-    options?: O,
-  ) => Promise<GuildApplicationCommandPermission[]>;
-  /** Fetches command permissions for a specific command for your application in a guild. Returns a GuildApplicationCommandPermissions object. */
-  getApplicationCommandPermissions: (
-    applicationId: string,
-    guildId: string,
-    commandId: string,
-    options?: O,
-  ) => Promise<GuildApplicationCommandPermission>;
-  editApplicationCommandPermissions: (
-    applicationId: string,
-    guildId: string,
-    commandId: string,
-    params: Partial<EditApplicationCommandPermissionParams>,
-    options?: O,
-  ) => Promise<GuildApplicationCommandPermission>;
-  batchEditApplicationCommandPermissions: (
-    applicationId: string,
-    guildId: string,
-    params: Partial<GuildApplicationCommandPermission[]>,
-    options?: O,
-  ) => Promise<GuildApplicationCommandPermission[]>;
-  /** Returns an audit log object for the guild. Requires the 'VIEW_AUDIT_LOG' permission. */
-  getGuildAuditLog: (
-    guildId: string,
-    params: Partial<GetGuildAuditLogParams>,
-    options?: O,
-  ) => Promise<AuditLog>;
-  /** Returns a list of emoji objects for the given guild. */
-  listGuildEmojis: (guildId: string, options?: O) => Promise<Emoji[]>;
-  /** Returns an emoji object for the given guild and emoji IDs. */
-  getGuildEmoji: (
-    guildId: string,
-    emojiId: string,
-    options?: O,
-  ) => Promise<Emoji>;
-  /** Create a new emoji for the guild. Requires the MANAGE_EMOJIS permission. Returns the new emoji object on success. Fires a Guild Emojis Update Gateway event. */
-  createGuildEmoji: (
-    guildId: string,
-    params: Partial<CreateGuildEmojiParams>,
-    options?: O,
-  ) => Promise<Emoji>;
-  /** Modify the given emoji. Requires the MANAGE_EMOJIS permission. Returns the updated emoji object on success. Fires a Guild Emojis Update Gateway event. */
-  modifyGuildEmoji: (
-    guildId: string,
-    emojiId: string,
-    params: Partial<ModifyGuildEmojiParams>,
-    options?: O,
-  ) => Promise<Emoji>;
-  /** Delete the given emoji. Requires the MANAGE_EMOJIS permission. Returns 204 No Content on success. Fires a Guild Emojis Update Gateway event. */
-  deleteGuildEmoji: (
-    guildId: string,
-    emojiId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Get a channel by ID. Returns a channel object.  If the channel is a thread, a thread member object is included in the returned result. */
-  getChannel: (channelId: string, options?: O) => Promise<Channel>;
-  /** Update a channel's settings. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. All JSON parameters are optional. */
-  modifyChannel: (
-    channelId: string,
-    params: Partial<ModifyChannelParams>,
-    options?: O,
-  ) => Promise<Channel>;
-  /** Delete a channel, or close a private message. Requires the MANAGE_CHANNELS permission for the guild, or MANAGE_THREADS if the channel is a thread. Deleting a category does not delete its child channels; they will have their parent_id removed and a Channel Update Gateway event will fire for each of them. Returns a channel object on success. Fires a Channel Delete Gateway event (or Thread Delete if the channel was a thread). */
-  deletecloseChannel: (channelId: string, options?: O) => Promise<Channel>;
-  /** Returns the messages for a channel. If operating on a guild channel, this endpoint requires the VIEW_CHANNEL permission to be present on the current user. If the current user is missing the 'READ_MESSAGE_HISTORY' permission in the channel then this will return no messages (since they cannot read the message history). Returns an array of message objects on success. */
-  getChannelMessages: (
-    channelId: string,
-    params: Partial<GetChannelMessageParams>,
-    options?: O,
-  ) => Promise<Message[]>;
-  /** Returns a specific message in the channel. If operating on a guild channel, this endpoint requires the 'READ_MESSAGE_HISTORY' permission to be present on the current user. Returns a message object on success. */
-  getChannelMessage: (
-    channelId: string,
-    messageId: string,
-    options?: O,
-  ) => Promise<Message>;
   createMessage: (
     channelId: string,
     params: Partial<CreateMessageParams>,
-    options?: O,
-  ) => Promise<Message>;
-  /** Crosspost a message in a News Channel to following channels. This endpoint requires the 'SEND_MESSAGES' permission, if the current user sent the message, or additionally the 'MANAGE_MESSAGES' permission, for all other messages, to be present for the current user. */
-  crosspostMessage: (
-    channelId: string,
-    messageId: string,
     options?: O,
   ) => Promise<Message>;
   /** Create a reaction for the message. This endpoint requires the 'READ_MESSAGE_HISTORY' permission to be present on the current user. Additionally, if nobody else has reacted to the message using this emoji, this endpoint requires the 'ADD_REACTIONS' permission to be present on the current user. Returns a 204 empty response on success.
@@ -2144,32 +2070,23 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     emoji: string,
     options?: O,
   ) => Promise<any>;
-  /** Delete a reaction the current user has made for the message. Returns a 204 empty response on success.
-The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
-  deleteOwnReaction: (
-    channelId: string,
-    messageId: string,
-    emoji: string,
+  /** Creates a new Stage instance associated to a Stage channel. */
+  createStageInstance: (
+    params: Partial<CreateStageInstanceParams>,
     options?: O,
   ) => Promise<any>;
-  /** Deletes another user's reaction. This endpoint requires the 'MANAGE_MESSAGES' permission to be present on the current user. Returns a 204 empty response on success.
-The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
-  deleteUserReaction: (
+  /** Create a new webhook. Requires the MANAGE_WEBHOOKS permission. Returns a webhook object on success. Webhook names follow our naming restrictions that can be found in our Usernames and Nicknames documentation, with the following additional stipulations: */
+  createWebhook: (
+    channelId: string,
+    params: Partial<CreateWebhookParams>,
+    options?: O,
+  ) => Promise<Webhook>;
+  /** Crosspost a message in a News Channel to following channels. This endpoint requires the 'SEND_MESSAGES' permission, if the current user sent the message, or additionally the 'MANAGE_MESSAGES' permission, for all other messages, to be present for the current user. */
+  crosspostMessage: (
     channelId: string,
     messageId: string,
-    emoji: string,
-    userId: string,
     options?: O,
-  ) => Promise<any>;
-  /** Get a list of users that reacted with this emoji. Returns an array of user objects on success.
-The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
-  getReactions: (
-    channelId: string,
-    messageId: string,
-    emoji: string,
-    params: Partial<GetReactionParams>,
-    options?: O,
-  ) => Promise<User[]>;
+  ) => Promise<Message>;
   /** Deletes all reactions on a message. This endpoint requires the 'MANAGE_MESSAGES' permission to be present on the current user. Fires a Message Reaction Remove All Gateway event. */
   deleteAllReactions: (
     channelId: string,
@@ -2184,25 +2101,108 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     emoji: string,
     options?: O,
   ) => Promise<any>;
-  /** Edit a previously sent message. The fields content, embeds, and flags can be edited by the original message author. Other users can only edit flags and only if they have the MANAGE_MESSAGES permission in the corresponding channel. When specifying flags, ensure to include all previously set flags/bits in addition to ones that you are modifying. Only flags documented in the table below may be modified by users (unsupported flag changes are currently ignored without error). */
-  editMessage: (
+  /** Delete a channel permission overwrite for a user or role in a channel. Only usable for guild channels. Requires the MANAGE_ROLES permission. Returns a 204 empty response on success. For more information about permissions, see permissions */
+  deleteChannelPermission: (
     channelId: string,
-    messageId: string,
-    params: Partial<EditMessageParams>,
+    overwriteId: string,
     options?: O,
-  ) => Promise<Message>;
+  ) => Promise<any>;
+  /** Delete a channel, or close a private message. Requires the MANAGE_CHANNELS permission for the guild, or MANAGE_THREADS if the channel is a thread. Deleting a category does not delete its child channels; they will have their parent_id removed and a Channel Update Gateway event will fire for each of them. Returns a channel object on success. Fires a Channel Delete Gateway event (or Thread Delete if the channel was a thread). */
+  deletecloseChannel: (channelId: string, options?: O) => Promise<Channel>;
+  /** Deletes a followup message for an Interaction. Returns 204 on success. */
+  deleteFollowupMessage: (
+    applicationId: string,
+    interactionToken: string,
+    messageId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Deletes a global command. Returns 204. */
+  deleteGlobalApplicationCommand: (
+    applicationId: string,
+    commandId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Delete a guild permanently. User must be owner. Returns 204 No Content on success. Fires a Guild Delete Gateway event. */
+  deleteGuild: (guildId: string, options?: O) => Promise<any>;
+  /** Delete a guild command. Returns 204 on success. */
+  deleteGuildApplicationCommand: (
+    applicationId: string,
+    guildId: string,
+    commandId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Delete the given emoji. Requires the MANAGE_EMOJIS permission. Returns 204 No Content on success. Fires a Guild Emojis Update Gateway event. */
+  deleteGuildEmoji: (
+    guildId: string,
+    emojiId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Delete the attached integration object for the guild. Deletes any associated webhooks and kicks the associated bot if there is one. Requires the MANAGE_GUILD permission. Returns a 204 empty response on success. Fires a Guild Integrations Update Gateway event. */
+  deleteGuildIntegration: (
+    guildId: string,
+    integrationId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Delete a guild role. Requires the MANAGE_ROLES permission. Returns a 204 empty response on success. Fires a Guild Role Delete Gateway event. */
+  deleteGuildRole: (
+    guildId: string,
+    roleId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Deletes the template. Requires the MANAGE_GUILD permission. Returns the deleted guild template object on success. */
+  deleteGuildTemplate: (
+    guildId: string,
+    templateCode: string,
+    options?: O,
+  ) => Promise<GuildTemplate>;
+  /** Delete an invite. Requires the MANAGE_CHANNELS permission on the channel this invite belongs to, or MANAGE_GUILD to remove any invite across the guild. Returns an invite object on success. Fires a Invite Delete Gateway event. */
+  deleteInvite: (inviteCode: string, options?: O) => Promise<Invite>;
   /** Delete a message. If operating on a guild channel and trying to delete a message that was not sent by the current user, this endpoint requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. Fires a Message Delete Gateway event. */
   deleteMessage: (
     channelId: string,
     messageId: string,
     options?: O,
   ) => Promise<any>;
-  /** Delete multiple messages in a single request. This endpoint can only be used on guild channels and requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. Fires a Message Delete Bulk Gateway event. */
-  bulkDeleteMessages: (
-    channelId: string,
-    params: Partial<BulkDeleteMessageParams>,
+  /** Deletes the initial Interaction response. Returns 204 on success. */
+  deleteOriginalInteractionResponse: (
+    applicationId: string,
+    interactionToken: string,
     options?: O,
   ) => Promise<any>;
+  /** Delete a reaction the current user has made for the message. Returns a 204 empty response on success.
+The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
+  deleteOwnReaction: (
+    channelId: string,
+    messageId: string,
+    emoji: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Deletes the Stage instance. */
+  deleteStageInstance: (channelId: string, options?: O) => Promise<any>;
+  /** Deletes another user's reaction. This endpoint requires the 'MANAGE_MESSAGES' permission to be present on the current user. Returns a 204 empty response on success.
+The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
+  deleteUserReaction: (
+    channelId: string,
+    messageId: string,
+    emoji: string,
+    userId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Delete a webhook permanently. Requires the MANAGE_WEBHOOKS permission. Returns a 204 NO CONTENT response on success. */
+  deleteWebhook: (webhookId: string, options?: O) => Promise<any>;
+  /** Same as above, except this call does not require authentication. */
+  deleteWebhookWithToken: (
+    webhookId: string,
+    webhookToken: string,
+    options?: O,
+  ) => Promise<any>;
+  editApplicationCommandPermissions: (
+    applicationId: string,
+    guildId: string,
+    commandId: string,
+    params: Partial<EditApplicationCommandPermissionParams>,
+    options?: O,
+  ) => Promise<GuildApplicationCommandPermission>;
   /** Edit the channel permission overwrites for a user or role in a channel. Only usable for guild channels. Requires the MANAGE_ROLES permission. Only permissions your bot has in the guild or channel can be allowed/denied (unless your bot has a MANAGE_ROLES overwrite in the channel). Returns a 204 empty response on success. For more information about permissions, see permissions. */
   editChannelPermissions: (
     channelId: string,
@@ -2210,18 +2210,63 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params: Partial<EditChannelPermissionParams>,
     options?: O,
   ) => Promise<any>;
-  /** Returns a list of invite objects (with invite metadata) for the channel. Only usable for guild channels. Requires the MANAGE_CHANNELS permission. */
-  getChannelInvites: (channelId: string, options?: O) => Promise<Invite[]>;
-  /** Create a new invite object for the channel. Only usable for guild channels. Requires the CREATE_INSTANT_INVITE permission. All JSON parameters for this route are optional, however the request body is not. If you are not sending any fields, you still have to send an empty JSON object ({}). Returns an invite object. Fires an Invite Create Gateway event. */
-  createChannelInvite: (
-    channelId: string,
-    params: Partial<CreateChannelInviteParams>,
+  /** Edits a followup message for an Interaction. Functions the same as Edit Webhook Message. */
+  editFollowupMessage: (
+    applicationId: string,
+    interactionToken: string,
+    messageId: string,
     options?: O,
-  ) => Promise<Invite>;
-  /** Delete a channel permission overwrite for a user or role in a channel. Only usable for guild channels. Requires the MANAGE_ROLES permission. Returns a 204 empty response on success. For more information about permissions, see permissions */
-  deleteChannelPermission: (
+  ) => Promise<any>;
+  editGlobalApplicationCommand: (
+    applicationId: string,
+    commandId: string,
+    params: Partial<EditGlobalApplicationCommandParams>,
+    options?: O,
+  ) => Promise<ApplicationCommand>;
+  editGuildApplicationCommand: (
+    applicationId: string,
+    guildId: string,
+    commandId: string,
+    params: Partial<EditGuildApplicationCommandParams>,
+    options?: O,
+  ) => Promise<ApplicationCommand>;
+  /** Edit a previously sent message. The fields content, embeds, and flags can be edited by the original message author. Other users can only edit flags and only if they have the MANAGE_MESSAGES permission in the corresponding channel. When specifying flags, ensure to include all previously set flags/bits in addition to ones that you are modifying. Only flags documented in the table below may be modified by users (unsupported flag changes are currently ignored without error). */
+  editMessage: (
     channelId: string,
-    overwriteId: string,
+    messageId: string,
+    params: Partial<EditMessageParams>,
+    options?: O,
+  ) => Promise<Message>;
+  /** Edits the initial Interaction response. Functions the same as Edit Webhook Message. */
+  editOriginalInteractionResponse: (
+    applicationId: string,
+    interactionToken: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Edits a previously-sent webhook message from the same token. Returns a message object on success. */
+  editWebhookMessage: (
+    webhookId: string,
+    webhookToken: string,
+    messageId: string,
+    params: Partial<EditWebhookMessageParams>,
+    options?: O,
+  ) => Promise<Message>;
+  /** Add a new webhook to your GitHub repo (in the repo's settings), and use this endpoint as the "Payload URL." You can choose what events your Discord channel receives by choosing the "Let me select individual events" option and selecting individual events for the new webhook you're configuring. */
+  executeGitHubCompatibleWebhook: (
+    webhookId: string,
+    webhookToken: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Refer to Slack's documentation for more information. We do not support Slack's channel, icon_emoji, mrkdwn, or mrkdwn_in properties. */
+  executeSlackCompatibleWebhook: (
+    webhookId: string,
+    webhookToken: string,
+    options?: O,
+  ) => Promise<any>;
+  executeWebhook: (
+    webhookId: string,
+    webhookToken: string,
+    params: Partial<ExecuteWebhookParams>,
     options?: O,
   ) => Promise<any>;
   /** Follow a News Channel to send messages to a target channel. Requires the MANAGE_WEBHOOKS permission in the target channel. Returns a followed channel object. */
@@ -2230,20 +2275,193 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params: Partial<FollowNewsChannelParams>,
     options?: O,
   ) => Promise<FollowedChannel>;
-  /** Post a typing indicator for the specified channel. Generally bots should not implement this route. However, if a bot is responding to a command and expects the computation to take a few seconds, this endpoint may be called to let the user know that the bot is processing their message. Returns a 204 empty response on success. Fires a Typing Start Gateway event. */
-  triggerTypingIndicator: (channelId: string, options?: O) => Promise<any>;
-  /** Returns all pinned messages in the channel as an array of message objects. */
-  getPinnedMessages: (channelId: string, options?: O) => Promise<Message[]>;
-  /** Pin a message in a channel. Requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. */
-  pinMessage: (
+  /** Fetches command permissions for a specific command for your application in a guild. Returns a GuildApplicationCommandPermissions object. */
+  getApplicationCommandPermissions: (
+    applicationId: string,
+    guildId: string,
+    commandId: string,
+    options?: O,
+  ) => Promise<GuildApplicationCommandPermission>;
+  /** Get a channel by ID. Returns a channel object.  If the channel is a thread, a thread member object is included in the returned result. */
+  getChannel: (channelId: string, options?: O) => Promise<Channel>;
+  /** Returns a list of invite objects (with invite metadata) for the channel. Only usable for guild channels. Requires the MANAGE_CHANNELS permission. */
+  getChannelInvites: (channelId: string, options?: O) => Promise<Invite[]>;
+  /** Returns a specific message in the channel. If operating on a guild channel, this endpoint requires the 'READ_MESSAGE_HISTORY' permission to be present on the current user. Returns a message object on success. */
+  getChannelMessage: (
     channelId: string,
     messageId: string,
     options?: O,
+  ) => Promise<Message>;
+  /** Returns the messages for a channel. If operating on a guild channel, this endpoint requires the VIEW_CHANNEL permission to be present on the current user. If the current user is missing the 'READ_MESSAGE_HISTORY' permission in the channel then this will return no messages (since they cannot read the message history). Returns an array of message objects on success. */
+  getChannelMessages: (
+    channelId: string,
+    params: Partial<GetChannelMessageParams>,
+    options?: O,
+  ) => Promise<Message[]>;
+  /** Returns a list of channel webhook objects. Requires the MANAGE_WEBHOOKS permission. */
+  getChannelWebhooks: (channelId: string, options?: O) => Promise<Webhook[]>;
+  /** Returns the user object of the requester's account. For OAuth2, this requires the identify scope, which will return the object without an email, and optionally the email scope, which returns the object with an email. */
+  getCurrentUser: (options?: O) => Promise<User>;
+  /** Returns a list of partial guild objects the current user is a member of. Requires the guilds OAuth2 scope. */
+  getCurrentUserGuilds: (
+    params: Partial<GetCurrentUserGuildParams>,
+    options?: O,
+  ) => Promise<Guild[]>;
+  getGateway: (options?: O) => Promise<any>;
+  getGatewayBot: (options?: O) => Promise<any>;
+  /** Fetch a global command for your application. Returns an ApplicationCommand object. */
+  getGlobalApplicationCommand: (
+    applicationId: string,
+    commandId: string,
+    options?: O,
+  ) => Promise<ApplicationCommand>;
+  /** Fetch all of the global commands for your application. Returns an array of ApplicationCommand objects. */
+  getGlobalApplicationCommands: (
+    applicationId: string,
+    options?: O,
+  ) => Promise<ApplicationCommand[]>;
+  /** Returns the guild object for the given id. If with_counts is set to true, this endpoint will also return approximate_member_count and approximate_presence_count for the guild. */
+  getGuild: (
+    guildId: string,
+    params: Partial<GetGuildParams>,
+    options?: O,
+  ) => Promise<Guild>;
+  /** Fetch a guild command for your application. Returns an ApplicationCommand object. */
+  getGuildApplicationCommand: (
+    applicationId: string,
+    guildId: string,
+    commandId: string,
+    options?: O,
+  ) => Promise<ApplicationCommand>;
+  /** Fetches command permissions for all commands for your application in a guild. Returns an array of GuildApplicationCommandPermissions objects. */
+  getGuildApplicationCommandPermissions: (
+    applicationId: string,
+    guildId: string,
+    options?: O,
+  ) => Promise<GuildApplicationCommandPermission[]>;
+  /** Fetch all of the guild commands for your application for a specific guild. Returns an array of ApplicationCommand objects. */
+  getGuildApplicationCommands: (
+    applicationId: string,
+    guildId: string,
+    options?: O,
+  ) => Promise<ApplicationCommand[]>;
+  /** Returns an audit log object for the guild. Requires the 'VIEW_AUDIT_LOG' permission. */
+  getGuildAuditLog: (
+    guildId: string,
+    params: Partial<GetGuildAuditLogParams>,
+    options?: O,
+  ) => Promise<AuditLog>;
+  /** Returns a ban object for the given user or a 404 not found if the ban cannot be found. Requires the BAN_MEMBERS permission. */
+  getGuildBan: (guildId: string, userId: string, options?: O) => Promise<Ban>;
+  /** Returns a list of ban objects for the users banned from this guild. Requires the BAN_MEMBERS permission. */
+  getGuildBans: (guildId: string, options?: O) => Promise<Ban[]>;
+  /** Returns a list of guild channel objects. Does not include threads. */
+  getGuildChannels: (guildId: string, options?: O) => Promise<Channel[]>;
+  /** Returns an emoji object for the given guild and emoji IDs. */
+  getGuildEmoji: (
+    guildId: string,
+    emojiId: string,
+    options?: O,
+  ) => Promise<Emoji>;
+  /** Returns a list of integration objects for the guild. Requires the MANAGE_GUILD permission. */
+  getGuildIntegrations: (
+    guildId: string,
+    options?: O,
+  ) => Promise<Integration[]>;
+  /** Returns a list of invite objects (with invite metadata) for the guild. Requires the MANAGE_GUILD permission. */
+  getGuildInvites: (guildId: string, options?: O) => Promise<Invite[]>;
+  /** Returns a guild member object for the specified user. */
+  getGuildMember: (
+    guildId: string,
+    userId: string,
+    options?: O,
+  ) => Promise<GuildMember>;
+  /** Returns the guild preview object for the given id. If the user is not in the guild, then the guild must be Discoverable. */
+  getGuildPreview: (guildId: string, options?: O) => Promise<GuildPreview>;
+  /** Returns an object with one 'pruned' key indicating the number of members that would be removed in a prune operation. Requires the KICK_MEMBERS permission. */
+  getGuildPruneCount: (
+    guildId: string,
+    params: Partial<GetGuildPruneCountParams>,
+    options?: O,
   ) => Promise<any>;
-  /** Unpin a message in a channel. Requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. */
-  unpinMessage: (
+  /** Returns a list of role objects for the guild. */
+  getGuildRoles: (guildId: string, options?: O) => Promise<Role[]>;
+  /** Returns a guild template object for the given code. */
+  getGuildTemplate: (
+    templateCode: string,
+    options?: O,
+  ) => Promise<GuildTemplate>;
+  /** Returns an array of guild template objects. Requires the MANAGE_GUILD permission. */
+  getGuildTemplates: (guildId: string, options?: O) => Promise<GuildTemplate[]>;
+  /** Returns a partial invite object for guilds with that feature enabled. Requires the MANAGE_GUILD permission. code will be null if a vanity url for the guild is not set. */
+  getGuildVanityUrl: (guildId: string, options?: O) => Promise<Invite>;
+  /** Returns a list of voice region objects for the guild. Unlike the similar /voice route, this returns VIP servers when the guild is VIP-enabled. */
+  getGuildVoiceRegions: (
+    guildId: string,
+    options?: O,
+  ) => Promise<VoiceRegion[]>;
+  /** Returns a list of guild webhook objects. Requires the MANAGE_WEBHOOKS permission. */
+  getGuildWebhooks: (guildId: string, options?: O) => Promise<Webhook[]>;
+  /** Returns the Welcome Screen object for the guild. */
+  getGuildWelcomeScreen: (
+    guildId: string,
+    options?: O,
+  ) => Promise<WelcomeScreen>;
+  /** Returns the widget for the guild. */
+  getGuildWidget: (guildId: string, options?: O) => Promise<any>;
+  /** Returns a PNG image widget for the guild. Requires no permissions or authentication. */
+  getGuildWidgetImage: (
+    guildId: string,
+    params: Partial<GetGuildWidgetImageParams>,
+    options?: O,
+  ) => Promise<any>;
+  /** Returns a guild widget object. Requires the MANAGE_GUILD permission. */
+  getGuildWidgetSettings: (
+    guildId: string,
+    options?: O,
+  ) => Promise<GuildWidget>;
+  /** Returns an invite object for the given code. */
+  getInvite: (
+    inviteCode: string,
+    params: Partial<GetInviteParams>,
+    options?: O,
+  ) => Promise<Invite>;
+  /** Returns the initial Interaction response. Functions the same as Get Webhook Message. */
+  getOriginalInteractionResponse: (
+    applicationId: string,
+    interactionToken: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Returns all pinned messages in the channel as an array of message objects. */
+  getPinnedMessages: (channelId: string, options?: O) => Promise<Message[]>;
+  /** Get a list of users that reacted with this emoji. Returns an array of user objects on success.
+The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
+  getReactions: (
     channelId: string,
     messageId: string,
+    emoji: string,
+    params: Partial<GetReactionParams>,
+    options?: O,
+  ) => Promise<User[]>;
+  /** Gets the stage instance associated with the Stage channel, if it exists. */
+  getStageInstance: (channelId: string, options?: O) => Promise<any>;
+  /** Returns a user object for a given user ID. */
+  getUser: (userId: string, options?: O) => Promise<User>;
+  /** Returns a list of connection objects. Requires the connections OAuth2 scope. */
+  getUserConnections: (options?: O) => Promise<Connection[]>;
+  /** Returns the new webhook object for the given id. */
+  getWebhook: (webhookId: string, options?: O) => Promise<Webhook>;
+  /** Returns a previously-sent webhook message from the same token. Returns a message object on success. */
+  getWebhookMessage: (
+    webhookId: string,
+    webhookToken: string,
+    messageId: string,
+    options?: O,
+  ) => Promise<Message>;
+  /** Same as above, except this call does not require authentication and returns no user in the webhook object. */
+  getWebhookWithToken: (
+    webhookId: string,
+    webhookToken: string,
     options?: O,
   ) => Promise<any>;
   /** Adds a recipient to a Group DM using their access token. */
@@ -2259,6 +2477,167 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     userId: string,
     options?: O,
   ) => Promise<any>;
+  /** Adds the current user to a thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
+  joinThread: (channelId: string, options?: O) => Promise<any>;
+  /** Leave a guild. Returns a 204 empty response on success. */
+  leaveGuild: (guildId: string, options?: O) => Promise<any>;
+  /** Removes the current user from a thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
+  leaveThread: (channelId: string, options?: O) => Promise<any>;
+  /** Returns all active threads in the channel, including public and private threads. Threads are ordered by their id, in descending order. */
+  listActiveThreads: (channelId: string, options?: O) => Promise<any>;
+  /** Returns a list of emoji objects for the given guild. */
+  listGuildEmojis: (guildId: string, options?: O) => Promise<Emoji[]>;
+  /** Returns a list of guild member objects that are members of the guild. */
+  listGuildMembers: (
+    guildId: string,
+    params: Partial<ListGuildMemberParams>,
+    options?: O,
+  ) => Promise<GuildMember[]>;
+  /** Returns archived threads in the channel that are of type GUILD_PRIVATE_THREAD, and the user has joined. Threads are ordered by their id, in descending order. Requires the READ_MESSAGE_HISTORY permission. */
+  listJoinedPrivateArchivedThreads: (
+    channelId: string,
+    params: Partial<ListJoinedPrivateArchivedThreadParams>,
+    options?: O,
+  ) => Promise<ChannelType>;
+  /** Returns archived threads in the channel that are of type GUILD_PRIVATE_THREAD. Threads are ordered by archive_timestamp, in descending order. Requires both the READ_MESSAGE_HISTORY and MANAGE_THREADS permissions. */
+  listPrivateArchivedThreads: (
+    channelId: string,
+    params: Partial<ListPrivateArchivedThreadParams>,
+    options?: O,
+  ) => Promise<ChannelType>;
+  /** Returns archived threads in the channel that are public. When called on a GUILD_TEXT channel, returns threads of type GUILD_PUBLIC_THREAD. When called on a GUILD_NEWS channel returns threads of type GUILD_NEWS_THREAD. Threads are ordered by archive_timestamp, in descending order. Requires the READ_MESSAGE_HISTORY permission. */
+  listPublicArchivedThreads: (
+    channelId: string,
+    params: Partial<ListPublicArchivedThreadParams>,
+    options?: O,
+  ) => Promise<ChannelType>;
+  /** Returns array of thread members objects that are members of the thread. */
+  listThreadMembers: (
+    channelId: string,
+    options?: O,
+  ) => Promise<ThreadMember[]>;
+  /** Returns an array of voice region objects that can be used when creating servers. */
+  listVoiceRegions: (options?: O) => Promise<VoiceRegion[]>;
+  /** Update a channel's settings. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. All JSON parameters are optional. */
+  modifyChannel: (
+    channelId: string,
+    params: Partial<ModifyChannelParams>,
+    options?: O,
+  ) => Promise<Channel>;
+  /** Modify the requester's user account settings. Returns a user object on success. */
+  modifyCurrentUser: (
+    params: Partial<ModifyCurrentUserParams>,
+    options?: O,
+  ) => Promise<User>;
+  /** Modifies the nickname of the current user in a guild. Returns a 200 with the nickname on success. Fires a Guild Member Update Gateway event. */
+  modifyCurrentUserNick: (
+    guildId: string,
+    params: Partial<ModifyCurrentUserNickParams>,
+    options?: O,
+  ) => Promise<any>;
+  /** Modify a guild's settings. Requires the MANAGE_GUILD permission. Returns the updated guild object on success. Fires a Guild Update Gateway event. */
+  modifyGuild: (
+    guildId: string,
+    params: Partial<ModifyGuildParams>,
+    options?: O,
+  ) => Promise<Guild>;
+  /** Modify the positions of a set of channel objects for the guild. Requires MANAGE_CHANNELS permission. Returns a 204 empty response on success. Fires multiple Channel Update Gateway events. */
+  modifyGuildChannelPositions: (
+    guildId: string,
+    params: Partial<ModifyGuildChannelPositionParams>,
+    options?: O,
+  ) => Promise<any>;
+  /** Modify the given emoji. Requires the MANAGE_EMOJIS permission. Returns the updated emoji object on success. Fires a Guild Emojis Update Gateway event. */
+  modifyGuildEmoji: (
+    guildId: string,
+    emojiId: string,
+    params: Partial<ModifyGuildEmojiParams>,
+    options?: O,
+  ) => Promise<Emoji>;
+  /** Modify attributes of a guild member. Returns a 200 OK with the guild member as the body. Fires a Guild Member Update Gateway event. If the channel_id is set to null, this will force the target user to be disconnected from voice. */
+  modifyGuildMember: (
+    guildId: string,
+    userId: string,
+    params: Partial<ModifyGuildMemberParams>,
+    options?: O,
+  ) => Promise<GuildMember>;
+  /** Modify a guild role. Requires the MANAGE_ROLES permission. Returns the updated role on success. Fires a Guild Role Update Gateway event. */
+  modifyGuildRole: (
+    guildId: string,
+    roleId: string,
+    params: Partial<ModifyGuildRoleParams>,
+    options?: O,
+  ) => Promise<Role>;
+  /** Modify the positions of a set of role objects for the guild. Requires the MANAGE_ROLES permission. Returns a list of all of the guild's role objects on success. Fires multiple Guild Role Update Gateway events. */
+  modifyGuildRolePositions: (
+    guildId: string,
+    params: Partial<ModifyGuildRolePositionParams>,
+    options?: O,
+  ) => Promise<Role[]>;
+  /** Modifies the template's metadata. Requires the MANAGE_GUILD permission. Returns the guild template object on success. */
+  modifyGuildTemplate: (
+    guildId: string,
+    templateCode: string,
+    params: Partial<ModifyGuildTemplateParams>,
+    options?: O,
+  ) => Promise<GuildTemplate>;
+  /** Modify the guild's Welcome Screen. Requires the MANAGE_GUILD permission. Returns the updated Welcome Screen object. */
+  modifyGuildWelcomeScreen: (
+    guildId: string,
+    params: Partial<ModifyGuildWelcomeScreenParams>,
+    options?: O,
+  ) => Promise<WelcomeScreen>;
+  /** Modify a guild widget object for the guild. All attributes may be passed in with JSON and modified. Requires the MANAGE_GUILD permission. Returns the updated guild widget object. */
+  modifyGuildWidget: (guildId: string, options?: O) => Promise<GuildWidget>;
+  /** Modify a webhook. Requires the MANAGE_WEBHOOKS permission. Returns the updated webhook object on success. */
+  modifyWebhook: (
+    webhookId: string,
+    params: Partial<ModifyWebhookParams>,
+    options?: O,
+  ) => Promise<Webhook>;
+  /** Same as above, except this call does not require authentication, does not accept a channel_id parameter in the body, and does not return a user in the webhook object. */
+  modifyWebhookWithToken: (
+    webhookId: string,
+    webhookToken: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Pin a message in a channel. Requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. */
+  pinMessage: (
+    channelId: string,
+    messageId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Remove the ban for a user. Requires the BAN_MEMBERS permissions. Returns a 204 empty response on success. Fires a Guild Ban Remove Gateway event. */
+  removeGuildBan: (
+    guildId: string,
+    userId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Remove a member from a guild. Requires KICK_MEMBERS permission. Returns a 204 empty response on success. Fires a Guild Member Remove Gateway event. */
+  removeGuildMember: (
+    guildId: string,
+    userId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Removes a role from a guild member. Requires the MANAGE_ROLES permission. Returns a 204 empty response on success. Fires a Guild Member Update Gateway event. */
+  removeGuildMemberRole: (
+    guildId: string,
+    userId: string,
+    roleId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Removes another member from a thread. Requires the MANAGE_THREADS permission, or the creator of the thread if it is a GUILD_PRIVATE_THREAD. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
+  removeThreadMember: (
+    channelId: string,
+    userId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Returns a list of guild member objects whose username or nickname starts with a provided string. */
+  searchGuildMembers: (
+    guildId: string,
+    params: Partial<SearchGuildMemberParams>,
+    options?: O,
+  ) => Promise<GuildMember[]>;
   /** Creates a new thread from an existing message. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. Fires a Thread Create Gateway event. */
   startThreadWithMessage: (
     channelId: string,
@@ -2272,246 +2651,30 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params: Partial<StartThreadWithoutMessageParams>,
     options?: O,
   ) => Promise<Channel>;
-  /** Adds the current user to a thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
-  joinThread: (channelId: string, options?: O) => Promise<any>;
-  /** Adds another member to a thread. Requires the ability to send messages in the thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
-  addThreadMember: (
+  /** Syncs the template to the guild's current state. Requires the MANAGE_GUILD permission. Returns the guild template object on success. */
+  syncGuildTemplate: (
+    guildId: string,
+    templateCode: string,
+    options?: O,
+  ) => Promise<GuildTemplate>;
+  /** Post a typing indicator for the specified channel. Generally bots should not implement this route. However, if a bot is responding to a command and expects the computation to take a few seconds, this endpoint may be called to let the user know that the bot is processing their message. Returns a 204 empty response on success. Fires a Typing Start Gateway event. */
+  triggerTypingIndicator: (channelId: string, options?: O) => Promise<any>;
+  /** Unpin a message in a channel. Requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. */
+  unpinMessage: (
     channelId: string,
-    userId: string,
+    messageId: string,
     options?: O,
   ) => Promise<any>;
-  /** Removes the current user from a thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
-  leaveThread: (channelId: string, options?: O) => Promise<any>;
-  /** Removes another member from a thread. Requires the MANAGE_THREADS permission or that you are the creator of the thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
-  removeThreadMember: (
-    channelId: string,
-    userId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Returns array of thread members objects that are members of the thread. */
-  listThreadMembers: (
-    channelId: string,
-    options?: O,
-  ) => Promise<ThreadMember[]>;
-  /** Returns all active threads in the channel, including public and private threads. Threads are ordered by their id, in descending order. Requires the READ_MESSAGE_HISTORY permission. */
-  listActiveThreads: (channelId: string, options?: O) => Promise<any>;
-  /** Returns archived threads in the channel that are public. When called on a GUILD_TEXT channel, returns threads of type GUILD_PUBLIC_THREAD. When called on a GUILD_NEWS channel returns threads of type GUILD_NEWS_THREAD. Threads are ordered by archive_timestamp, in descending order. Requires the READ_MESSAGE_HISTORY permission. */
-  listPublicArchivedThreads: (
-    channelId: string,
-    params: Partial<ListPublicArchivedThreadParams>,
-    options?: O,
-  ) => Promise<ChannelType>;
-  /** Returns archived threads in the channel that are of type GUILD_PRIVATE_THREAD. Threads are ordered by archive_timestamp, in descending order. Requires both the READ_MESSAGE_HISTORY and MANAGE_THREADS permissions. */
-  listPrivateArchivedThreads: (
-    channelId: string,
-    params: Partial<ListPrivateArchivedThreadParams>,
-    options?: O,
-  ) => Promise<ChannelType>;
-  /** Returns archived threads in the channel that are of type GUILD_PRIVATE_THREAD, and the user has joined. Threads are ordered by their id, in descending order. Requires the READ_MESSAGE_HISTORY permission. */
-  listJoinedPrivateArchivedThreads: (
-    channelId: string,
-    params: Partial<ListJoinedPrivateArchivedThreadParams>,
-    options?: O,
-  ) => Promise<ChannelType>;
-  /** Create a new guild. Returns a guild object on success. Fires a Guild Create Gateway event. */
-  createGuild: (
-    params: Partial<CreateGuildParams>,
-    options?: O,
-  ) => Promise<Guild>;
-  /** Returns the guild object for the given id. If with_counts is set to true, this endpoint will also return approximate_member_count and approximate_presence_count for the guild. */
-  getGuild: (
-    guildId: string,
-    params: Partial<GetGuildParams>,
-    options?: O,
-  ) => Promise<Guild>;
-  /** Returns the guild preview object for the given id. If the user is not in the guild, then the guild must be Discoverable. */
-  getGuildPreview: (guildId: string, options?: O) => Promise<GuildPreview>;
-  /** Modify a guild's settings. Requires the MANAGE_GUILD permission. Returns the updated guild object on success. Fires a Guild Update Gateway event. */
-  modifyGuild: (
-    guildId: string,
-    params: Partial<ModifyGuildParams>,
-    options?: O,
-  ) => Promise<Guild>;
-  /** Delete a guild permanently. User must be owner. Returns 204 No Content on success. Fires a Guild Delete Gateway event. */
-  deleteGuild: (guildId: string, options?: O) => Promise<any>;
-  /** Returns a list of guild channel objects. Does not include threads. */
-  getGuildChannels: (guildId: string, options?: O) => Promise<Channel[]>;
-  /** Create a new channel object for the guild. Requires the MANAGE_CHANNELS permission. If setting permission overwrites, only permissions your bot has in the guild can be allowed/denied. Setting MANAGE_ROLES permission in channels is only possible for guild administrators. Returns the new channel object on success. Fires a Channel Create Gateway event. */
-  createGuildChannel: (
-    guildId: string,
-    params: Partial<CreateGuildChannelParams>,
-    options?: O,
-  ) => Promise<Channel>;
-  /** Modify the positions of a set of channel objects for the guild. Requires MANAGE_CHANNELS permission. Returns a 204 empty response on success. Fires multiple Channel Update Gateway events. */
-  modifyGuildChannelPositions: (
-    guildId: string,
-    params: Partial<ModifyGuildChannelPositionParams>,
-    options?: O,
-  ) => Promise<any>;
-  /** Returns a guild member object for the specified user. */
-  getGuildMember: (
-    guildId: string,
-    userId: string,
-    options?: O,
-  ) => Promise<GuildMember>;
-  /** Returns a list of guild member objects that are members of the guild. */
-  listGuildMembers: (
-    guildId: string,
-    params: Partial<ListGuildMemberParams>,
-    options?: O,
-  ) => Promise<GuildMember[]>;
-  /** Returns a list of guild member objects whose username or nickname starts with a provided string. */
-  searchGuildMembers: (
-    guildId: string,
-    params: Partial<SearchGuildMemberParams>,
-    options?: O,
-  ) => Promise<GuildMember[]>;
-  /** Adds a user to the guild, provided you have a valid oauth2 access token for the user with the guilds.join scope. Returns a 201 Created with the guild member as the body, or 204 No Content if the user is already a member of the guild. Fires a Guild Member Add Gateway event. */
-  addGuildMember: (
-    guildId: string,
-    userId: string,
-    params: Partial<AddGuildMemberParams>,
-    options?: O,
-  ) => Promise<GuildMember>;
-  /** Modify attributes of a guild member. Returns a 200 OK with the guild member as the body. Fires a Guild Member Update Gateway event. If the channel_id is set to null, this will force the target user to be disconnected from voice. */
-  modifyGuildMember: (
-    guildId: string,
-    userId: string,
-    params: Partial<ModifyGuildMemberParams>,
-    options?: O,
-  ) => Promise<GuildMember>;
-  /** Modifies the nickname of the current user in a guild. Returns a 200 with the nickname on success. Fires a Guild Member Update Gateway event. */
-  modifyCurrentUserNick: (
-    guildId: string,
-    params: Partial<ModifyCurrentUserNickParams>,
-    options?: O,
-  ) => Promise<any>;
-  /** Adds a role to a guild member. Requires the MANAGE_ROLES permission. Returns a 204 empty response on success. Fires a Guild Member Update Gateway event. */
-  addGuildMemberRole: (
-    guildId: string,
-    userId: string,
-    roleId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Removes a role from a guild member. Requires the MANAGE_ROLES permission. Returns a 204 empty response on success. Fires a Guild Member Update Gateway event. */
-  removeGuildMemberRole: (
-    guildId: string,
-    userId: string,
-    roleId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Remove a member from a guild. Requires KICK_MEMBERS permission. Returns a 204 empty response on success. Fires a Guild Member Remove Gateway event. */
-  removeGuildMember: (
-    guildId: string,
-    userId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Returns a list of ban objects for the users banned from this guild. Requires the BAN_MEMBERS permission. */
-  getGuildBans: (guildId: string, options?: O) => Promise<Ban[]>;
-  /** Returns a ban object for the given user or a 404 not found if the ban cannot be found. Requires the BAN_MEMBERS permission. */
-  getGuildBan: (guildId: string, userId: string, options?: O) => Promise<Ban>;
-  /** Create a guild ban, and optionally delete previous messages sent by the banned user. Requires the BAN_MEMBERS permission. Returns a 204 empty response on success. Fires a Guild Ban Add Gateway event. */
-  createGuildBan: (
-    guildId: string,
-    userId: string,
-    params: Partial<CreateGuildBanParams>,
-    options?: O,
-  ) => Promise<any>;
-  /** Remove the ban for a user. Requires the BAN_MEMBERS permissions. Returns a 204 empty response on success. Fires a Guild Ban Remove Gateway event. */
-  removeGuildBan: (
-    guildId: string,
-    userId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Returns a list of role objects for the guild. */
-  getGuildRoles: (guildId: string, options?: O) => Promise<Role[]>;
-  /** Create a new role for the guild. Requires the MANAGE_ROLES permission. Returns the new role object on success. Fires a Guild Role Create Gateway event. All JSON params are optional. */
-  createGuildRole: (
-    guildId: string,
-    params: Partial<CreateGuildRoleParams>,
-    options?: O,
-  ) => Promise<Role>;
-  /** Modify the positions of a set of role objects for the guild. Requires the MANAGE_ROLES permission. Returns a list of all of the guild's role objects on success. Fires multiple Guild Role Update Gateway events. */
-  modifyGuildRolePositions: (
-    guildId: string,
-    params: Partial<ModifyGuildRolePositionParams>,
-    options?: O,
-  ) => Promise<Role[]>;
-  /** Modify a guild role. Requires the MANAGE_ROLES permission. Returns the updated role on success. Fires a Guild Role Update Gateway event. */
-  modifyGuildRole: (
-    guildId: string,
-    roleId: string,
-    params: Partial<ModifyGuildRoleParams>,
-    options?: O,
-  ) => Promise<Role>;
-  /** Delete a guild role. Requires the MANAGE_ROLES permission. Returns a 204 empty response on success. Fires a Guild Role Delete Gateway event. */
-  deleteGuildRole: (
-    guildId: string,
-    roleId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Returns an object with one 'pruned' key indicating the number of members that would be removed in a prune operation. Requires the KICK_MEMBERS permission. */
-  getGuildPruneCount: (
-    guildId: string,
-    params: Partial<GetGuildPruneCountParams>,
-    options?: O,
-  ) => Promise<any>;
-  /** Begin a prune operation. Requires the KICK_MEMBERS permission. Returns an object with one 'pruned' key indicating the number of members that were removed in the prune operation. For large guilds it's recommended to set the compute_prune_count option to false, forcing 'pruned' to null. Fires multiple Guild Member Remove Gateway events. */
-  beginGuildPrune: (
-    guildId: string,
-    params: Partial<BeginGuildPruneParams>,
-    options?: O,
-  ) => Promise<any>;
-  /** Returns a list of voice region objects for the guild. Unlike the similar /voice route, this returns VIP servers when the guild is VIP-enabled. */
-  getGuildVoiceRegions: (
-    guildId: string,
-    options?: O,
-  ) => Promise<VoiceRegion[]>;
-  /** Returns a list of invite objects (with invite metadata) for the guild. Requires the MANAGE_GUILD permission. */
-  getGuildInvites: (guildId: string, options?: O) => Promise<Invite[]>;
-  /** Returns a list of integration objects for the guild. Requires the MANAGE_GUILD permission. */
-  getGuildIntegrations: (
-    guildId: string,
-    options?: O,
-  ) => Promise<Integration[]>;
-  /** Delete the attached integration object for the guild. Deletes any associated webhooks and kicks the associated bot if there is one. Requires the MANAGE_GUILD permission. Returns a 204 empty response on success. Fires a Guild Integrations Update Gateway event. */
-  deleteGuildIntegration: (
-    guildId: string,
-    integrationId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Returns a guild widget object. Requires the MANAGE_GUILD permission. */
-  getGuildWidgetSettings: (
-    guildId: string,
-    options?: O,
-  ) => Promise<GuildWidget>;
-  /** Modify a guild widget object for the guild. All attributes may be passed in with JSON and modified. Requires the MANAGE_GUILD permission. Returns the updated guild widget object. */
-  modifyGuildWidget: (guildId: string, options?: O) => Promise<GuildWidget>;
-  /** Returns the widget for the guild. */
-  getGuildWidget: (guildId: string, options?: O) => Promise<any>;
-  /** Returns a partial invite object for guilds with that feature enabled. Requires the MANAGE_GUILD permission. code will be null if a vanity url for the guild is not set. */
-  getGuildVanityUrl: (guildId: string, options?: O) => Promise<Invite>;
-  /** Returns a PNG image widget for the guild. Requires no permissions or authentication. */
-  getGuildWidgetImage: (
-    guildId: string,
-    params: Partial<GetGuildWidgetImageParams>,
-    options?: O,
-  ) => Promise<any>;
-  /** Returns the Welcome Screen object for the guild. */
-  getGuildWelcomeScreen: (
-    guildId: string,
-    options?: O,
-  ) => Promise<WelcomeScreen>;
-  /** Modify the guild's Welcome Screen. Requires the MANAGE_GUILD permission. Returns the updated Welcome Screen object. */
-  modifyGuildWelcomeScreen: (
-    guildId: string,
-    params: Partial<ModifyGuildWelcomeScreenParams>,
-    options?: O,
-  ) => Promise<WelcomeScreen>;
   /** Updates the current user's voice state. */
   updateCurrentUserVoiceState: (
     guildId: string,
     params: Partial<UpdateCurrentUserVoiceStateParams>,
+    options?: O,
+  ) => Promise<any>;
+  /** Updates fields of an existing Stage instance. */
+  updateStageInstance: (
+    channelId: string,
+    params: Partial<UpdateStageInstanceParams>,
     options?: O,
   ) => Promise<any>;
   /** Updates another user's voice state. */
@@ -2521,167 +2684,6 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params: Partial<UpdateUserVoiceStateParams>,
     options?: O,
   ) => Promise<any>;
-  /** Returns an array of voice region objects that can be used when creating servers. */
-  listVoiceRegions: (options?: O) => Promise<VoiceRegion[]>;
-  /** Returns a guild template object for the given code. */
-  getGuildTemplate: (
-    templateCode: string,
-    options?: O,
-  ) => Promise<GuildTemplate>;
-  /** Create a new guild based on a template. Returns a guild object on success. Fires a Guild Create Gateway event. */
-  createGuildFromGuildTemplate: (
-    templateCode: string,
-    params: Partial<CreateGuildFromGuildTemplateParams>,
-    options?: O,
-  ) => Promise<Guild>;
-  /** Returns an array of guild template objects. Requires the MANAGE_GUILD permission. */
-  getGuildTemplates: (guildId: string, options?: O) => Promise<GuildTemplate[]>;
-  /** Creates a template for the guild. Requires the MANAGE_GUILD permission. Returns the created guild template object on success. */
-  createGuildTemplate: (
-    guildId: string,
-    params: Partial<CreateGuildTemplateParams>,
-    options?: O,
-  ) => Promise<GuildTemplate>;
-  /** Syncs the template to the guild's current state. Requires the MANAGE_GUILD permission. Returns the guild template object on success. */
-  syncGuildTemplate: (
-    guildId: string,
-    templateCode: string,
-    options?: O,
-  ) => Promise<GuildTemplate>;
-  /** Modifies the template's metadata. Requires the MANAGE_GUILD permission. Returns the guild template object on success. */
-  modifyGuildTemplate: (
-    guildId: string,
-    templateCode: string,
-    params: Partial<ModifyGuildTemplateParams>,
-    options?: O,
-  ) => Promise<GuildTemplate>;
-  /** Deletes the template. Requires the MANAGE_GUILD permission. Returns the deleted guild template object on success. */
-  deleteGuildTemplate: (
-    guildId: string,
-    templateCode: string,
-    options?: O,
-  ) => Promise<GuildTemplate>;
-  /** Returns an invite object for the given code. */
-  getInvite: (
-    inviteCode: string,
-    params: Partial<GetInviteParams>,
-    options?: O,
-  ) => Promise<Invite>;
-  /** Delete an invite. Requires the MANAGE_CHANNELS permission on the channel this invite belongs to, or MANAGE_GUILD to remove any invite across the guild. Returns an invite object on success. Fires a Invite Delete Gateway event. */
-  deleteInvite: (inviteCode: string, options?: O) => Promise<Invite>;
-  /** Returns the user object of the requester's account. For OAuth2, this requires the identify scope, which will return the object without an email, and optionally the email scope, which returns the object with an email. */
-  getCurrentUser: (options?: O) => Promise<User>;
-  /** Returns a user object for a given user ID. */
-  getUser: (userId: string, options?: O) => Promise<User>;
-  /** Modify the requester's user account settings. Returns a user object on success. */
-  modifyCurrentUser: (
-    params: Partial<ModifyCurrentUserParams>,
-    options?: O,
-  ) => Promise<User>;
-  /** Returns a list of partial guild objects the current user is a member of. Requires the guilds OAuth2 scope. */
-  getCurrentUserGuilds: (
-    params: Partial<GetCurrentUserGuildParams>,
-    options?: O,
-  ) => Promise<Guild[]>;
-  /** Leave a guild. Returns a 204 empty response on success. */
-  leaveGuild: (guildId: string, options?: O) => Promise<any>;
-  /** Create a new DM channel with a user. Returns a DM channel object. */
-  createDm: (params: Partial<CreateDmParams>, options?: O) => Promise<Channel>;
-  /** Create a new group DM channel with multiple users. Returns a DM channel object. This endpoint was intended to be used with the now-deprecated GameBridge SDK. DMs created with this endpoint will not be shown in the Discord client */
-  createGroupDm: (
-    params: Partial<CreateGroupDmParams>,
-    options?: O,
-  ) => Promise<Channel>;
-  /** Returns a list of connection objects. Requires the connections OAuth2 scope. */
-  getUserConnections: (options?: O) => Promise<Connection[]>;
-  /** Creates a new Stage instance associated to a Stage channel. */
-  createStageInstance: (
-    params: Partial<CreateStageInstanceParams>,
-    options?: O,
-  ) => Promise<any>;
-  /** Gets the stage instance associated with the Stage channel, if it exists. */
-  getStageInstance: (channelId: string, options?: O) => Promise<any>;
-  /** Updates fields of an existing Stage instance. */
-  updateStageInstance: (
-    channelId: string,
-    params: Partial<UpdateStageInstanceParams>,
-    options?: O,
-  ) => Promise<any>;
-  /** Deletes the Stage instance. */
-  deleteStageInstance: (channelId: string, options?: O) => Promise<any>;
-  /** Create a new webhook. Requires the MANAGE_WEBHOOKS permission. Returns a webhook object on success. Webhook names follow our naming restrictions that can be found in our Usernames and Nicknames documentation, with the following additional stipulations: */
-  createWebhook: (
-    channelId: string,
-    params: Partial<CreateWebhookParams>,
-    options?: O,
-  ) => Promise<Webhook>;
-  /** Returns a list of channel webhook objects. Requires the MANAGE_WEBHOOKS permission. */
-  getChannelWebhooks: (channelId: string, options?: O) => Promise<Webhook[]>;
-  /** Returns a list of guild webhook objects. Requires the MANAGE_WEBHOOKS permission. */
-  getGuildWebhooks: (guildId: string, options?: O) => Promise<Webhook[]>;
-  /** Returns the new webhook object for the given id. */
-  getWebhook: (webhookId: string, options?: O) => Promise<Webhook>;
-  /** Same as above, except this call does not require authentication and returns no user in the webhook object. */
-  getWebhookWithToken: (
-    webhookId: string,
-    webhookToken: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Modify a webhook. Requires the MANAGE_WEBHOOKS permission. Returns the updated webhook object on success. */
-  modifyWebhook: (
-    webhookId: string,
-    params: Partial<ModifyWebhookParams>,
-    options?: O,
-  ) => Promise<Webhook>;
-  /** Same as above, except this call does not require authentication, does not accept a channel_id parameter in the body, and does not return a user in the webhook object. */
-  modifyWebhookWithToken: (
-    webhookId: string,
-    webhookToken: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Delete a webhook permanently. Requires the MANAGE_WEBHOOKS permission. Returns a 204 NO CONTENT response on success. */
-  deleteWebhook: (webhookId: string, options?: O) => Promise<any>;
-  /** Same as above, except this call does not require authentication. */
-  deleteWebhookWithToken: (
-    webhookId: string,
-    webhookToken: string,
-    options?: O,
-  ) => Promise<any>;
-  executeWebhook: (
-    webhookId: string,
-    webhookToken: string,
-    params: Partial<ExecuteWebhookParams>,
-    options?: O,
-  ) => Promise<any>;
-  /** Refer to Slack's documentation for more information. We do not support Slack's channel, icon_emoji, mrkdwn, or mrkdwn_in properties. */
-  executeSlackCompatibleWebhook: (
-    webhookId: string,
-    webhookToken: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Add a new webhook to your GitHub repo (in the repo's settings), and use this endpoint as the "Payload URL." You can choose what events your Discord channel receives by choosing the "Let me select individual events" option and selecting individual events for the new webhook you're configuring. */
-  executeGitHubCompatibleWebhook: (
-    webhookId: string,
-    webhookToken: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Returns a previously-sent webhook message from the same token. Returns a message object on success. */
-  getWebhookMessage: (
-    webhookId: string,
-    webhookToken: string,
-    messageId: string,
-    options?: O,
-  ) => Promise<Message>;
-  /** Edits a previously-sent webhook message from the same token. Returns a message object on success. */
-  editWebhookMessage: (
-    webhookId: string,
-    webhookToken: string,
-    messageId: string,
-    params: Partial<EditWebhookMessageParams>,
-    options?: O,
-  ) => Promise<Message>;
-  getGateway: (options?: O) => Promise<any>;
-  getGatewayBot: (options?: O) => Promise<any>;
 }
 export interface ExecuteWebhookParams {
   /** the message contents (up to 2000 characters) */
@@ -4264,8 +4266,6 @@ export type ThreadMemberUpdateEvent = ThreadMember;
 export interface ThreadMetadatum {
   /** whether the thread is archived */
   archived: boolean;
-  /** id of the user that last archived or unarchived the thread */
-  archiver_id?: Snowflake;
   /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
   auto_archive_duration: number;
   /** timestamp when the thread's archive status was last changed, used for calculating recent activity */

@@ -53,13 +53,7 @@ export const create =
       RxO.flatMap((id$) =>
         id$.pipe(
           rateLimit(`gateway.sessions.${id$.key}`, 5500, 1),
-          RxO.concatMap(({ id, count, url }) => {
-            const shard = createShard([id, count], url);
-            return shard.ready$.pipe(
-              RxO.first(),
-              RxO.map(() => shard),
-            );
-          }),
+          RxO.map(({ id, count, url }) => createShard([id, count], url)),
         ),
       ),
 

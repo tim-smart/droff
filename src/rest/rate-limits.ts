@@ -8,9 +8,10 @@ import * as F from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
+import * as RL from "../rate-limits/rxjs";
+import * as Store from "../rate-limits/store";
 import * as Buckets from "./rate-limits/buckets";
 import * as Helpers from "./rate-limits/helpers";
-import * as RxU from "../utils/rxjs";
 
 const debugTap =
   (enabled: boolean) =>
@@ -32,6 +33,7 @@ export type Response = {
 };
 
 export const interceptors =
+  (store: Store.Store) =>
   (limit: number, window: number, debug = false) =>
   (axios: AxiosInstance) => {
     const whenDebug = debugTap(debug);
@@ -90,14 +92,16 @@ export const interceptors =
       );
     }
 
-    const limitRequestBuckets = Buckets.createLimiter(responses$, whenDebug);
+    const { start: startBucketLimiter, bucketLimiter } = Buckets.createLimiter(
+      store,
+    )(responses$, whenDebug);
 
     // Trigger requests
     const triggerRequests$ = requests$.pipe(
-      limitRequestBuckets(),
+      bucketLimiter(),
 
       // Global rate limit
-      RxU.rateLimit(limit - 1, window),
+      RL.rateLimit(store)("rest.global", window, limit - 1),
 
       whenDebug(({ config }) =>
         console.error(
@@ -120,8 +124,10 @@ export const interceptors =
       error,
       start() {
         const triggerSub = triggerRequests$.subscribe();
+        const stopLimiter = startBucketLimiter();
         return () => {
           triggerSub.unsubscribe();
+          stopLimiter();
           requests$.complete();
           responses$.complete();
           errors$.complete();

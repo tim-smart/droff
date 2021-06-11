@@ -8,6 +8,7 @@ import Axios, {
 } from "axios";
 import { createRoutes } from "../types";
 import * as RateLimits from "./rate-limits";
+import * as Store from "../rate-limits/store";
 
 const VERSION = 9;
 
@@ -16,11 +17,18 @@ export interface Options {
   token: string;
   /** Global rate limit in requests per second */
   rateLimit?: number;
+  /** Rate limit store */
+  rateLimitStore?: Store.Store;
   /** Turn on debug logging */
   debug?: boolean;
 }
 
-export function create({ token, rateLimit = 50, debug = false }: Options) {
+export function create({
+  token,
+  rateLimitStore = Store.createMemoryStore(),
+  rateLimit = 50,
+  debug = false,
+}: Options) {
   const client = Axios.create({
     baseURL: `https://discord.com/api/v${VERSION}`,
     headers: {
@@ -31,6 +39,8 @@ export function create({ token, rateLimit = 50, debug = false }: Options) {
   });
 
   const { request, response, error, start } = RateLimits.interceptors(
+    rateLimitStore,
+  )(
     rateLimit,
     1000,
     debug,

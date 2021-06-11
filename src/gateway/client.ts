@@ -3,57 +3,107 @@ import * as RxO from "rxjs/operators";
 import { GatewayIntents } from "../types";
 import * as Dispatch from "./dispatch";
 import * as Shard from "./shard";
+import * as Store from "../rate-limits/store";
+import { Routes } from "../rest/client";
+import * as RL from "../rate-limits/rxjs";
 
 export interface Options {
   token: string;
   intents: number;
-  shardIDs?: number[];
+  shardIDs?: number[] | "auto";
   shardCount?: number;
+  rateLimitStore?: Store.Store;
 }
 
 /** A client is one or more shards */
-export function create({
-  token,
-  intents,
-  shardIDs = [0],
-  shardCount = 1,
-}: Options) {
-  const shards = shardIDs.map((id) =>
-    Shard.create({
-      token,
-      intents: intents | GatewayIntents.GUILDS,
-      shard: [id, shardCount],
-    }),
-  );
+export const create =
+  (routes: Routes) =>
+  ({
+    token,
+    intents,
+    rateLimitStore = Store.createMemoryStore(),
+    shardIDs = [0],
+    shardCount = 1,
+  }: Options) => {
+    const rateLimit = RL.rateLimit(rateLimitStore);
 
-  function close() {
-    shards.forEach((s) => s.close());
-  }
+    const shards$ = Rx.from(routes.getGatewayBot()).pipe(
+      RxO.flatMap(({ url, shards, session_start_limit: limit }) => {
+        const ids = shardIDs === "auto" ? [...Array(shards).keys()] : shardIDs;
+        const count = shardIDs === "auto" ? ids.length : shardCount;
 
-  function reconnect() {
-    shards.forEach((s) => s.reconnect());
-  }
+        return Rx.from(ids).pipe(
+          RxO.groupBy((id) => id % limit.max_concurrency),
+          RxO.flatMap((id$) =>
+            id$.pipe(
+              rateLimit(`gateway.sessions.${id$.key}`, 5500, 1),
+              RxO.concatMap((id) => {
+                const shard = Shard.create({
+                  token,
+                  baseURL: url,
+                  intents: intents | GatewayIntents.GUILDS,
+                  shard: [id, count],
+                  rateLimit,
+                });
 
-  const raw$ = Rx.merge(...shards.map((s) => s.raw$));
+                return shard.ready$.pipe(
+                  RxO.first(),
+                  RxO.map(() => shard),
+                );
+              }),
+            ),
+          ),
+        );
+      }),
+      RxO.share(),
+    );
 
-  const dispatch$ = Rx.merge(...shards.map((s) => s.dispatch$));
-  const dispatchWithShard$ = Rx.merge(
-    ...shards.map((s) => s.dispatch$.pipe(RxO.map((p) => [p, s] as const))),
-  );
-  const dispatchListen = Dispatch.listen$(dispatch$);
-  const dispatchWithShardListen = Dispatch.listenWithShard$(dispatchWithShard$);
-  const dispatchLatest = Dispatch.latest$(dispatchListen);
+    const shardsAcc$ = shards$.pipe(
+      RxO.scan((acc, shard) => [...acc, shard], [] as Shard.Shard[]),
+      RxO.shareReplay(1),
+    );
 
-  return {
-    raw$,
-    all$: dispatch$,
-    dispatch$: dispatchListen,
-    dispatchWithShard$: dispatchWithShardListen,
-    latest$: dispatchLatest,
-    shards,
-    close,
-    reconnect,
+    const shardsSub = shards$.subscribe();
+
+    function close() {
+      shardsSub.unsubscribe();
+      shardsAcc$
+        .pipe(
+          RxO.first(),
+          RxO.tap((shards) => shards.forEach((s) => s.close())),
+        )
+        .subscribe();
+    }
+
+    function reconnect() {
+      shardsAcc$
+        .pipe(
+          RxO.first(),
+          RxO.tap((shards) => shards.forEach((s) => s.reconnect())),
+        )
+        .subscribe();
+    }
+
+    const raw$ = shards$.pipe(RxO.flatMap((s) => s.raw$));
+    const dispatch$ = shards$.pipe(RxO.flatMap((s) => s.dispatch$));
+    const dispatchWithShard$ = shards$.pipe(
+      RxO.flatMap((s) => s.dispatch$.pipe(RxO.map((p) => [p, s] as const))),
+    );
+    const dispatchListen = Dispatch.listen$(dispatch$);
+    const dispatchWithShardListen =
+      Dispatch.listenWithShard$(dispatchWithShard$);
+    const dispatchLatest = Dispatch.latest$(dispatchListen);
+
+    return {
+      raw$,
+      all$: dispatch$,
+      dispatch$: dispatchListen,
+      dispatchWithShard$: dispatchWithShardListen,
+      latest$: dispatchLatest,
+      shards$: shardsAcc$,
+      close,
+      reconnect,
+    };
   };
-}
 
-export type Client = ReturnType<typeof create>;
+export type Client = ReturnType<ReturnType<typeof create>>;

@@ -13,9 +13,7 @@ const client = createClient({
 Rx.fromEvent(process, "SIGUSR2")
   .pipe(RxO.first())
   .subscribe(() => {
-    client.gateway.shards.forEach((shard) => {
-      shard.raw$.subscribe(console.log);
-    });
+    client.gateway.raw$.subscribe(console.log);
   });
 
 const command$ = client.command$("!");

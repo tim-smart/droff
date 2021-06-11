@@ -1,6 +1,7 @@
 import * as F from "fp-ts/function";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
+import { RateLimitOp } from "../rate-limits/rxjs";
 import * as Conn from "./connection";
 import * as Dispatch from "./dispatch";
 import * as Internal from "./internal";
@@ -8,11 +9,19 @@ import * as Internal from "./internal";
 export interface Options {
   token: string;
   intents: number;
+  rateLimit: RateLimitOp;
   shard?: [number, number];
+  baseURL?: string;
 }
 
-export function create({ token, intents, shard = [0, 1] }: Options) {
-  const conn = Conn.create();
+export function create({
+  token,
+  baseURL,
+  intents,
+  shard = [0, 1],
+  rateLimit,
+}: Options) {
+  const conn = Conn.create(baseURL, rateLimit);
 
   const dispatch$ = Dispatch.listen$(conn.dispatch$);
   const sequenceNumber = Internal.latestSequenceNumber(conn.dispatch$);
@@ -59,6 +68,7 @@ export function create({ token, intents, shard = [0, 1] }: Options) {
     send: conn.send,
     raw$: conn.raw$,
     dispatch$: conn.dispatch$,
+    ready$: latestReady,
     close: () => conn.close(),
     reconnect: () => conn.reconnect(),
   };

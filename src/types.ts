@@ -2308,7 +2308,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     options?: O,
   ) => Promise<Guild[]>;
   getGateway: (options?: O) => Promise<any>;
-  getGatewayBot: (options?: O) => Promise<any>;
+  getGatewayBot: (options?: O) => Promise<GetGatewayBotResponse>;
   /** Fetch a global command for your application. Returns an ApplicationCommand object. */
   getGlobalApplicationCommand: (
     applicationId: string,
@@ -2484,7 +2484,10 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   /** Removes the current user from a thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
   leaveThread: (channelId: string, options?: O) => Promise<any>;
   /** Returns all active threads in the channel, including public and private threads. Threads are ordered by their id, in descending order. */
-  listActiveThreads: (channelId: string, options?: O) => Promise<any>;
+  listActiveThreads: (
+    channelId: string,
+    options?: O,
+  ) => Promise<ListActiveThreadResponse>;
   /** Returns a list of emoji objects for the given guild. */
   listGuildEmojis: (guildId: string, options?: O) => Promise<Emoji[]>;
   /** Returns a list of guild member objects that are members of the guild. */
@@ -2498,19 +2501,19 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     channelId: string,
     params: Partial<ListJoinedPrivateArchivedThreadParams>,
     options?: O,
-  ) => Promise<ChannelType>;
+  ) => Promise<ListJoinedPrivateArchivedThreadResponse>;
   /** Returns archived threads in the channel that are of type GUILD_PRIVATE_THREAD. Threads are ordered by archive_timestamp, in descending order. Requires both the READ_MESSAGE_HISTORY and MANAGE_THREADS permissions. */
   listPrivateArchivedThreads: (
     channelId: string,
     params: Partial<ListPrivateArchivedThreadParams>,
     options?: O,
-  ) => Promise<ChannelType>;
+  ) => Promise<ListPrivateArchivedThreadResponse>;
   /** Returns archived threads in the channel that are public. When called on a GUILD_TEXT channel, returns threads of type GUILD_PUBLIC_THREAD. When called on a GUILD_NEWS channel returns threads of type GUILD_NEWS_THREAD. Threads are ordered by archive_timestamp, in descending order. Requires the READ_MESSAGE_HISTORY permission. */
   listPublicArchivedThreads: (
     channelId: string,
     params: Partial<ListPublicArchivedThreadParams>,
     options?: O,
-  ) => Promise<ChannelType>;
+  ) => Promise<ListPublicArchivedThreadResponse>;
   /** Returns array of thread members objects that are members of the thread. */
   listThreadMembers: (
     channelId: string,
@@ -2919,6 +2922,14 @@ export interface GetCurrentUserGuildParams {
   after: Snowflake;
   /** max number of guilds to return (1-200) */
   limit: number;
+}
+export interface GetGatewayBotResponse {
+  /** The WSS URL that can be used for connecting to the gateway */
+  url: string;
+  /** The recommended number of shards to use when connecting */
+  shards: number;
+  /** Information on the current session start limit */
+  session_start_limit: SessionStartLimit;
 }
 export interface GetGuildAuditLogParams {
   /** filter the log for actions made by a user */
@@ -3516,6 +3527,14 @@ export enum InviteTargetType {
   STREAM = 1,
   EMBEDDED_APPLICATION = 2,
 }
+export interface ListActiveThreadResponse {
+  /** the active threads */
+  threads: Channel[];
+  /** a thread member object for each returned thread the current user has joined */
+  members: ThreadMember[];
+  /** whether there are potentially additional threads that could be returned on a subsequent call */
+  has_more: boolean;
+}
 export interface ListGuildMemberParams {
   /** max number of members to return (1-1000) */
   limit: number;
@@ -3528,17 +3547,41 @@ export interface ListJoinedPrivateArchivedThreadParams {
   /** optional maximum number of threads to return */
   limit?: number;
 }
+export interface ListJoinedPrivateArchivedThreadResponse {
+  /** the private, archived threads the current user has joined */
+  threads: Channel[];
+  /** a thread member object for each returned thread the current user has joined */
+  members: ThreadMember[];
+  /** whether there are potentially additional threads that could be returned on a subsequent call */
+  has_more: boolean;
+}
 export interface ListPrivateArchivedThreadParams {
   /** returns threads before this timestamp */
   before?: string;
   /** optional maximum number of threads to return */
   limit?: number;
 }
+export interface ListPrivateArchivedThreadResponse {
+  /** the private, archived threads */
+  threads: Channel[];
+  /** a thread member object for each returned thread the current user has joined */
+  members: ThreadMember[];
+  /** whether there are potentially additional threads that could be returned on a subsequent call */
+  has_more: boolean;
+}
 export interface ListPublicArchivedThreadParams {
   /** returns threads before this timestamp */
   before?: string;
   /** optional maximum number of threads to return */
   limit?: number;
+}
+export interface ListPublicArchivedThreadResponse {
+  /** the public, archived threads */
+  threads: Channel[];
+  /** a thread member object for each returned thread the current user has joined */
+  members: ThreadMember[];
+  /** whether there are potentially additional threads that could be returned on a subsequent call */
+  has_more: boolean;
 }
 export enum MembershipState {
   INVITED = 1,

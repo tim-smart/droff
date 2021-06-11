@@ -11,6 +11,7 @@ import * as GatewayClient from "./gateway/client";
 import * as RestClient from "./rest/client";
 import * as SlashCommands from "./slash-commands/factory";
 import { Channel, Emoji, Guild, GuildMember, Role } from "./types";
+import * as Store from "./rate-limits/store";
 
 export interface RESTClient extends RestClient.Routes {
   close: () => void;
@@ -91,11 +92,18 @@ export interface Client extends RESTClient {
   useSlashCommands: () => SlashCommands.SlashCommandsHelper;
 }
 
-export function create(
-  opts: GatewayClient.Options & RestClient.Options,
-): Client {
-  const gateway = GatewayClient.create(opts);
-  const rest = createRestClient(opts);
+export function create({
+  rateLimitStore = Store.createMemoryStore(),
+  ...opts
+}: GatewayClient.Options & RestClient.Options): Client {
+  const rest = createRestClient({
+    rateLimitStore,
+    ...opts,
+  });
+  const gateway = GatewayClient.create(rest)({
+    rateLimitStore,
+    ...opts,
+  });
 
   // Cached resources
   const guilds$ = Guilds.watch$(gateway.dispatch$);

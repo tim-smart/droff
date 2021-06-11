@@ -13,6 +13,8 @@ export {
   RESTClient,
 } from "./client";
 
+export { Store as RateLimitStore } from "./rate-limits/store";
+
 export {
   debounceBy,
   groupByTime,

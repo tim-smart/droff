@@ -71,10 +71,7 @@ export const create =
       RxO.shareReplay(1),
     );
 
-    const shardsSub = shards$.subscribe();
-
     function close() {
-      shardsSub.unsubscribe();
       shardsAcc$
         .pipe(
           RxO.first(),

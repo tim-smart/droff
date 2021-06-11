@@ -85,11 +85,19 @@ export const create =
         .subscribe();
     }
 
-    const raw$ = shards$.pipe(RxO.flatMap((s) => s.raw$));
-    const dispatch$ = shards$.pipe(RxO.flatMap((s) => s.dispatch$));
+    const raw$ = shards$.pipe(
+      RxO.flatMap((s) => s.raw$),
+      RxO.share(),
+    );
+    const dispatch$ = shards$.pipe(
+      RxO.flatMap((s) => s.dispatch$),
+      RxO.share(),
+    );
     const dispatchWithShard$ = shards$.pipe(
       RxO.flatMap((s) => s.dispatch$.pipe(RxO.map((p) => [p, s] as const))),
+      RxO.share(),
     );
+
     const dispatchListen = Dispatch.listen$(dispatch$);
     const dispatchWithShardListen =
       Dispatch.listenWithShard$(dispatchWithShard$);

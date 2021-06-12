@@ -11,8 +11,9 @@ import {
   HelloEvent,
   InvalidSessionEvent,
 } from "../types";
+import * as Codec from "./codec";
 
-const VERSION = 8;
+const VERSION = 9;
 
 const opCode = <T = any>(code: GatewayOpcode) =>
   F.flow(
@@ -20,36 +21,11 @@ const opCode = <T = any>(code: GatewayOpcode) =>
     RxO.share(),
   );
 
-type Encode = (payload: unknown) => string | Buffer;
-type Decode = (bloc: Buffer) => unknown;
-interface Codec {
-  encode: Encode;
-  decode: Decode;
-  encoding: "json" | "etf";
-}
-
-const createCodec = (): Codec => {
-  try {
-    const Erl = require("erlpack");
-    return {
-      encode: Erl.pack,
-      decode: Erl.unpack,
-      encoding: "etf",
-    };
-  } catch (_) {}
-
-  return {
-    encode: JSON.stringify,
-    decode: (blob) => JSON.parse(blob.toString("utf8")),
-    encoding: "json",
-  };
-};
-
 export function create(
   baseURL = "wss://gateway.discord.gg/",
   rateLimit: RateLimitOp,
 ) {
-  const { encode, decode, encoding } = createCodec();
+  const { encode, decode, encoding } = Codec.create();
 
   const ws = new WebSocketClient();
   ws.connect(`${baseURL}?v=${VERSION}&encoding=${encoding}`);

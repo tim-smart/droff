@@ -22,6 +22,9 @@ interface Counter {
   expires: number;
 }
 
+/**
+ * Default rate limit store, that uses `Map`'s to store everything.
+ */
 export const createMemoryStore = (): Store => {
   const buckets = new Map<string, BucketDetails>();
   const routes = new Map<string, string>();

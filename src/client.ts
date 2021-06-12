@@ -12,6 +12,7 @@ import * as RestClient from "./rest/client";
 import * as SlashCommands from "./slash-commands/factory";
 import { Channel, Emoji, Guild, GuildMember, Role } from "./types";
 import * as Store from "./rate-limits/store";
+import * as RL from "./rate-limits/rxjs";
 
 export interface RESTClient extends RestClient.Routes {
   close: () => void;
@@ -37,59 +38,6 @@ export function createRestClient(opts: RestClient.Options): RESTClient {
 
     ...routes,
   };
-}
-
-export interface Client extends RESTClient {
-  gateway: GatewayClient.Client;
-  /** Observable of all the dispatch events */
-  all$: GatewayClient.Client["all$"];
-  /** Helper function to listen to an individual dispatch event */
-  dispatch$: GatewayClient.Client["dispatch$"];
-  /**
-   * Helper function to listen to an individual dispatch event, along with
-   * the shard
-   */
-  dispatchWithShard$: GatewayClient.Client["dispatchWithShard$"];
-
-  /** Cache of the latest guilds */
-  guilds$: Observable<Resources.SnowflakeMap<Guild>>;
-  /** Cache of the latest roles for each guild */
-  roles$: Observable<Resources.GuildSnowflakeMap<Role>>;
-  /** Cache of the latest channels for each guild */
-  channels$: Observable<Resources.GuildSnowflakeMap<Channel>>;
-  /** Cache of the latest members for each guild */
-  members$: Observable<Resources.GuildSnowflakeMap<GuildMember>>;
-  /** Cache of the latest emojis for each guild */
-  emojis$: Observable<Resources.GuildSnowflakeMap<Emoji>>;
-
-  /**
-   * RxJS operator that appends cached data to the stream. E.g.
-   *
-   * ```typescript
-   * client.dispatch$(Events.GuildMemberAdd).pipe(
-   *   client.withCaches({
-   *     roles: client.roles$,
-   *   })(({ message }) => message.guild_id),
-   * );
-   * ```
-   */
-  withCaches: ReturnType<typeof Resources.withCaches>;
-  /**
-   * Use this operator in combination with withCaches.
-   * It will filter out any direct messages etc.
-   *
-   * ```typescript
-   * client.dispatch$(Events.GuildMemberAdd).pipe(
-   *   client.withCaches({
-   *     roles: client.roles$,
-   *   })(({ message }) => message.guild_id),
-   *   client.onlyWithGuild(),
-   * );
-   */
-  onlyWithGuild: typeof Resources.onlyWithGuild;
-
-  command$: ReturnType<typeof Commands.command$>;
-  useSlashCommands: () => SlashCommands.SlashCommandsHelper;
 }
 
 export function create({
@@ -148,8 +96,68 @@ export function create({
     command$,
     useSlashCommands: SlashCommands.factory(gateway.dispatch$, rest, guilds$),
 
+    rateLimit: RL.rateLimit(rateLimitStore),
+
     ...rest,
 
     close,
   };
+}
+
+export interface Client extends RESTClient {
+  gateway: GatewayClient.Client;
+  /** Observable of all the dispatch events */
+  all$: GatewayClient.Client["all$"];
+  /** Helper function to listen to an individual dispatch event */
+  dispatch$: GatewayClient.Client["dispatch$"];
+  /**
+   * Helper function to listen to an individual dispatch event, along with
+   * the shard
+   */
+  dispatchWithShard$: GatewayClient.Client["dispatchWithShard$"];
+
+  /** Cache of the latest guilds */
+  guilds$: Observable<Resources.SnowflakeMap<Guild>>;
+  /** Cache of the latest roles for each guild */
+  roles$: Observable<Resources.GuildSnowflakeMap<Role>>;
+  /** Cache of the latest channels for each guild */
+  channels$: Observable<Resources.GuildSnowflakeMap<Channel>>;
+  /** Cache of the latest members for each guild */
+  members$: Observable<Resources.GuildSnowflakeMap<GuildMember>>;
+  /** Cache of the latest emojis for each guild */
+  emojis$: Observable<Resources.GuildSnowflakeMap<Emoji>>;
+
+  /**
+   * RxJS operator that appends cached data to the stream. E.g.
+   *
+   * ```typescript
+   * client.dispatch$(Events.GuildMemberAdd).pipe(
+   *   client.withCaches({
+   *     roles: client.roles$,
+   *   })(({ message }) => message.guild_id),
+   * );
+   * ```
+   */
+  withCaches: ReturnType<typeof Resources.withCaches>;
+  /**
+   * Use this operator in combination with withCaches.
+   * It will filter out any direct messages etc.
+   *
+   * ```typescript
+   * client.dispatch$(Events.GuildMemberAdd).pipe(
+   *   client.withCaches({
+   *     roles: client.roles$,
+   *   })(({ message }) => message.guild_id),
+   *   client.onlyWithGuild(),
+   * );
+   */
+  onlyWithGuild: typeof Resources.onlyWithGuild;
+
+  command$: ReturnType<typeof Commands.command$>;
+  useSlashCommands: () => SlashCommands.SlashCommandsHelper;
+
+  /**
+   * RxJS rate limit operator, which uses the store.
+   */
+  rateLimit: RL.RateLimitOp;
 }

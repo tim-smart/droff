@@ -1,11 +1,11 @@
-import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
+import * as RL from "../rate-limits/rxjs";
+import * as Store from "../rate-limits/store";
+import { Routes } from "../rest/client";
 import { GatewayIntents } from "../types";
 import * as Dispatch from "./dispatch";
 import * as Shard from "./shard";
-import * as Store from "../rate-limits/store";
-import { Routes } from "../rest/client";
-import * as RL from "../rate-limits/rxjs";
+import * as Sharder from "./sharder";
 
 export interface Options {
   token: string;
@@ -26,39 +26,20 @@ export const create =
     shardCount = 1,
   }: Options) => {
     const rateLimit = RL.rateLimit(rateLimitStore);
-
-    const createShard = (id: [number, number], baseURL: string) =>
-      Shard.create({
-        token,
-        baseURL,
-        intents: intents | GatewayIntents.GUILDS,
-        shard: id,
-        rateLimit,
-      });
-
-    // Start shards with rate limits
-    const shards$ = Rx.from(routes.getGatewayBot()).pipe(
-      RxO.flatMap(({ url, shards, session_start_limit: limit }) => {
-        const ids = shardIDs === "auto" ? [...Array(shards).keys()] : shardIDs;
-        const count = shardIDs === "auto" ? ids.length : shardCount;
-        return ids.map((id) => ({
-          id,
-          count,
-          url,
-          concurrency: limit.max_concurrency,
-        }));
-      }),
-
-      RxO.groupBy(({ id, concurrency }) => id % concurrency),
-      RxO.flatMap((id$) =>
-        id$.pipe(
-          rateLimit(`gateway.sessions.${id$.key}`, 5500, 1),
-          RxO.map(({ id, count, url }) => createShard([id, count], url)),
-        ),
-      ),
-
-      RxO.share(),
-    );
+    const shards$ = Sharder.spawn({
+      createShard: (id, baseURL) =>
+        Shard.create({
+          token,
+          baseURL,
+          intents: intents | GatewayIntents.GUILDS,
+          shard: id,
+          rateLimit,
+        }),
+      rateLimit,
+      routes,
+      shardIDs,
+      shardCount,
+    });
 
     const shardsAcc$ = shards$.pipe(
       RxO.scan((acc, shard) => [...acc, shard], [] as Shard.Shard[]),

@@ -29,6 +29,7 @@
     "url": "https://github.com/tim-smart/droff/issues"
   },
   "devDependencies": {
+    "ts-node": "^10.0.0",
     "typescript": "^4.3.2"
   },
   "dependencies": {

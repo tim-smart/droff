@@ -11,8 +11,7 @@
   "license": "MIT",
   "main": "dist/mod.js",
   "directories": {
-    "dist": "dist",
-    "test": "__tests__"
+    "dist": "dist"
   },
   "files": [
     "dist"
@@ -32,7 +31,7 @@
     "typescript": "^4.3.2"
   },
   "dependencies": {
-    "droff": "^0.14.5",
+    "droff": "^0.14.7",
     "immutable": "^4.0.0-rc.12",
     "rxjs": "^7.1.0",
     "tslib": "^2.3.0"

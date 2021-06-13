@@ -1,14 +1,9 @@
-# `droff-commands`
+require("dotenv").config();
 
-Accompanying library to `droff` for creating message based commands.
-
-## Usage
-
-```typescript
 import { createClient, Intents } from "droff";
-import * as Commands from "droff-commands";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
+import * as Commands from "../src/mod";
 
 const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
@@ -17,9 +12,15 @@ const client = createClient({
   },
 });
 
+// Debug mode. Trigger with `kill -SIGUSR2 {pid}`
+Rx.fromEvent(process, "SIGUSR2")
+  .pipe(RxO.first())
+  .subscribe(() => {
+    client.gateway.raw$.subscribe(console.log);
+  });
+
 const command$ = Commands.create(client)("!");
 
 command$({ name: "ping" })
   .pipe(RxO.flatMap(({ reply }) => reply("Pong!")))
   .subscribe();
-```

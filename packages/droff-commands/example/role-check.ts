@@ -1,14 +1,17 @@
 require("dotenv").config();
 
 import * as RxO from "rxjs/operators";
-import { createClient, Intents } from "../src/mod";
+import { createClient, Intents } from "droff";
+import * as Commands from "../src/mod";
 
 const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
-  intents: Intents.GUILD_MESSAGES,
+  gateway: {
+    intents: Intents.GUILD_MESSAGES,
+  },
 });
 
-const command$ = client.command$("!");
+const command$ = Commands.create(client)("!");
 
 command$({ name: "role-check" })
   .pipe(

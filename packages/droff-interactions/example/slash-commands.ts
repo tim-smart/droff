@@ -1,20 +1,23 @@
 require("dotenv").config();
 
-import * as Rx from "rxjs";
-import * as RxO from "rxjs/operators";
-import { createClient, Intents, Permissions } from "../src/mod";
+import { createClient, Intents, Permissions } from "droff";
 import {
   ApplicationCommandPermissionType,
   ButtonStyle,
   ComponentType,
-} from "../src/types";
+} from "droff/dist/types";
+import * as Rx from "rxjs";
+import * as RxO from "rxjs/operators";
+import * as SlashCommands from "../src/mod";
 
 const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
-  intents: Intents.GUILDS,
+  gateway: {
+    intents: Intents.GUILDS,
+  },
 });
 
-const commands = client.useSlashCommands();
+const commands = SlashCommands.create(client);
 
 // Global commands are for every guild.
 // They can take up to an hour to show up.
@@ -103,6 +106,7 @@ commands
   )
   .subscribe();
 
+// Button / component interaction
 commands
   .component("admin-button")
   .pipe(

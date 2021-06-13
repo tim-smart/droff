@@ -10,6 +10,14 @@ Simple Discord client powered by RxJS and Axios
   property on the client can be destructured and used without worrying about
   scope.
 
+## Packages
+
+| Name                                                                                           | Description                                                      |
+| ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| [droff](https://github.com/tim-smart/droff/tree/main/packages/droff)                           | The core Discord client library                                  |
+| [droff-interactions](https://github.com/tim-smart/droff/tree/main/packages/droff-interactions) | Accompanying library for using slash commands and buttons        |
+| [droff-commands](https://github.com/tim-smart/droff/tree/main/packages/droff-command)          | Accompanying library to help implementing message based commands |
+
 ## Install
 
 ```
@@ -29,6 +37,7 @@ Just a heads up that is a relatively new client library. You should note that:
 - There isn't much documentation
 - There isn't anything implemented for Voice channels
 - Some caches will be missing
+- No benchmarking / optimization has been done at this point
 
 Pull requests are more than welcome :)
 

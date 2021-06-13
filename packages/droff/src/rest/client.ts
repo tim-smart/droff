@@ -38,13 +38,13 @@ export function create({
     timeout: 10000,
   });
 
-  const { request, response, error, start } = RateLimits.interceptors(
+  const { request, response, error, start } = RateLimits.interceptors({
     rateLimitStore,
-  )(
-    rateLimit,
-    1000,
+    globalLimit: rateLimit,
+    globalWindow: 1000,
     debug,
-  )(client);
+    axios: client,
+  });
 
   client.interceptors.request.use(request);
   client.interceptors.response.use(response, error);

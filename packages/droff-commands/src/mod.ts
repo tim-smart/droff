@@ -23,7 +23,7 @@ function escapeRegex(string: string) {
   return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
 }
 
-export const command$ =
+export const create =
   (client: Client) =>
   (prefix: CommandPrefix) =>
   ({ name }: CommandOptions) =>

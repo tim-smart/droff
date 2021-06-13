@@ -1,17 +1,17 @@
 import { AxiosInstance } from "axios";
 import { Observable } from "rxjs";
-import * as Apps from "./gateway-utils/applications";
-import * as Channels from "./gateway-utils/channels";
-import * as Emojis from "./gateway-utils/emojis";
-import * as Guilds from "./gateway-utils/guilds";
-import * as Members from "./gateway-utils/members";
-import * as Resources from "./gateway-utils/resources";
-import * as Roles from "./gateway-utils/roles";
+import * as Apps from "./caches/applications";
+import * as Channels from "./caches/channels";
+import * as Emojis from "./caches/emojis";
+import * as Guilds from "./caches/guilds";
+import * as Members from "./caches/members";
+import * as Resources from "./caches/resources";
+import * as Roles from "./caches/roles";
 import * as GatewayClient from "./gateway/client";
+import * as RL from "./rate-limits/rxjs";
+import * as Store from "./rate-limits/store";
 import * as RestClient from "./rest/client";
 import { Application, Channel, Emoji, Guild, GuildMember, Role } from "./types";
-import * as Store from "./rate-limits/store";
-import * as RL from "./rate-limits/rxjs";
 
 export interface RESTClient extends RestClient.Routes {
   close: () => void;
@@ -45,25 +45,26 @@ export interface Options {
   debug?: boolean;
 
   gateway: Omit<GatewayClient.Options, "token" | "rateLimitStore">;
-  rest: Omit<RestClient.Options, "token" | "rateLimitStore">;
+  rest?: Omit<RestClient.Options, "token" | "rateLimitStore">;
 }
 
 export function create({
   token,
   rateLimitStore = Store.createMemoryStore(),
   debug = false,
-  ...opts
+  rest: restOptions = {},
+  gateway: gatewayOptions,
 }: Options): Client {
   const rest = createRestClient({
     token,
     rateLimitStore,
     debug,
-    ...opts.rest,
+    ...restOptions,
   });
   const gateway = GatewayClient.create(rest)({
     token,
     rateLimitStore,
-    ...opts.gateway,
+    ...gatewayOptions,
   });
 
   // Cached resources

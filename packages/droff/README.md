@@ -18,7 +18,7 @@ Simple Discord client powered by RxJS and Axios
 | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | [droff](https://github.com/tim-smart/droff/tree/main/packages/droff)                           | The core Discord client library                                  |
 | [droff-interactions](https://github.com/tim-smart/droff/tree/main/packages/droff-interactions) | Accompanying library for using slash commands and buttons        |
-| [droff-commands](https://github.com/tim-smart/droff/tree/main/packages/droff-command)          | Accompanying library to help implementing message based commands |
+| [droff-commands](https://github.com/tim-smart/droff/tree/main/packages/droff-commands)         | Accompanying library to help implementing message based commands |
 
 ## Install
 

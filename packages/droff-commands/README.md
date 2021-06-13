@@ -2,6 +2,8 @@
 
 Accompanying library to `droff` for creating message based commands.
 
+It uses [lexure](https://github.com/1Computer1/lexure) for parsing commands.
+
 ## Usage
 
 ```typescript

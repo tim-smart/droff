@@ -15,10 +15,10 @@ const VERSION = 9;
 export interface Options {
   /** Bot token */
   token: string;
+  /** Rate limit store */
+  rateLimitStore: Store.Store;
   /** Global rate limit in requests per second */
   rateLimit?: number;
-  /** Rate limit store */
-  rateLimitStore?: Store.Store;
   /** Turn on debug logging */
   debug?: boolean;
 }

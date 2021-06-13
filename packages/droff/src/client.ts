@@ -39,17 +39,31 @@ export function createRestClient(opts: RestClient.Options): RESTClient {
   };
 }
 
+export interface Options {
+  token: string;
+  rateLimitStore?: Store.Store;
+  debug?: boolean;
+
+  gateway: Omit<GatewayClient.Options, "token" | "rateLimitStore">;
+  rest: Omit<RestClient.Options, "token" | "rateLimitStore">;
+}
+
 export function create({
+  token,
   rateLimitStore = Store.createMemoryStore(),
+  debug = false,
   ...opts
-}: GatewayClient.Options & RestClient.Options): Client {
+}: Options): Client {
   const rest = createRestClient({
+    token,
     rateLimitStore,
-    ...opts,
+    debug,
+    ...opts.rest,
   });
   const gateway = GatewayClient.create(rest)({
+    token,
     rateLimitStore,
-    ...opts,
+    ...opts.gateway,
   });
 
   // Cached resources
@@ -67,7 +81,7 @@ export function create({
     rest.close();
   }
 
-  if (opts.debug) {
+  if (debug) {
     gateway.raw$.subscribe((p) => console.error("[GATEWAY]", p));
   }
 

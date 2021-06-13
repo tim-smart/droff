@@ -9,10 +9,10 @@ import * as Sharder from "./sharder";
 
 export interface Options {
   token: string;
+  rateLimitStore: Store.Store;
   intents: number;
   shardIDs?: number[] | "auto";
   shardCount?: number;
-  rateLimitStore?: Store.Store;
 }
 
 /** A client is one or more shards */
@@ -21,7 +21,7 @@ export const create =
   ({
     token,
     intents,
-    rateLimitStore = Store.createMemoryStore(),
+    rateLimitStore,
     shardIDs = [0],
     shardCount = 1,
   }: Options) => {

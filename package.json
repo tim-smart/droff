@@ -1,43 +1,22 @@
 {
   "name": "droff",
-  "version": "0.14.5",
-  "description": "Simple Discord client powered by RxJS and Axios",
-  "main": "dist/mod.js",
+  "version": "1.0.0",
+  "private": true,
+  "repository": "git@github.com:tim-smart/droff.git",
   "author": "Tim Smart <tim.smart@arisechurch.com>",
   "license": "MIT",
-  "files": [
-    "dist/"
+  "workspaces": [
+    "packages/droff"
   ],
   "scripts": {
-    "types": "discord-api-codegen ../discord-api-docs -l typescript > src/types.ts && prettier -w src/types.ts",
-    "prepare": "husky install && rm -rf dist && tsc"
+    "prepare": "husky install"
   },
   "devDependencies": {
-    "@tim-smart/discord-api-docs-parser": "^0.1.23",
-    "@types/node": "^15.0.2",
-    "@types/ws": "^7.4.2",
-    "dotenv": "^9.0.0",
     "husky": "^6.0.0",
+    "lerna": "^4.0.0",
     "lint-staged": ">=10",
-    "nodemon": "^2.0.7",
-    "prettier": "^2.3.0",
-    "ts-node": "^9.1.1",
-    "typescript": "^4.2.4"
+    "prettier": "^2.3.0"
   },
-  "dependencies": {
-    "axios": "^0.21.1",
-    "fp-ts": "^2.10.5",
-    "immutable": "^4.0.0-rc.12",
-    "reconnecting-ws": "^2.0.4",
-    "rxjs": "^7.0.0",
-    "tslib": "^2.3.0",
-    "ws": "^7.4.5"
-  },
-  "optionalDependencies": {
-    "bufferutil": "^4.0.3",
-    "erlpack": "^0.1.3"
-  },
-  "peerDependencies": {},
   "lint-staged": {
     "*.{ts,md}": "prettier --write"
   }

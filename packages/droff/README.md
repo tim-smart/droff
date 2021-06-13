@@ -72,118 +72,30 @@ client.emojis$;
 
 ## Usage
 
-This example creates a couple of slash commands:
+Basic ping example. Look at `droff-interactions` and `droff-commands` for
+examples that work with slash commands etc.
 
 ```typescript
-import { createClient, Intents, Permissions } from "droff";
-import {
-  ApplicationCommandPermissionType,
-  ButtonStyle,
-  ComponentType,
-} from "droff/dist/types";
-import * as Rx from "rxjs";
+import { createClient, Intents } from "droff";
 import * as RxO from "rxjs/operators";
 
 const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
-  intents: Intents.GUILDS,
+  gateway: {
+    intents: Intents.GUILD_MESSAGES,
+  },
 });
 
-const commands = client.useSlashCommands();
-
-// Global commands are for every guild.
-// They can take up to an hour to show up.
-commands
-  .global({
-    name: "hello",
-    description: "A simple hello command",
-  })
+client
+  .dispatch$("MESSAGE_CREATE")
   .pipe(
-    RxO.flatMap(({ respond, member }) =>
-      respond({ content: `Hi there ${member!.user!.username}` }),
-    ),
-  )
-  .subscribe();
-
-// Guild commands can be enabled / disabled per guild.
-// They show up instantly.
-commands
-  .guild({
-    name: "ping",
-    description: "A simple ping command",
-  })
-  .pipe(RxO.flatMap(({ respond }) => respond({ content: "Pong!" })))
-  .subscribe();
-
-commands
-  .guild({
-    name: "disabled",
-    description: "A disabled command. Will not show up in Discord.",
-    enabled: (_guild) => Rx.of(false),
-  })
-  .pipe(RxO.flatMap(({ respond }) => respond({ content: "Pong!" })))
-  .subscribe();
-
-// You can set role or user level permissions
-commands
-  .guild({
-    name: "admin-only",
-    description: "A restricted command",
-    default_permission: false,
-    permissions: (guild) =>
-      Rx.from(client.getGuildRoles(guild.id)).pipe(
-        // Permissions for roles with ADMINISTRATOR enabled
-        RxO.flatMap((roles) =>
-          roles
-            .filter(
-              (role) => BigInt(role.permissions) & Permissions.ADMINISTRATOR,
-            )
-            .map((role) => ({
-              id: role.id,
-              type: ApplicationCommandPermissionType.ROLE,
-              permission: true,
-            }))
-            .values(),
-        ),
-
-        // Add permissions for the guild owner
-        RxO.startWith({
-          id: guild.owner_id,
-          type: ApplicationCommandPermissionType.USER,
-          permission: true,
-        }),
-      ),
-  })
-  .pipe(
-    RxO.flatMap(({ respond }) =>
-      respond({
-        content: "You are the special.",
-        components: [
-          {
-            type: ComponentType.ACTION_ROW,
-            components: [
-              {
-                type: ComponentType.BUTTON,
-                label: "Here is a button",
-                custom_id: "admin-button",
-                style: ButtonStyle.PRIMARY,
-              },
-            ],
-          },
-        ],
+    RxO.filter((msg) => msg.content === "!ping"),
+    RxO.flatMap((msg) =>
+      client.createMessage(msg.channel_id, {
+        message_reference: { message_id: msg.id },
+        content: "Pong!",
       }),
     ),
   )
   .subscribe();
-
-commands
-  .component("admin-button")
-  .pipe(
-    RxO.flatMap(({ respond }) =>
-      respond({ content: "You clicked a button. wow." }),
-    ),
-  )
-  .subscribe();
-
-commands.start();
 ```

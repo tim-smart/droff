@@ -19,3 +19,5 @@ export {
   GatewayIntents as Intents,
   PermissionFlag as Permissions,
 } from "./types";
+
+export * as Types from "./types";

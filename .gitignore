@@ -1,0 +1,5 @@
+.env
+dist/
+tmp/
+node_modules/
+/discord-api-docs

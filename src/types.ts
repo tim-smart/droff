@@ -2376,7 +2376,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     userId: string,
     options?: O,
   ) => Promise<GuildMember>;
-  /** Returns the guild preview object for the given id. If the user is not in the guild, then the guild must be Discoverable. */
+  /** Returns the guild preview object for the given id. If the user is not in the guild, then the guild must be lurkable (it must be Discoverable or have a live public stage). */
   getGuildPreview: (guildId: string, options?: O) => Promise<GuildPreview>;
   /** Returns an object with one 'pruned' key indicating the number of members that would be removed in a prune operation. Requires the KICK_MEMBERS permission. */
   getGuildPruneCount: (
@@ -3476,6 +3476,8 @@ export interface Invite {
   approximate_member_count?: number;
   /** the expiration date of this invite, returned from the GET /invites/<code> endpoint when with_expiration is true */
   expires_at?: string | null;
+  /** stage instance data if there is a public Stage instance in the Stage channel this invite is for */
+  stage_instance?: InviteStageInstance;
 }
 export interface InviteCreateEvent {
   /** the channel the invite is for */
@@ -3522,6 +3524,16 @@ export interface InviteMetadatum {
   temporary: boolean;
   /** when this invite was created */
   created_at: string;
+}
+export interface InviteStageInstance {
+  /** the members speaking in the Stage */
+  members: GuildMember[];
+  /** the number of users in the Stage */
+  participant_count: number;
+  /** the number of users speaking in the Stage */
+  speaker_count: number;
+  /** the topic of the Stage instance (1-120 characters) */
+  topic: string;
 }
 export enum InviteTargetType {
   STREAM = 1,

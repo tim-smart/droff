@@ -111,7 +111,9 @@ export function create({
   };
 }
 
-export interface Client extends RESTClient {
+export type Client = RESTClient & ClientExtras;
+
+export interface ClientExtras {
   gateway: GatewayClient.Client;
   /** Observable of all the dispatch events */
   all$: GatewayClient.Client["all$"];
@@ -123,9 +125,8 @@ export interface Client extends RESTClient {
    */
   dispatchWithShard$: GatewayClient.Client["dispatchWithShard$"];
 
-  /** Cache of the latest guilds */
+  /** Cache of the latest application */
   application$: Observable<Application>;
-
   /** Cache of the latest guilds */
   guilds$: Observable<Resources.SnowflakeMap<Guild>>;
   /** Cache of the latest roles for each guild */
@@ -141,7 +142,7 @@ export interface Client extends RESTClient {
    * RxJS operator that appends cached data to the stream. E.g.
    *
    * ```typescript
-   * client.dispatch$(Events.GuildMemberAdd).pipe(
+   * client.dispatch$("GUILD_MEMBER_ADD").pipe(
    *   client.withCaches({
    *     roles: client.roles$,
    *   })(({ message }) => message.guild_id),

@@ -2,6 +2,8 @@
 
 Simple Discord client powered by RxJS and Axios
 
+- API documentation: https://tim-smart.github.io/droff/
+
 ## Goals
 
 - Lightweight - Simple Axios wrapper for the REST API with a lean Gateway API

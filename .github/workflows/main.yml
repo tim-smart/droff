@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: Docs
 
 # Controls when the action will run. 
 on:
@@ -34,9 +34,9 @@ jobs:
         run: yarn install
 
       - name: typedoc
-        run: typedoc src/mod.ts
+        run: cd packages/droff && typedoc src/mod.ts
         
       - name: GitHub Pages
         uses: crazy-max/ghaction-github-pages@v2.5.0
         with:
-          build_dir: docs
+          build_dir: packages/droff/docs

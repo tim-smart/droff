@@ -30,6 +30,7 @@
     "immutable": "^4.0.0-rc.12",
     "reconnecting-ws": "^2.0.4",
     "rxjs": "^7.0.0",
+    "tslib": "^2.3.0",
     "ws": "^7.4.5"
   },
   "optionalDependencies": {

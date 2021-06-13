@@ -1,19 +1,15 @@
 export * as Gateway from "./gateway/client";
 export * as Commands from "./gateway/commands";
 export * as Rest from "./rest/client";
-export {
+export type {
   SlashCommandsHelper,
   SlashCommandContext,
 } from "./slash-commands/factory";
 
-export {
-  create as createClient,
-  createRestClient,
-  Client,
-  RESTClient,
-} from "./client";
+export { create as createClient, createRestClient } from "./client";
+export type { Client, RESTClient } from "./client";
 
-export { Store as RateLimitStore } from "./rate-limits/store";
+export type { Store as RateLimitStore } from "./rate-limits/store";
 
 export {
   debounceBy,

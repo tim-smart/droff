@@ -6,10 +6,12 @@
     "target": "ESNext",
     "moduleResolution": "node",
     "module": "CommonJS",
+    "isolatedModules": true,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "removeComments": false
+    "removeComments": false,
+    "importHelpers": true
   },
 
   "include": ["src/**/*"]

@@ -34,7 +34,7 @@ jobs:
         run: yarn install
 
       - name: typedoc
-        run: cd packages/droff && typedoc src/mod.ts
+        run: cd packages/droff && ./node_modules/.bin/typedoc src/mod.ts
         
       - name: GitHub Pages
         uses: crazy-max/ghaction-github-pages@v2.5.0

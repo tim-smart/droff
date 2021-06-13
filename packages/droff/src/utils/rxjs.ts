@@ -34,16 +34,17 @@ export const rateLimit =
   };
 
 export const groupByTime =
-  <T>(op: (time: number) => Rx.MonoTypeOperatorFunction<T>) =>
+  (op: (time: number) => Rx.MonoTypeOperatorFunction<any>) =>
   (window: number) => {
     const operator = op(window);
-    return (key: (item: T) => string) => (source$: Rx.Observable<T>) =>
-      source$.pipe(
-        RxO.groupBy(key, {
-          duration: (group$) => group$.pipe(RxO.debounceTime(window * 2)),
-        }),
-        RxO.mergeMap((group$) => group$.pipe(operator)),
-      );
+    return <T>(key: (item: T) => string) =>
+      (source$: Rx.Observable<T>): Rx.Observable<T> =>
+        source$.pipe(
+          RxO.groupBy(key, {
+            duration: (group$) => group$.pipe(RxO.debounceTime(window * 2)),
+          }),
+          RxO.mergeMap((group$) => group$.pipe(operator)),
+        );
   };
 
 export const rateLimitBy = (

@@ -1,16 +1,16 @@
-import * as F from "fp-ts/function";
-import * as O from "fp-ts/Option";
-import { Map } from "immutable";
-import * as Rx from "rxjs";
-import * as RxO from "rxjs/operators";
-import { Routes } from "../rest/client";
+import { Client } from "droff";
 import {
   ApplicationCommand,
   Guild,
   Interaction,
   InteractionApplicationCommandCallbackDatum,
   InteractionCallbackType,
-} from "../types";
+} from "droff/dist/types";
+import * as F from "fp-ts/function";
+import * as O from "fp-ts/Option";
+import { Map } from "immutable";
+import * as Rx from "rxjs";
+import * as RxO from "rxjs/operators";
 import { GlobalCommand, GuildCommand } from "./factory";
 
 export const enabled =
@@ -23,7 +23,7 @@ export const enabled =
     );
 
 export const respond =
-  (rest: Routes, type: InteractionCallbackType) =>
+  (rest: Client, type: InteractionCallbackType) =>
   (interaction: Interaction) =>
   (data?: InteractionApplicationCommandCallbackDatum) =>
     rest.createInteractionResponse(interaction.id, interaction.token, {
@@ -32,7 +32,7 @@ export const respond =
     });
 
 export const editOriginal =
-  (rest: Routes) =>
+  (rest: Client) =>
   (interaction: Interaction) =>
   (data?: InteractionApplicationCommandCallbackDatum) =>
     rest.editOriginalInteractionResponse(
@@ -42,7 +42,7 @@ export const editOriginal =
     );
 
 export const setPermissions =
-  (rest: Routes) =>
+  (rest: Client) =>
   (guild: Guild, command: GlobalCommand, apiCommand: ApplicationCommand) =>
     F.pipe(
       O.fromNullable(command.permissions),

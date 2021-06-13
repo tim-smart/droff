@@ -1,8 +1,7 @@
-import { Map } from "immutable";
+import { Client } from "droff";
+import { Guild, Message } from "droff/dist/types";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import { Routes } from "../rest/client";
-import { Guild, Message, MessageCreateEvent, Snowflake } from "../types";
 
 export type CommandPrefix =
   | string
@@ -25,15 +24,11 @@ function escapeRegex(string: string) {
 }
 
 export const command$ =
-  (
-    client: Routes,
-    guilds$: Rx.Observable<Map<Snowflake, Guild>>,
-    message$: Rx.Observable<MessageCreateEvent>,
-  ) =>
+  (client: Client) =>
   (prefix: CommandPrefix) =>
   ({ name }: CommandOptions) =>
-    message$.pipe(
-      RxO.withLatestFrom(guilds$),
+    client.dispatch$("MESSAGE_CREATE").pipe(
+      RxO.withLatestFrom(client.guilds$),
       RxO.flatMap(([message, guilds]) => {
         const guild = guilds.get(message.guild_id!);
         const ctx = {
@@ -67,7 +62,7 @@ export const command$ =
       ),
     );
 
-const reply = (client: Routes) => (message: Message) => (content: string) =>
+const reply = (client: Client) => (message: Message) => (content: string) =>
   client.createMessage(message.channel_id, {
     message_reference: { message_id: message.id },
     content,

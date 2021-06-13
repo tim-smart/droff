@@ -2,7 +2,6 @@ import { AxiosInstance } from "axios";
 import { Observable } from "rxjs";
 import * as Apps from "./gateway-utils/applications";
 import * as Channels from "./gateway-utils/channels";
-import * as Commands from "./gateway-utils/commands";
 import * as Emojis from "./gateway-utils/emojis";
 import * as Guilds from "./gateway-utils/guilds";
 import * as Members from "./gateway-utils/members";
@@ -10,7 +9,6 @@ import * as Resources from "./gateway-utils/resources";
 import * as Roles from "./gateway-utils/roles";
 import * as GatewayClient from "./gateway/client";
 import * as RestClient from "./rest/client";
-import * as SlashCommands from "./slash-commands/factory";
 import { Application, Channel, Emoji, Guild, GuildMember, Role } from "./types";
 import * as Store from "./rate-limits/store";
 import * as RL from "./rate-limits/rxjs";
@@ -64,12 +62,6 @@ export function create({
 
   const withCaches = Resources.withCaches(guilds$);
 
-  const command$ = Commands.command$(
-    rest,
-    guilds$,
-    gateway.dispatch$("MESSAGE_CREATE"),
-  );
-
   function close() {
     gateway.close();
     rest.close();
@@ -95,9 +87,6 @@ export function create({
     all$: gateway.all$,
     dispatch$: gateway.dispatch$,
     dispatchWithShard$: gateway.dispatchWithShard$,
-
-    command$,
-    useSlashCommands: SlashCommands.factory(gateway.dispatch$, rest, guilds$),
 
     rateLimit: RL.rateLimit(rateLimitStore),
 
@@ -158,9 +147,6 @@ export interface Client extends RESTClient {
    * );
    */
   onlyWithGuild: typeof Resources.onlyWithGuild;
-
-  command$: ReturnType<typeof Commands.command$>;
-  useSlashCommands: () => SlashCommands.SlashCommandsHelper;
 
   /**
    * RxJS rate limit operator, which uses the store.

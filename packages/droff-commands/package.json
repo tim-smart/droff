@@ -1,0 +1,40 @@
+{
+  "name": "droff-commands",
+  "version": "0.1.0",
+  "description": "Command helpers for the droff discord client",
+  "keywords": [
+    "discord",
+    "commands"
+  ],
+  "author": "Tim Smart <tim.smart@arisechurch.com>",
+  "homepage": "https://github.com/tim-smart/droff#readme",
+  "license": "MIT",
+  "main": "dist/mod.js",
+  "directories": {
+    "dist": "dist",
+    "test": "__tests__"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tim-smart/droff.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1",
+    "prepare": "rm -rf dist && tsc"
+  },
+  "bugs": {
+    "url": "https://github.com/tim-smart/droff/issues"
+  },
+  "devDependencies": {
+    "typescript": "^4.3.2"
+  },
+  "dependencies": {
+    "droff": "^0.14.5",
+    "immutable": "^4.0.0-rc.12",
+    "rxjs": "^7.1.0",
+    "tslib": "^2.3.0"
+  }
+}

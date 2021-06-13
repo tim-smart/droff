@@ -1,10 +1,6 @@
 export * as Gateway from "./gateway/client";
 export * as Commands from "./gateway/commands";
 export * as Rest from "./rest/client";
-export type {
-  SlashCommandsHelper,
-  SlashCommandContext,
-} from "./slash-commands/factory";
 
 export { create as createClient, createRestClient } from "./client";
 export type { Client, RESTClient } from "./client";

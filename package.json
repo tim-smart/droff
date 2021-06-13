@@ -6,7 +6,7 @@
   "author": "Tim Smart <tim.smart@arisechurch.com>",
   "license": "MIT",
   "workspaces": [
-    "packages/droff"
+    "packages/*"
   ],
   "scripts": {
     "prepare": "husky install"

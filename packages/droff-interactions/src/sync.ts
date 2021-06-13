@@ -1,19 +1,18 @@
+import { Client } from "droff";
 import * as F from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { Map } from "immutable";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import { Dispatch } from "../gateway/dispatch";
-import { Routes } from "../rest/client";
-import { Application } from "../types";
 import * as Commands from "./commands";
 import { GlobalCommand, GuildCommand } from "./factory";
 
 export const global =
-  (rest: Routes, app$: Rx.Observable<Pick<Application, "id">>) =>
-  (globalCommands: () => Map<string, GlobalCommand>) => {
-    const globalCommands$ = app$.pipe(
-      RxO.flatMap((app) => rest.getGlobalApplicationCommands(app.id)),
+  (client: Client) => (globalCommands: () => Map<string, GlobalCommand>) => {
+    const { application$ } = client;
+
+    const globalCommands$ = application$.pipe(
+      RxO.flatMap((app) => client.getGlobalApplicationCommands(app.id)),
       RxO.shareReplay(1),
     );
 
@@ -22,9 +21,9 @@ export const global =
       RxO.first(),
       RxO.flatMap((commands) => commands),
       RxO.filter((command) => !globalCommands().has(command.name)),
-      RxO.withLatestFrom(app$),
+      RxO.withLatestFrom(application$),
       RxO.flatMap(([command, app]) =>
-        rest.deleteGlobalApplicationCommand(app.id, command.id),
+        client.deleteGlobalApplicationCommand(app.id, command.id),
       ),
       RxO.catchError(() => Rx.EMPTY),
     );
@@ -35,21 +34,18 @@ export const global =
   };
 
 export const guild =
-  (
-    dispatch$: Dispatch,
-    rest: Routes,
-    app$: Rx.Observable<Pick<Application, "id">>,
-    setPermissions: Commands.SetPermissionsFn,
-  ) =>
+  (client: Client, setPermissions: Commands.SetPermissionsFn) =>
   (guildCommands: () => Map<string, GuildCommand>) => {
+    const { dispatch$, application$ } = client;
+
     // Common guild command observables
     const guildCommands$ = Rx.merge(
       dispatch$("GUILD_CREATE"),
       dispatch$("GUILD_UPDATE"),
     ).pipe(
-      RxO.withLatestFrom(app$),
+      RxO.withLatestFrom(application$),
       RxO.flatMap(([guild, app]) =>
-        Rx.from(rest.getGuildApplicationCommands(app.id, guild.id)).pipe(
+        Rx.from(client.getGuildApplicationCommands(app.id, guild.id)).pipe(
           RxO.catchError(() => Rx.EMPTY),
           RxO.map((commands) => [guild, app, commands] as const),
         ),
@@ -71,7 +67,7 @@ export const guild =
         ([_guild, _app, command]) => !guildCommands().has(command.name),
       ),
       RxO.flatMap(([guild, app, command]) =>
-        rest.deleteGuildApplicationCommand(app.id, guild.id, command.id),
+        client.deleteGuildApplicationCommand(app.id, guild.id, command.id),
       ),
       RxO.catchError(() => Rx.EMPTY),
     );
@@ -97,7 +93,7 @@ export const guild =
     const disableGuildCommands$ = guildCommandWithEnabled$.pipe(
       RxO.filter(([_guild, _app, _command, enabled]) => !enabled),
       RxO.flatMap(([guild, app, command]) =>
-        rest.deleteGuildApplicationCommand(app.id, guild.id, command.id),
+        client.deleteGuildApplicationCommand(app.id, guild.id, command.id),
       ),
       RxO.catchError(() => Rx.EMPTY),
     );
@@ -123,7 +119,7 @@ export const guild =
 
       // Enable the command
       RxO.flatMap(([guild, app, command]) =>
-        rest
+        client
           .createGuildApplicationCommand(app.id, guild.id, command)
           // Set permissions
           .then((apiCommand) => setPermissions(guild, command, apiCommand)),

@@ -1,0 +1,30 @@
+name: gh-pages
+
+on:
+  push:
+    tags:
+      - "droff@*"
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2.1.5
+        with:
+          node-version: 16.x
+
+      - name: yarn
+        run: yarn install
+
+      - name: typedoc
+        run: cd packages/droff && ./node_modules/.bin/typedoc src/mod.ts
+
+      - name: GitHub Pages
+        uses: crazy-max/ghaction-github-pages@v2.5.0
+        with:
+          build_dir: packages/droff/docs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,5 +1,6 @@
 import { AxiosInstance } from "axios";
 import { Observable } from "rxjs";
+import * as Apps from "./gateway-utils/applications";
 import * as Channels from "./gateway-utils/channels";
 import * as Commands from "./gateway-utils/commands";
 import * as Emojis from "./gateway-utils/emojis";
@@ -10,7 +11,7 @@ import * as Roles from "./gateway-utils/roles";
 import * as GatewayClient from "./gateway/client";
 import * as RestClient from "./rest/client";
 import * as SlashCommands from "./slash-commands/factory";
-import { Channel, Emoji, Guild, GuildMember, Role } from "./types";
+import { Application, Channel, Emoji, Guild, GuildMember, Role } from "./types";
 import * as Store from "./rate-limits/store";
 import * as RL from "./rate-limits/rxjs";
 
@@ -54,6 +55,7 @@ export function create({
   });
 
   // Cached resources
+  const application$ = Apps.watch$(gateway.dispatch$);
   const guilds$ = Guilds.watch$(gateway.dispatch$);
   const channels$ = Channels.watch$(gateway.dispatch$);
   const roles$ = Roles.watch$(gateway.dispatch$);
@@ -80,6 +82,7 @@ export function create({
   return {
     gateway,
 
+    application$,
     guilds$,
     channels$,
     roles$,
@@ -115,6 +118,9 @@ export interface Client extends RESTClient {
    * the shard
    */
   dispatchWithShard$: GatewayClient.Client["dispatchWithShard$"];
+
+  /** Cache of the latest guilds */
+  application$: Observable<Application>;
 
   /** Cache of the latest guilds */
   guilds$: Observable<Resources.SnowflakeMap<Guild>>;

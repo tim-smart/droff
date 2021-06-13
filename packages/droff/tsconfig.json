@@ -1,18 +1,4 @@
 {
-  "compilerOptions": {
-    "outDir": "dist",
-    "declaration": true,
-    "lib": ["ESNext"],
-    "target": "ESNext",
-    "moduleResolution": "node",
-    "module": "CommonJS",
-    "isolatedModules": true,
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "removeComments": false,
-    "importHelpers": true
-  },
-
+  "extends": "../../tsconfig.json",
   "include": ["src/**/*"]
 }

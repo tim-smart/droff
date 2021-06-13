@@ -2,6 +2,7 @@ import { Client } from "droff";
 import { Guild, Message } from "droff/dist/types";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
+import { Args, Lexer, longShortStrategy, Parser, Token } from "lexure";
 
 export type CommandPrefix =
   | string
@@ -9,58 +10,77 @@ export type CommandPrefix =
 
 export interface CommandOptions {
   name: string;
+  filterBotMessages?: boolean;
+  createLexer?: (content: string) => Lexer;
+  createParser?: (tokens: Token[]) => Parser;
 }
 
 export interface CommandContext {
   guild: Guild | undefined;
   message: Message;
   command: string;
-  args: string[];
+  args: Args;
   reply: (message: string) => Promise<Message>;
 }
 
-function escapeRegex(string: string) {
-  return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-}
+const parseCommand =
+  (
+    createLexer: CommandOptions["createLexer"] = (content) =>
+      new Lexer(content).setQuotes([
+        ['"', '"'],
+        ["'", "'"],
+      ]),
+    createParser: CommandOptions["createParser"] = (tokens) =>
+      new Parser(tokens).setUnorderedStrategy(longShortStrategy()),
+  ) =>
+  (prefix: string, message: Message) => {
+    const lexer = createLexer(message.content);
+    const [command, getTokens] = lexer.lexCommand(() => prefix.length)!;
+    const parser = createParser(getTokens());
+    return [command.value, new Args(parser.parse())] as const;
+  };
 
 export const create =
   (client: Client) =>
   (prefix: CommandPrefix) =>
-  ({ name }: CommandOptions) =>
-    client.dispatch$("MESSAGE_CREATE").pipe(
+  ({
+    name,
+    filterBotMessages = true,
+    createLexer,
+    createParser,
+  }: CommandOptions) => {
+    const parse = parseCommand(createLexer, createParser);
+    return client.dispatch$("MESSAGE_CREATE").pipe(
+      filterBotMessages
+        ? RxO.filter(({ author }) => author.bot !== true)
+        : (o) => o,
+
       RxO.withLatestFrom(client.guilds$),
       RxO.flatMap(([message, guilds]) => {
         const guild = guilds.get(message.guild_id!);
-        const ctx = {
-          guild,
-          message,
-          command: name,
-          reply: reply(client)(message),
-        };
 
         return Rx.zip(
-          Rx.of(ctx),
           typeof prefix === "string" ? Rx.of(prefix) : prefix(guild),
+          Rx.of(message),
+          Rx.of(guild),
         );
       }),
 
-      RxO.filter(([ctx, prefix]) =>
-        new RegExp(`^${escapeRegex(prefix)}${escapeRegex(name)}\\b`).test(
-          ctx.message.content,
-        ),
-      ),
+      RxO.filter(([prefix, message]) => message.content.startsWith(prefix)),
+      RxO.map(([prefix, message, guild]) => {
+        const [command, args] = parse(prefix, message);
+        return { command, args, guild, message };
+      }),
+      RxO.filter(({ command }) => command === name),
 
       RxO.map(
-        ([ctx, prefix]): CommandContext => ({
+        (ctx): CommandContext => ({
           ...ctx,
-          args: ctx.message.content
-            .slice(prefix.length + name.length)
-            .trim()
-            .replace(/\s+/g, " ")
-            .split(" "),
+          reply: reply(client)(ctx.message),
         }),
       ),
     );
+  };
 
 const reply = (client: Client) => (message: Message) => (content: string) =>
   client.createMessage(message.channel_id, {

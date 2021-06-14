@@ -1,0 +1,40 @@
+{
+  "name": "droff-helpers",
+  "version": "0.1.0",
+  "description": "A utility library for the droff discord client",
+  "keywords": [
+    "droff",
+    "discord",
+    "helpers"
+  ],
+  "author": "Tim Smart <tim.smart@arisechurch.com>",
+  "homepage": "https://github.com/tim-smart/droff#readme",
+  "license": "MIT",
+  "main": "dist/mod.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tim-smart/droff.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/tim-smart/droff/issues"
+  },
+  "dependencies": {
+    "droff": "^0.15.4",
+    "fp-ts": "^2.10.5",
+    "rxjs": "^7.1.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.0.0",
+    "typedoc": "^0.21.0-beta.2"
+  }
+}

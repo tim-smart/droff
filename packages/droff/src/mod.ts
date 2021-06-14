@@ -10,14 +10,6 @@ export type { Dispatch, DispatchWithShard } from "./gateway/dispatch";
 export type { Store as RateLimitStore } from "./rate-limits/store";
 
 export {
-  debounceBy,
-  groupByTime,
-  rateLimit,
-  rateLimitBy,
-  throttleBy,
-} from "./utils/rxjs";
-
-export {
   GatewayIntents as Intents,
   PermissionFlag as Permissions,
 } from "./types";

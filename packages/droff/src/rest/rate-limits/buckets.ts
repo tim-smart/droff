@@ -69,34 +69,28 @@ export const createLimiter = ({
         ),
 
         // Group by bucket or undefined
-        RxO.groupBy(
-          ([_, bucket]) =>
-            F.pipe(
-              bucket,
-              O.map(({ key }) => key),
-              O.toUndefined,
-            ),
-          {
-            duration: (requests$) =>
-              requests$.key
-                ? // Garbage collect bucket rate limiters after inactivity
-                  requests$.pipe(
-                    RxO.debounce(([_, bucket]) =>
-                      Rx.timer(
-                        (bucket as O.Some<Store.BucketDetails>).value
-                          .resetAfter * 2,
-                      ),
-                    ),
-                  )
-                : // Never garbage collect the global pass-through
-                  Rx.NEVER,
-          },
-        ),
+        RxO.groupBy(([_, bucket]) => bucket?.key, {
+          duration: (requests$) =>
+            requests$.key
+              ? // Garbage collect bucket rate limiters after inactivity
+                requests$.pipe(
+                  RxO.debounce(([_, bucket]) =>
+                    Rx.timer(bucket!.resetAfter * 2),
+                  ),
+                )
+              : // Never garbage collect the global pass-through
+                Rx.NEVER,
+        }),
 
         // Apply rate limits
         RxO.mergeMap((requests$) =>
           requests$.key
-            ? F.pipe(requests$, applyRateLimit(rateLimit, whenDebug))
+            ? F.pipe(
+                requests$ as Rx.Observable<
+                  readonly [Request, Store.BucketDetails]
+                >,
+                applyRateLimit(rateLimit, whenDebug),
+              )
             : requests$,
         ),
 
@@ -107,20 +101,12 @@ export const createLimiter = ({
 
 const applyRateLimit =
   (rateLimit: RL.RateLimitOp, whenDebug: LimiterOptions["whenDebug"]) =>
-  (
-    requests$: Rx.Observable<readonly [Request, O.Option<Store.BucketDetails>]>,
-  ) =>
+  (requests$: Rx.Observable<readonly [Request, Store.BucketDetails]>) =>
     F.pipe(
       requests$,
       RxO.first(),
       RxO.flatMap((item) => {
-        const [
-          _,
-          {
-            value: { key, resetAfter, limit },
-          },
-        ] = item as [Request, O.Some<Store.BucketDetails>];
-
+        const [_, { key, resetAfter, limit }] = item;
         return requests$.pipe(
           RxO.startWith(item),
           whenDebug(([request, bucket]) =>

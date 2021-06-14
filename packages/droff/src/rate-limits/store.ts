@@ -11,7 +11,7 @@ export interface Store {
   hasBucket: (bucketKey: string) => Promise<boolean>;
   putBucket: (bucket: BucketDetails) => Promise<void>;
 
-  getBucketForRoute: (route: string) => Promise<O.Option<BucketDetails>>;
+  getBucketForRoute: (route: string) => Promise<BucketDetails | undefined>;
   putBucketRoute: (route: string, bucketKey: string) => Promise<void>;
 
   maybeWait: (key: string, window: number, limit: number) => Promise<void>;
@@ -62,8 +62,7 @@ export const createMemoryStore = (): Store => {
       buckets.set(bucket.key, bucket);
     },
 
-    getBucketForRoute: async (route) =>
-      O.fromNullable(buckets.get(routes.get(route)!)),
+    getBucketForRoute: async (route) => buckets.get(routes.get(route)!),
     putBucketRoute: async (route, bucket) => {
       routes.set(route, bucket);
     },

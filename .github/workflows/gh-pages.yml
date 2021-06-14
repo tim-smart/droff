@@ -37,6 +37,6 @@ jobs:
       - name: GitHub Pages
         uses: crazy-max/ghaction-github-pages@v2.5.0
         with:
-          build_dir: packages/droff/docs
+          build_dir: docs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

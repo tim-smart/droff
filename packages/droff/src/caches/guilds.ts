@@ -11,12 +11,12 @@ export const withOp =
 
 export type GuildMap = Map<Snowflake, Guild>;
 
-export const watch$ = (dispatch$: Dispatch): Rx.Observable<GuildMap> =>
+export const watch$ = (fromDispatch: Dispatch): Rx.Observable<GuildMap> =>
   Rx.merge(
     Rx.of(["init"] as const),
-    dispatch$("GUILD_CREATE").pipe(RxO.map(withOp("create"))),
-    dispatch$("GUILD_UPDATE").pipe(RxO.map(withOp("update"))),
-    dispatch$("GUILD_DELETE").pipe(RxO.map(withOp("delete"))),
+    fromDispatch("GUILD_CREATE").pipe(RxO.map(withOp("create"))),
+    fromDispatch("GUILD_UPDATE").pipe(RxO.map(withOp("update"))),
+    fromDispatch("GUILD_DELETE").pipe(RxO.map(withOp("delete"))),
   ).pipe(
     RxO.scan((map, op) => {
       if (op[0] === "init") {

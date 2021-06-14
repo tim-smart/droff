@@ -3,17 +3,17 @@ import { Dispatch } from "../gateway/dispatch";
 import { Role } from "../types";
 import * as Resources from "./resources";
 
-export const watch$ = (dispatch$: Dispatch) =>
-  Resources.watch$<Role>(dispatch$, "roles", {
+export const watch$ = (fromDispatch: Dispatch) =>
+  Resources.watch$<Role>(fromDispatch, "roles", {
     id: (role) => role.id,
 
-    create$: dispatch$("GUILD_ROLE_CREATE").pipe(
+    create$: fromDispatch("GUILD_ROLE_CREATE").pipe(
       RxO.map(({ role, guild_id }) => [guild_id, role] as const),
     ),
-    update$: dispatch$("GUILD_ROLE_UPDATE").pipe(
+    update$: fromDispatch("GUILD_ROLE_UPDATE").pipe(
       RxO.map(({ role, guild_id }) => [guild_id, role] as const),
     ),
-    delete$: dispatch$("GUILD_ROLE_DELETE").pipe(
+    delete$: fromDispatch("GUILD_ROLE_DELETE").pipe(
       RxO.map(({ role_id, guild_id }) => [guild_id, role_id] as const),
     ),
   });

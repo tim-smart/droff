@@ -5,6 +5,8 @@ export * as Rest from "./rest/client";
 export { create as createClient, createRestClient } from "./client";
 export type { Client, ClientExtras, Options, RESTClient } from "./client";
 
+export type { Dispatch, DispatchWithShard } from "./gateway/dispatch";
+
 export type { Store as RateLimitStore } from "./rate-limits/store";
 
 export {

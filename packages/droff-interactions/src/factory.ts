@@ -94,7 +94,7 @@ export interface SlashCommandsHelper {
 }
 
 export const create = (client: Client): SlashCommandsHelper => {
-  const { dispatch$, application$, guilds$ } = client;
+  const { fromDispatch, application$, guilds$ } = client;
 
   // Response helpers
   const respond = Commands.respond(
@@ -129,13 +129,13 @@ export const create = (client: Client): SlashCommandsHelper => {
   const setPermissions = Commands.setPermissions(client);
 
   // Shared command create observable
-  const interactionCreate$ = dispatch$("INTERACTION_CREATE").pipe(
+  const interactionCreate$ = fromDispatch("INTERACTION_CREATE").pipe(
     RxO.filter((i) => i.type === InteractionType.APPLICATION_COMMAND),
     RxO.map(createContext),
     RxO.share(),
   );
 
-  const interactionComponent$ = dispatch$("INTERACTION_CREATE").pipe(
+  const interactionComponent$ = fromDispatch("INTERACTION_CREATE").pipe(
     RxO.filter((i) => i.type === InteractionType.MESSAGE_COMPONENT),
     RxO.map(createContext),
     RxO.share(),
@@ -204,7 +204,7 @@ export const create = (client: Client): SlashCommandsHelper => {
   };
 
   // Respond to pings
-  const pingPong$ = dispatch$("INTERACTION_CREATE").pipe(
+  const pingPong$ = fromDispatch("INTERACTION_CREATE").pipe(
     RxO.filter((i) => i.type === InteractionType.PING),
     RxO.flatMap((ping) =>
       client.createInteractionResponse(ping.id, ping.token, {

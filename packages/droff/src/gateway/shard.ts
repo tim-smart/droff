@@ -23,16 +23,16 @@ export function create({
 }: Options) {
   const conn = Conn.create(baseURL, rateLimit);
 
-  const dispatch$ = Dispatch.listen$(conn.dispatch$);
-  const sequenceNumber = Internal.latestSequenceNumber(conn.dispatch$);
-  const latestReady = Internal.latestReady(dispatch$, conn.invalidSession$);
+  const fromDispatch = Dispatch.listen(conn.dispatch$);
+  const sequenceNumber$ = Internal.latestSequenceNumber(conn.dispatch$);
+  const latestReady$ = Internal.latestReady(fromDispatch, conn.invalidSession$);
 
   // Identify
   F.pipe(
     Internal.identify$(
       conn,
-      latestReady,
-      sequenceNumber,
+      latestReady$,
+      sequenceNumber$,
     )(token, {
       intents,
       shard,
@@ -43,7 +43,7 @@ export function create({
   // Heartbeats
   const [heartbeats$, heartbeatDiff$] = Internal.heartbeats$(
     conn,
-    sequenceNumber,
+    sequenceNumber$,
   );
 
   F.pipe(
@@ -69,7 +69,7 @@ export function create({
     send: conn.send,
     raw$: conn.raw$,
     dispatch$: conn.dispatch$,
-    ready$: latestReady,
+    ready$: latestReady$,
     close: () => conn.close(),
     reconnect: () => conn.reconnect(),
   };

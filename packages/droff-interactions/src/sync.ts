@@ -36,12 +36,12 @@ export const global =
 export const guild =
   (client: Client, setPermissions: Commands.SetPermissionsFn) =>
   (guildCommands: () => Map<string, GuildCommand>) => {
-    const { dispatch$, application$ } = client;
+    const { fromDispatch, application$ } = client;
 
     // Common guild command observables
     const guildCommands$ = Rx.merge(
-      dispatch$("GUILD_CREATE"),
-      dispatch$("GUILD_UPDATE"),
+      fromDispatch("GUILD_CREATE"),
+      fromDispatch("GUILD_UPDATE"),
     ).pipe(
       RxO.withLatestFrom(application$),
       RxO.flatMap(([guild, app]) =>

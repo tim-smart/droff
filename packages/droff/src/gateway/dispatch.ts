@@ -13,7 +13,7 @@ export type DispatchWithShard = <E extends keyof GatewayEvents>(
   event: E,
 ) => Rx.Observable<readonly [GatewayEvents[E], Shard]>;
 
-export const listen$ = (source$: Rx.Observable<any>): Dispatch =>
+export const listen = (source$: Rx.Observable<any>): Dispatch =>
   memoize((event) =>
     source$.pipe(
       RxO.filter((p) => p.t === event),
@@ -22,7 +22,7 @@ export const listen$ = (source$: Rx.Observable<any>): Dispatch =>
     ),
   );
 
-export const listenWithShard$ = (
+export const listenWithShard = (
   source$: Rx.Observable<readonly [GatewayPayload, Shard]>,
 ): DispatchWithShard =>
   memoize((event) =>
@@ -33,11 +33,11 @@ export const listenWithShard$ = (
     ),
   );
 
-export const latest$ =
-  (dispatch$: Dispatch) =>
+export const latestDispatch =
+  (fromDispatch: Dispatch) =>
   <E extends keyof GatewayEvents>(
     event: E,
   ): Rx.Observable<O.Option<GatewayEvents[E]>> =>
-    Rx.merge(Rx.of(O.none), dispatch$(event).pipe(RxO.map(O.some))).pipe(
+    Rx.merge(Rx.of(O.none), fromDispatch(event).pipe(RxO.map(O.some))).pipe(
       RxO.shareReplay(1),
     );

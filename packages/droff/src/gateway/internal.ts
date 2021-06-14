@@ -87,11 +87,11 @@ export const latestSequenceNumber = (
 ) => latest(dispatch$, (p) => O.fromNullable(p.s), O.none);
 
 export const latestReady = (
-  dispatch$: Dispatch.Dispatch,
+  fromDispatch: Dispatch.Dispatch,
   invalidSession$: Rx.Observable<GatewayPayload<InvalidSessionEvent>>,
 ): Rx.Observable<O.Option<ReadyEvent>> =>
   Rx.merge(
-    Dispatch.latest$(dispatch$)("READY"),
+    Dispatch.latestDispatch(fromDispatch)("READY"),
     invalidSession$.pipe(
       RxO.flatMap((data) => (data.d ? Rx.EMPTY : Rx.of(O.none))),
     ),

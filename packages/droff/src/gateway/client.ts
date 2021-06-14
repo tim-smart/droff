@@ -79,9 +79,9 @@ export const create =
       RxO.share(),
     );
 
-    const fromDispatch = Dispatch.listen$(dispatch$);
-    const fromDispatchWithShard = Dispatch.listenWithShard$(dispatchWithShard$);
-    const latestDispatch = Dispatch.latest$(fromDispatch);
+    const fromDispatch = Dispatch.listen(dispatch$);
+    const fromDispatchWithShard = Dispatch.listenWithShard(dispatchWithShard$);
+    const latestDispatch = Dispatch.latestDispatch(fromDispatch);
 
     return {
       raw$,

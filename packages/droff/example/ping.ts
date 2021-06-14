@@ -11,7 +11,7 @@ const client = createClient({
 });
 
 client
-  .dispatch$("MESSAGE_CREATE")
+  .fromDispatch("MESSAGE_CREATE")
   .pipe(
     RxO.filter((msg) => msg.content === "!ping"),
     RxO.flatMap((msg) =>

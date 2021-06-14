@@ -50,7 +50,7 @@ export const create =
     createParser,
   }: CommandOptions) => {
     const parse = parseCommand(createLexer, createParser);
-    return client.dispatch$("MESSAGE_CREATE").pipe(
+    return client.fromDispatch("MESSAGE_CREATE").pipe(
       filterBotMessages
         ? RxO.filter(({ author }) => author.bot !== true)
         : (o) => o,

@@ -2,6 +2,8 @@
 
 A collection of helper functions to help making bots with `droff` easier.
 
+- API documentation: https://tim-smart.github.io/droff/droff-helpers/
+
 ## Usage
 
 ```typescript

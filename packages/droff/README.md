@@ -2,7 +2,7 @@
 
 Simple Discord client powered by RxJS and Axios
 
-- API documentation: https://tim-smart.github.io/droff/
+- API documentation: https://tim-smart.github.io/droff/droff/
 
 ## Goals
 

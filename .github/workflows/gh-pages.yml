@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - "droff@*"
+      - "droff-helpers@*"
+
+  workflow_dispatch:
 
 jobs:
   docs:
@@ -19,8 +22,14 @@ jobs:
       - name: yarn
         run: yarn install
 
-      - name: typedoc
-        run: cd packages/droff && ./node_modules/.bin/typedoc src/mod.ts
+      - name: root-docs
+        run: mkdir docs
+
+      - name: typedoc-droff
+        run: cd packages/droff && ./node_modules/.bin/typedoc src/mod.ts && mv docs ../../docs/droff
+
+      - name: typedoc-droff-helpers
+        run: cd packages/droff-helpers && ./node_modules/.bin/typedoc src/mod.ts && mv docs ../../docs/droff-helpers
 
       - name: GitHub Pages
         uses: crazy-max/ghaction-github-pages@v2.5.0

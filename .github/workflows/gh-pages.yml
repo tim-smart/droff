@@ -3,8 +3,7 @@ name: gh-pages
 on:
   push:
     tags:
-      - "droff@*"
-      - "droff-helpers@*"
+      - "**"
 
   workflow_dispatch:
 

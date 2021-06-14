@@ -68,12 +68,12 @@ export function create({
   });
 
   // Cached resources
-  const application$ = Apps.watch$(gateway.dispatch$);
-  const guilds$ = Guilds.watch$(gateway.dispatch$);
-  const channels$ = Channels.watch$(gateway.dispatch$);
-  const roles$ = Roles.watch$(gateway.dispatch$);
-  const emojis$ = Emojis.watch$(gateway.dispatch$);
-  const members$ = Members.watch$(gateway.dispatch$);
+  const application$ = Apps.watch$(gateway.fromDispatch);
+  const guilds$ = Guilds.watch$(gateway.fromDispatch);
+  const channels$ = Channels.watch$(gateway.fromDispatch);
+  const roles$ = Roles.watch$(gateway.fromDispatch);
+  const emojis$ = Emojis.watch$(gateway.fromDispatch);
+  const members$ = Members.watch$(gateway.fromDispatch);
 
   const withCaches = Resources.withCaches(guilds$);
 
@@ -99,9 +99,9 @@ export function create({
 
     onlyWithGuild: Resources.onlyWithGuild,
 
-    all$: gateway.all$,
     dispatch$: gateway.dispatch$,
-    dispatchWithShard$: gateway.dispatchWithShard$,
+    fromDispatch: gateway.fromDispatch,
+    fromDispatchWithShard: gateway.fromDispatchWithShard,
 
     rateLimit: RL.rateLimit(rateLimitStore),
 
@@ -116,14 +116,14 @@ export type Client = RESTClient & ClientExtras;
 export interface ClientExtras {
   gateway: GatewayClient.Client;
   /** Observable of all the dispatch events */
-  all$: GatewayClient.Client["all$"];
-  /** Helper function to listen to an individual dispatch event */
   dispatch$: GatewayClient.Client["dispatch$"];
+  /** Helper function to listen to an individual dispatch event */
+  fromDispatch: GatewayClient.Client["fromDispatch"];
   /**
    * Helper function to listen to an individual dispatch event, along with
    * the shard
    */
-  dispatchWithShard$: GatewayClient.Client["dispatchWithShard$"];
+  fromDispatchWithShard: GatewayClient.Client["fromDispatchWithShard"];
 
   /** Cache of the latest application */
   application$: Observable<Application>;

@@ -1,7 +1,7 @@
 import { Map } from "immutable";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import * as GatewayClient from "../gateway/client";
+import { Dispatch } from "../gateway/dispatch";
 import { Guild, Snowflake } from "../types";
 
 export const withOp =
@@ -11,9 +11,7 @@ export const withOp =
 
 export type GuildMap = Map<Snowflake, Guild>;
 
-export const watch$ = (
-  dispatch$: GatewayClient.Client["dispatch$"],
-): Rx.Observable<GuildMap> =>
+export const watch$ = (dispatch$: Dispatch): Rx.Observable<GuildMap> =>
   Rx.merge(
     Rx.of(["init"] as const),
     dispatch$("GUILD_CREATE").pipe(RxO.map(withOp("create"))),

@@ -17,14 +17,14 @@ export interface CrudObserables<T> {
 }
 
 export const watch$ = <T>(
-  dispatch$: Dispatch,
+  fromDispatch: Dispatch,
   guildProp: keyof Guild,
   { id, create$ = Rx.EMPTY, update$, delete$ = Rx.EMPTY }: CrudObserables<T>,
 ): Rx.Observable<GuildSnowflakeMap<T>> =>
   Rx.merge(
     Rx.of(["init"] as const),
 
-    dispatch$("GUILD_CREATE").pipe(
+    fromDispatch("GUILD_CREATE").pipe(
       RxO.flatMap((guild) =>
         Rx.from(((guild[guildProp]! as any[]) || []) as T[]).pipe(
           RxO.map((r) => [guild.id, r] as const),
@@ -32,7 +32,7 @@ export const watch$ = <T>(
       ),
       RxO.map(withOp("create")),
     ),
-    dispatch$("GUILD_DELETE").pipe(RxO.map(withOp("guild_delete"))),
+    fromDispatch("GUILD_DELETE").pipe(RxO.map(withOp("guild_delete"))),
 
     create$.pipe(RxO.map(withOp("create"))),
     update$.pipe(RxO.map(withOp("update"))),

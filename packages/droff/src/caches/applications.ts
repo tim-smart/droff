@@ -1,8 +1,8 @@
 import * as RxO from "rxjs/operators";
-import * as GatewayClient from "../gateway/client";
+import { Dispatch } from "../gateway/dispatch";
 
-export const watch$ = (dispatch$: GatewayClient.Client["dispatch$"]) =>
-  dispatch$("READY").pipe(
+export const watch$ = (fromDispatch: Dispatch) =>
+  fromDispatch("READY").pipe(
     RxO.map((ready) => ready.application),
     RxO.shareReplay(1),
   );

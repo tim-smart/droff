@@ -79,17 +79,16 @@ export const create =
       RxO.share(),
     );
 
-    const dispatchListen = Dispatch.listen$(dispatch$);
-    const dispatchWithShardListen =
-      Dispatch.listenWithShard$(dispatchWithShard$);
-    const dispatchLatest = Dispatch.latest$(dispatchListen);
+    const fromDispatch = Dispatch.listen$(dispatch$);
+    const fromDispatchWithShard = Dispatch.listenWithShard$(dispatchWithShard$);
+    const latestDispatch = Dispatch.latest$(fromDispatch);
 
     return {
       raw$,
-      all$: dispatch$,
-      dispatch$: dispatchListen,
-      dispatchWithShard$: dispatchWithShardListen,
-      latest$: dispatchLatest,
+      dispatch$,
+      fromDispatch,
+      fromDispatchWithShard,
+      latestDispatch,
       shards$: shards$,
       shardsArray$: shardsAcc$,
       close,

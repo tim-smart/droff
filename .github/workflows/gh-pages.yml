@@ -25,6 +25,9 @@ jobs:
       - name: root-docs
         run: mkdir docs
 
+      - name: build-droff
+        run: cd packages/droff && ./node_modules/.bin/tsc
+
       - name: typedoc-droff
         run: cd packages/droff && ./node_modules/.bin/typedoc src/mod.ts && mv docs ../../docs/droff
 

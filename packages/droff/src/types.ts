@@ -156,7 +156,7 @@ export interface Application {
   /** the application's default rich presence invite cover image hash */
   cover_image?: string;
   /** the application's public flags */
-  flags: number;
+  flags?: number;
 }
 export interface ApplicationCommand {
   /** unique id of the command */
@@ -1551,6 +1551,13 @@ export function createRoutes<O = any>(
         params,
         options,
       }),
+    modifyCurrentUserVoiceState: (guildId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/guilds/${guildId}/voice-states/@me`,
+        params,
+        options,
+      }),
     modifyGuild: (guildId, params, options) =>
       fetch({
         method: "PATCH",
@@ -1611,6 +1618,20 @@ export function createRoutes<O = any>(
       fetch({
         method: "PATCH",
         url: `/guilds/${guildId}/widget`,
+        options,
+      }),
+    modifyStageInstance: (channelId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/stage-instances/${channelId}`,
+        params,
+        options,
+      }),
+    modifyUserVoiceState: (guildId, userId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/guilds/${guildId}/voice-states/${userId}`,
+        params,
         options,
       }),
     modifyWebhook: (webhookId, params, options) =>
@@ -1693,27 +1714,6 @@ export function createRoutes<O = any>(
       fetch({
         method: "DELETE",
         url: `/channels/${channelId}/pins/${messageId}`,
-        options,
-      }),
-    updateCurrentUserVoiceState: (guildId, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/guilds/${guildId}/voice-states/@me`,
-        params,
-        options,
-      }),
-    updateStageInstance: (channelId, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/stage-instances/${channelId}`,
-        params,
-        options,
-      }),
-    updateUserVoiceState: (guildId, userId, params, options) =>
-      fetch({
-        method: "PATCH",
-        url: `/guilds/${guildId}/voice-states/${userId}`,
-        params,
         options,
       }),
   };
@@ -2538,6 +2538,12 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params: Partial<ModifyCurrentUserNickParams>,
     options?: O,
   ) => Promise<any>;
+  /** Updates the current user's voice state. */
+  modifyCurrentUserVoiceState: (
+    guildId: string,
+    params: Partial<ModifyCurrentUserVoiceStateParams>,
+    options?: O,
+  ) => Promise<any>;
   /** Modify a guild's settings. Requires the MANAGE_GUILD permission. Returns the updated guild object on success. Fires a Guild Update Gateway event. */
   modifyGuild: (
     guildId: string,
@@ -2592,6 +2598,19 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   ) => Promise<WelcomeScreen>;
   /** Modify a guild widget object for the guild. All attributes may be passed in with JSON and modified. Requires the MANAGE_GUILD permission. Returns the updated guild widget object. */
   modifyGuildWidget: (guildId: string, options?: O) => Promise<GuildWidget>;
+  /** Updates fields of an existing Stage instance. */
+  modifyStageInstance: (
+    channelId: string,
+    params: Partial<ModifyStageInstanceParams>,
+    options?: O,
+  ) => Promise<any>;
+  /** Updates another user's voice state. */
+  modifyUserVoiceState: (
+    guildId: string,
+    userId: string,
+    params: Partial<ModifyUserVoiceStateParams>,
+    options?: O,
+  ) => Promise<any>;
   /** Modify a webhook. Requires the MANAGE_WEBHOOKS permission. Returns the updated webhook object on success. */
   modifyWebhook: (
     webhookId: string,
@@ -2666,25 +2685,6 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   unpinMessage: (
     channelId: string,
     messageId: string,
-    options?: O,
-  ) => Promise<any>;
-  /** Updates the current user's voice state. */
-  updateCurrentUserVoiceState: (
-    guildId: string,
-    params: Partial<UpdateCurrentUserVoiceStateParams>,
-    options?: O,
-  ) => Promise<any>;
-  /** Updates fields of an existing Stage instance. */
-  updateStageInstance: (
-    channelId: string,
-    params: Partial<UpdateStageInstanceParams>,
-    options?: O,
-  ) => Promise<any>;
-  /** Updates another user's voice state. */
-  updateUserVoiceState: (
-    guildId: string,
-    userId: string,
-    params: Partial<UpdateUserVoiceStateParams>,
     options?: O,
   ) => Promise<any>;
 }
@@ -3882,6 +3882,14 @@ export interface ModifyCurrentUserParams {
   /** if passed, modifies the user's avatar */
   avatar?: string | null;
 }
+export interface ModifyCurrentUserVoiceStateParams {
+  /** the id of the channel the user is currently in */
+  channel_id: Snowflake;
+  /** toggles the user's suppress state */
+  suppress?: boolean;
+  /** sets the user's request to speak */
+  request_to_speak_timestamp?: string | null;
+}
 export interface ModifyGuildChannelPositionParams {
   /** channel id */
   id: Snowflake;
@@ -3981,6 +3989,18 @@ export interface ModifyGuildWelcomeScreenParams {
   welcome_channels: WelcomeScreenChannel[];
   /** the server description to show in the welcome screen */
   description: string;
+}
+export interface ModifyStageInstanceParams {
+  /** The topic of the Stage instance (1-120 characters) */
+  topic?: string;
+  /** The privacy level of the Stage instance */
+  privacy_level?: PrivacyLevel;
+}
+export interface ModifyUserVoiceStateParams {
+  /** the id of the channel the user is currently in */
+  channel_id: Snowflake;
+  /** toggles the user's suppress state */
+  suppress?: boolean;
 }
 export interface ModifyWebhookParams {
   /** the default name of the webhook */
@@ -4347,14 +4367,6 @@ export interface UnavailableGuild {
   /**  */
   unavailable: boolean;
 }
-export interface UpdateCurrentUserVoiceStateParams {
-  /** the id of the channel the user is currently in */
-  channel_id: Snowflake;
-  /** toggles the user's suppress state */
-  suppress?: boolean;
-  /** sets the user's request to speak */
-  request_to_speak_timestamp?: string | null;
-}
 export interface UpdatePresence {
   /** unix time (in milliseconds) of when the client went idle, or null if the client is not idle */
   since?: number | null;
@@ -4364,18 +4376,6 @@ export interface UpdatePresence {
   status: StatusType;
   /** whether or not the client is afk */
   afk: boolean;
-}
-export interface UpdateStageInstanceParams {
-  /** The topic of the Stage instance (1-120 characters) */
-  topic?: string;
-  /** The privacy level of the Stage instance */
-  privacy_level?: PrivacyLevel;
-}
-export interface UpdateUserVoiceStateParams {
-  /** the id of the channel the user is currently in */
-  channel_id: Snowflake;
-  /** toggles the user's suppress state */
-  suppress?: boolean;
 }
 export interface UpdateVoiceState {
   /** id of the guild */

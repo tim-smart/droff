@@ -1,5 +1,5 @@
 import { Client } from "droff";
-import { Guild, Message } from "droff/dist/types";
+import { CreateMessageParams, Guild, Message } from "droff/dist/types";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { Args, Lexer, longShortStrategy, Parser, Token } from "lexure";
@@ -20,8 +20,11 @@ export interface CommandContext {
   message: Message;
   command: string;
   args: Args;
-  reply: (message: string) => Promise<Message>;
+  reply: (message: Partial<CreateMessageParams>) => Promise<Message>;
 }
+export type CreateCommand = (
+  config: CommandOptions,
+) => Rx.Observable<CommandContext>;
 
 const parseCommand =
   (
@@ -42,13 +45,8 @@ const parseCommand =
 
 export const create =
   (client: Client) =>
-  (prefix: CommandPrefix) =>
-  ({
-    name,
-    filterBotMessages = true,
-    createLexer,
-    createParser,
-  }: CommandOptions) => {
+  (prefix: CommandPrefix): CreateCommand =>
+  ({ name, filterBotMessages = true, createLexer, createParser }) => {
     const parse = parseCommand(createLexer, createParser);
     return client.fromDispatch("MESSAGE_CREATE").pipe(
       filterBotMessages
@@ -82,8 +80,11 @@ export const create =
     );
   };
 
-const reply = (client: Client) => (message: Message) => (content: string) =>
-  client.createMessage(message.channel_id, {
-    message_reference: { message_id: message.id },
-    content,
-  });
+const reply =
+  (client: Client) =>
+  (message: Message) =>
+  (content: Partial<CreateMessageParams>) =>
+    client.createMessage(message.channel_id, {
+      message_reference: { message_id: message.id },
+      ...content,
+    });

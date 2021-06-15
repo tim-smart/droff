@@ -1,8 +1,9 @@
 name: gh-pages
 
 on:
-  release:
-    types: [published, created, edited]
+  push:
+    branches:
+      - main
 
   workflow_dispatch:
 

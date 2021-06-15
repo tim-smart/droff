@@ -9,20 +9,54 @@ export type CommandPrefix =
   | ((guild: Guild | undefined) => Promise<string>);
 
 export interface CommandOptions {
+  /** The name for the command, excluding the prefix */
   name: string;
+
+  /**
+   * Do you want to filter out message's from bot users?
+   *
+   * Defaults to `true`
+   */
   filterBotMessages?: boolean;
+
+  /**
+   * Create a custom `lexure.Lexer` for parsing commands.
+   */
   createLexer?: (content: string) => Lexer;
+
+  /**
+   * Create a custom `lexure.Parser` for parsing commands.
+   */
   createParser?: (tokens: Token[]) => Parser;
 }
 
 export interface CommandContext {
+  /**
+   * The guild the channel was in. Is `undefined` if the message was a DM.
+   */
   guild: Guild | undefined;
+
+  /**
+   * The `Message` object
+   */
   message: Message;
+
+  /**
+   * The name of the command that was received.
+   */
   command: string;
+
+  /**
+   * The `lexure.Args` instance, from parsing the command + arguments.
+   */
   args: Args;
+
+  /**
+   * Helper method for quickly replying to a message.
+   */
   reply: (message: Partial<CreateMessageParams>) => Promise<Message>;
 }
-export type CreateCommand = (
+export type CreateCommandFn = (
   config: CommandOptions,
 ) => Rx.Observable<CommandContext>;
 
@@ -43,9 +77,25 @@ const parseCommand =
     return [command.value, new Args(parser.parse())] as const;
   };
 
+/**
+ * Create a instance of the command helper utility. You pass in a droff client
+ * and specify a prefix or prefix function.
+ *
+ * Example:
+ *
+ * ```
+ * import * as Commands from "droff-commands";
+ *
+ * const createCommand = Commands.create(client)("!");
+ *
+ * const createCommandWithCustomPrefix = Commands.create(client)(async (guild) =>
+ *   getPrefixForGuild(guild),
+ * );
+ * ```
+ */
 export const create =
   (client: Client) =>
-  (prefix: CommandPrefix): CreateCommand =>
+  (prefix: CommandPrefix): CreateCommandFn =>
   ({ name, filterBotMessages = true, createLexer, createParser }) => {
     const parse = parseCommand(createLexer, createParser);
     return client.fromDispatch("MESSAGE_CREATE").pipe(

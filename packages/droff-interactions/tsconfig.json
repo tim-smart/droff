@@ -4,5 +4,11 @@
 
   "compilerOptions": {
     "outDir": "./dist"
+  },
+
+  "typedocOptions": {
+    "out": "docs",
+    "gitRevision": "main",
+    "theme": "minimal"
   }
 }

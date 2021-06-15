@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "types": "discord-api-codegen ./discord-api-docs -l typescript > src/types.ts && prettier -w src/types.ts",
+    "docs": "rm -rf docs && typedoc src/mod.ts",
     "prepare": "rm -rf dist && tsc"
   },
   "devDependencies": {

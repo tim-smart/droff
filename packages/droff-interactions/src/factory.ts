@@ -89,10 +89,29 @@ export interface SlashCommandsHelper {
   /**
    * An observable of side effects. By `subscribe`-ing you start the syncing of
    * commands to Discord.
+   *
+   * It is not required for the commands to function, but you would then have to
+   * manually create any commands using the API.
    */
   effects$: Rx.Observable<void>;
 }
 
+/**
+ * Create the interaction helpers by passing in a droff client.
+ *
+ * ```
+ * import * as Interactions from "droff-interactions";
+ *
+ * const interactions = Interactions.create(client);
+ *
+ * const ping$ = interactions.global({
+ *   name: "ping",
+ *   description: "A simple ping command",
+ * }).pipe(RxO.flatMap(...));
+ *
+ * Rx.merge(interactions.effects$, ping$).subscribe();
+ * ```
+ */
 export const create = (client: Client): SlashCommandsHelper => {
   const { fromDispatch, application$, guilds$ } = client;
 

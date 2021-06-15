@@ -4,6 +4,8 @@ Accompanying library to `droff` for creating message based commands.
 
 It uses [lexure](https://github.com/1Computer1/lexure) for parsing commands.
 
+- API documentation: https://tim-smart.github.io/droff/droff-commands/
+
 ## Usage
 
 ```typescript

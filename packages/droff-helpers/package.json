@@ -22,7 +22,8 @@
     "url": "git+https://github.com/tim-smart/droff.git"
   },
   "scripts": {
-    "prepare": "rm -rf dist && tsc"
+    "prepare": "rm -rf dist && tsc",
+    "docs": "rm -rf docs && typedoc src/mod.ts"
   },
   "bugs": {
     "url": "https://github.com/tim-smart/droff/issues"

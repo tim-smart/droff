@@ -9,7 +9,8 @@
     "packages/*"
   ],
   "scripts": {
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "docs": "lerna run docs"
   },
   "devDependencies": {
     "husky": "^6.0.0",

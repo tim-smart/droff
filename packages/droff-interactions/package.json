@@ -11,8 +11,7 @@
   "license": "MIT",
   "main": "dist/mod.js",
   "directories": {
-    "dist": "dist",
-    "test": "__tests__"
+    "dist": "dist"
   },
   "files": [
     "dist"
@@ -22,14 +21,15 @@
     "url": "git+https://github.com/tim-smart/droff.git"
   },
   "scripts": {
-    "test": "echo \"Error: run tests from root\" && exit 1",
-    "prepare": "rm -rf dist && tsc"
+    "prepare": "rm -rf dist && tsc",
+    "docs": "rm -rf docs && typedoc src/mod.ts"
   },
   "bugs": {
     "url": "https://github.com/tim-smart/droff/issues"
   },
   "devDependencies": {
     "ts-node": "^10.0.0",
+    "typedoc": "^0.21.0-beta.3",
     "typescript": "^4.3.2"
   },
   "dependencies": {

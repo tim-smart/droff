@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { createClient, Intents } from "../src/mod";
 
@@ -21,5 +22,4 @@ const pings$ = client.fromDispatch("MESSAGE_CREATE").pipe(
 );
 
 // Subscribe
-pings$.subscribe();
-client.effects$.subscribe();
+Rx.merge(client.effects$, pings$).subscribe();

@@ -83,6 +83,7 @@ function. This essentially starts the client.
 
 ```typescript
 import { createClient, Intents } from "droff";
+import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 
 const client = createClient({
@@ -103,6 +104,5 @@ const pings$ = client.fromDispatch("MESSAGE_CREATE").pipe(
 );
 
 // Subscribe to our side effects
-pings$.subscribe();
-client.effects$.subscribe();
+Rx.merge(client.effects$, pings$).subscribe();
 ```

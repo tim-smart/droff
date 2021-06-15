@@ -21,7 +21,10 @@ const client = createClient({
 
 const command$ = Commands.create(client)("!");
 
-command$({ name: "ping" })
-  .pipe(RxO.flatMap(({ reply }) => reply("Pong!")))
-  .subscribe();
+const ping$ = command$({ name: "ping" }).pipe(
+  RxO.flatMap(({ reply }) => reply("Pong!")),
+);
+
+// Subscribe
+Rx.merge(client.effects$, ping$).subscribe();
 ```

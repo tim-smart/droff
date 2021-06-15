@@ -12,15 +12,11 @@ const client = createClient({
   },
 });
 
-// Debug mode. Trigger with `kill -SIGUSR2 {pid}`
-Rx.fromEvent(process, "SIGUSR2")
-  .pipe(RxO.first())
-  .subscribe(() => {
-    client.gateway.raw$.subscribe(console.log);
-  });
-
 const command$ = Commands.create(client)("!");
 
-command$({ name: "ping" })
-  .pipe(RxO.flatMap(({ reply }) => reply("Pong!")))
-  .subscribe();
+const ping$ = command$({ name: "ping" }).pipe(
+  RxO.flatMap(({ reply }) => reply("Pong!")),
+);
+
+// Subscribe
+Rx.merge(client.effects$, ping$).subscribe();

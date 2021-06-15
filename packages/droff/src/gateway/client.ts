@@ -10,8 +10,29 @@ import * as Sharder from "./sharder";
 export interface Options {
   token: string;
   rateLimitStore: Store.Store;
+
+  /**
+   * Bitfield of the gateway intents you want to subscribe to.
+   * `Intents.GUILDS` is always enabled.
+   */
   intents: number;
+
+  /**
+   * Array of shard IDs you want to start.
+   *
+   * Can also supply 'auto' to have droff automatically start the correct amount
+   * of shards for you.
+   *
+   * Defaults to `[0]`
+   */
   shardIDs?: number[] | "auto";
+
+  /**
+   * The total amount of shards across you entire system.
+   * Ignored if `shardIDs` is set to 'auto'
+   *
+   * Defaults to `1`
+   */
   shardCount?: number;
 }
 

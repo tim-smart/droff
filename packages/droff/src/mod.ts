@@ -7,7 +7,7 @@ export type { Client, ClientExtras, Options, RESTClient } from "./client";
 
 export type { Dispatch, DispatchWithShard } from "./gateway/dispatch";
 
-export type { Store as RateLimitStore } from "./rate-limits/store";
+export * as RateLimitStore from "./rate-limits/store";
 
 export {
   GatewayIntents as Intents,

@@ -40,11 +40,24 @@ export function createRestClient(opts: RestClient.Options): RESTClient {
 }
 
 export interface Options {
+  /** The discord bot token */
   token: string;
+
+  /**
+   * You can supply a custom `RateLimitStore.Store` interface here to change how
+   * rate limit counters and bucket information are stored.
+   *
+   * Defaults to `RateLimitStore.createMemoryStore()`.
+   */
   rateLimitStore?: Store.Store;
+
+  /** Enable debug logging */
   debug?: boolean;
 
+  /** Gateway configuration */
   gateway: Omit<GatewayClient.Options, "token" | "rateLimitStore">;
+
+  /** REST API configuration */
   rest?: Omit<RestClient.Options, "token" | "rateLimitStore">;
 }
 

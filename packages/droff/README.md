@@ -33,46 +33,6 @@ If you want more performance (erlpack not supported on Node 16):
 yarn add bufferutil erlpack
 ```
 
-## What's missing
-
-Just a heads up that is a relatively new client library. You should note that:
-
-- There isn't much documentation
-- There isn't anything implemented for Voice channels
-- Some caches will be missing
-- No benchmarking / optimization has been done at this point
-
-Pull requests are more than welcome :)
-
-## Caching
-
-Droff will only activate the caches that you use. So by default nothing is
-cached.
-
-Here are the caches available to use right now:
-
-```typescript
-import { createClient, Intents } from "../src/mod";
-
-const client = createClient({
-  token: process.env.DISCORD_BOT_TOKEN!,
-  // You will need to enable some intents for the caches to work
-  intents: Intents.GUILD_EMOJIS | Intents.GUILD_MEMBERS,
-});
-
-// Here are the different caches that you can use. Each cache is an Observable
-// which emits maps with the following structure:
-//
-// Map<GuildID, Map<ResourceID, Resource>>
-//
-// Where the `Resource` is the actual API object i.e. channel, role, member etc.
-client.guilds$;
-client.roles$;
-client.channels$;
-client.members$;
-client.emojis$;
-```
-
 ## Usage
 
 Basic ping example. Look at `droff-interactions` and `droff-commands` for
@@ -106,3 +66,43 @@ const pings$ = client.fromDispatch("MESSAGE_CREATE").pipe(
 // Subscribe to our side effects
 Rx.merge(client.effects$, pings$).subscribe();
 ```
+
+## Caching
+
+Droff will only activate the caches that you use. So by default nothing is
+cached.
+
+Here are the caches available to use right now:
+
+```typescript
+import { createClient, Intents } from "../src/mod";
+
+const client = createClient({
+  token: process.env.DISCORD_BOT_TOKEN!,
+  // You will need to enable some intents for the caches to work
+  intents: Intents.GUILD_EMOJIS | Intents.GUILD_MEMBERS,
+});
+
+// Here are the different caches that you can use. Each cache is an Observable
+// which emits maps with the following structure:
+//
+// Map<GuildID, Map<ResourceID, Resource>>
+//
+// Where the `Resource` is the actual API object i.e. channel, role, member etc.
+client.guilds$;
+client.roles$;
+client.channels$;
+client.members$;
+client.emojis$;
+```
+
+## What's missing
+
+Just a heads up that is a relatively new client library. You should note that:
+
+- There isn't much documentation
+- There isn't anything implemented for Voice channels
+- Some caches will be missing
+- No benchmarking / optimization has been done at this point
+
+Pull requests are more than welcome :)

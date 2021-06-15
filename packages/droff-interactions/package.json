@@ -1,6 +1,6 @@
 {
   "name": "droff-interactions",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Helpers for using Discord interactions (slash commands and buttons) with droff",
   "keywords": [
     "discord",
@@ -33,7 +33,7 @@
     "typescript": "^4.3.2"
   },
   "dependencies": {
-    "droff": "^0.16.3",
+    "droff": "^0.16.4",
     "fp-ts": "^2.10.5",
     "immutable": "^4.0.0-rc.12",
     "rxjs": "^7.1.0",

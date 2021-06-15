@@ -3650,7 +3650,7 @@ export interface Message {
   message_reference?: MessageReference;
   /** message flags combined as a bitfield */
   flags?: number;
-  /** the stickers sent with the message (bots currently can only receive messages with stickers, not send) */
+  /** Deprecated the stickers sent with the message (bots currently can only receive messages with stickers, not send) */
   stickers?: MessageSticker[];
   /** the message associated with the message_reference */
   referenced_message?: Message | null;
@@ -3776,17 +3776,25 @@ export interface MessageSticker {
   /** id of the sticker */
   id: Snowflake;
   /** id of the pack the sticker is from */
-  pack_id: Snowflake;
+  pack_id?: Snowflake;
   /** name of the sticker */
   name: string;
   /** description of the sticker */
   description: string;
-  /** a comma-separated list of tags for the sticker */
-  tags?: string;
-  /** sticker asset hash */
+  /** for guild stickers, a unicode emoji representing the sticker's expression. for nitro stickers, a comma-separated list of related expressions. */
+  tags: string;
+  /** Deprecated previously the sticker asset hash, now an empty string */
   asset: string;
   /** type of sticker format */
   format_type: MessageStickerFormatType;
+  /** whether or not the sticker is available */
+  available?: boolean;
+  /** id of the guild that owns this sticker */
+  guild_id?: Snowflake;
+  /** the user that uploaded the sticker */
+  user?: User;
+  /** a sticker's sort order within a pack */
+  sort_value?: number;
 }
 export enum MessageStickerFormatType {
   PNG = 1,

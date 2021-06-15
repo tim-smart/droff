@@ -78,6 +78,9 @@ client.emojis$;
 Basic ping example. Look at `droff-interactions` and `droff-commands` for
 examples that work with slash commands etc.
 
+Please note that you have to subscribe to `client.effects$` for the client to
+function. This essentially starts the client.
+
 ```typescript
 import { createClient, Intents } from "droff";
 import * as RxO from "rxjs/operators";
@@ -89,16 +92,17 @@ const client = createClient({
   },
 });
 
-client
-  .fromDispatch("MESSAGE_CREATE")
-  .pipe(
-    RxO.filter((msg) => msg.content === "!ping"),
-    RxO.flatMap((msg) =>
-      client.createMessage(msg.channel_id, {
-        message_reference: { message_id: msg.id },
-        content: "Pong!",
-      }),
-    ),
-  )
-  .subscribe();
+const pings$ = client.fromDispatch("MESSAGE_CREATE").pipe(
+  RxO.filter((msg) => msg.content === "!ping"),
+  RxO.flatMap((msg) =>
+    client.createMessage(msg.channel_id, {
+      message_reference: { message_id: msg.id },
+      content: "Pong!",
+    }),
+  ),
+);
+
+// Subscribe to our side effects
+pings$.subscribe();
+client.effects$.subscribe();
 ```

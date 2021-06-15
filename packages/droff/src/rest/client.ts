@@ -38,7 +38,12 @@ export function create({
     timeout: 10000,
   });
 
-  const { request, response, error, start } = RateLimits.interceptors({
+  const {
+    request,
+    response,
+    error,
+    sideEffects$: rateLimiting$,
+  } = RateLimits.interceptors({
     rateLimitStore,
     globalLimit: rateLimit,
     globalWindow: 1000,
@@ -49,8 +54,7 @@ export function create({
   client.interceptors.request.use(request);
   client.interceptors.response.use(response, error);
 
-  const stop = start();
-  return [client, stop] as const;
+  return [client, rateLimiting$] as const;
 }
 
 const handleError = (err: AxiosError) => {

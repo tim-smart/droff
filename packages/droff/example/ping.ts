@@ -10,15 +10,16 @@ const client = createClient({
   },
 });
 
-client
-  .fromDispatch("MESSAGE_CREATE")
-  .pipe(
-    RxO.filter((msg) => msg.content === "!ping"),
-    RxO.flatMap((msg) =>
-      client.createMessage(msg.channel_id, {
-        message_reference: { message_id: msg.id },
-        content: "Pong!",
-      }),
-    ),
-  )
-  .subscribe();
+const pings$ = client.fromDispatch("MESSAGE_CREATE").pipe(
+  RxO.filter((msg) => msg.content === "!ping"),
+  RxO.flatMap((msg) =>
+    client.createMessage(msg.channel_id, {
+      message_reference: { message_id: msg.id },
+      content: "Pong!",
+    }),
+  ),
+);
+
+// Subscribe
+pings$.subscribe();
+client.effects$.subscribe();

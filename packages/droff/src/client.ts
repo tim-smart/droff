@@ -1,5 +1,5 @@
 import { AxiosInstance } from "axios";
-import { Observable } from "rxjs";
+import * as Rx from "rxjs";
 import * as Apps from "./caches/applications";
 import * as Channels from "./caches/channels";
 import * as Emojis from "./caches/emojis";
@@ -14,7 +14,11 @@ import * as RestClient from "./rest/client";
 import { Application, Channel, Emoji, Guild, GuildMember, Role } from "./types";
 
 export interface RESTClient extends RestClient.Routes {
-  close: () => void;
+  /**
+   * Observable of side effects. It is required that you subscribe to this for
+   * the client to function.
+   */
+  effects$: Rx.Observable<void>;
   get: AxiosInstance["get"];
   post: AxiosInstance["post"];
   patch: AxiosInstance["patch"];
@@ -23,11 +27,11 @@ export interface RESTClient extends RestClient.Routes {
 }
 
 export function createRestClient(opts: RestClient.Options): RESTClient {
-  const [client, close] = RestClient.create(opts);
+  const [client, rateLimiting$] = RestClient.create(opts);
   const routes = RestClient.routes(client);
 
   return {
-    close,
+    effects$: rateLimiting$,
 
     delete: client.delete.bind(client),
     get: client.get.bind(client),
@@ -90,14 +94,11 @@ export function create({
 
   const withCaches = Resources.withCaches(guilds$);
 
-  function close() {
-    gateway.close();
-    rest.close();
-  }
-
   if (debug) {
     gateway.raw$.subscribe((p) => console.error("[GATEWAY]", p));
   }
+
+  const effects$ = Rx.merge(rest.effects$, gateway.effects$);
 
   return {
     gateway,
@@ -120,7 +121,7 @@ export function create({
 
     ...rest,
 
-    close,
+    effects$,
   };
 }
 
@@ -139,17 +140,17 @@ export interface ClientExtras {
   fromDispatchWithShard: GatewayClient.Client["fromDispatchWithShard"];
 
   /** Cache of the latest application */
-  application$: Observable<Application>;
+  application$: Rx.Observable<Application>;
   /** Cache of the latest guilds */
-  guilds$: Observable<Resources.SnowflakeMap<Guild>>;
+  guilds$: Rx.Observable<Resources.SnowflakeMap<Guild>>;
   /** Cache of the latest roles for each guild */
-  roles$: Observable<Resources.GuildSnowflakeMap<Role>>;
+  roles$: Rx.Observable<Resources.GuildSnowflakeMap<Role>>;
   /** Cache of the latest channels for each guild */
-  channels$: Observable<Resources.GuildSnowflakeMap<Channel>>;
+  channels$: Rx.Observable<Resources.GuildSnowflakeMap<Channel>>;
   /** Cache of the latest members for each guild */
-  members$: Observable<Resources.GuildSnowflakeMap<GuildMember>>;
+  members$: Rx.Observable<Resources.GuildSnowflakeMap<GuildMember>>;
   /** Cache of the latest emojis for each guild */
-  emojis$: Observable<Resources.GuildSnowflakeMap<Emoji>>;
+  emojis$: Rx.Observable<Resources.GuildSnowflakeMap<Emoji>>;
 
   /**
    * RxJS operator that appends cached data to the stream. E.g.
@@ -163,6 +164,7 @@ export interface ClientExtras {
    * ```
    */
   withCaches: ReturnType<typeof Resources.withCaches>;
+
   /**
    * Use this operator in combination with withCaches.
    * It will filter out any direct messages etc.
@@ -178,7 +180,7 @@ export interface ClientExtras {
   onlyWithGuild: typeof Resources.onlyWithGuild;
 
   /**
-   * RxJS rate limit operator, which uses the store.
+   * RxJS rate limit operator, which is backed by the store.
    */
   rateLimit: RL.RateLimitOp;
 }

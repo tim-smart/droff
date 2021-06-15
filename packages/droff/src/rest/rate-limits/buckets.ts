@@ -50,18 +50,10 @@ export const createLimiter = ({
     }),
   );
 
-  const start = () => {
-    const routeToBucketSub = routeToBucket$.subscribe();
-    const bucketsSub = buckets$.subscribe();
-
-    return () => {
-      routeToBucketSub.unsubscribe();
-      bucketsSub.unsubscribe();
-    };
-  };
+  const effects$ = Rx.merge(routeToBucket$, buckets$);
 
   return {
-    start,
+    effects$,
     bucketLimiter: () => (requests$: Rx.Observable<Request>) =>
       requests$.pipe(
         RxO.flatMap((request) =>

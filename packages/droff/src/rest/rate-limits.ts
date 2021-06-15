@@ -103,7 +103,7 @@ export const interceptors = ({
     );
   }
 
-  const { start: startBucketLimiter, bucketLimiter } = Buckets.createLimiter({
+  const { effects$: bucketEffects$, bucketLimiter } = Buckets.createLimiter({
     rateLimitStore: store,
     responses$,
     whenDebug,
@@ -128,23 +128,21 @@ export const interceptors = ({
     ),
 
     // Trigger the request
-    RxO.tap(({ resolve }) => resolve()),
+    RxO.map(({ resolve }) => resolve()),
+  );
+
+  const sideEffects$ = Rx.merge(bucketEffects$, triggerRequests$).pipe(
+    RxO.finalize(() => {
+      requests$.complete();
+      responses$.complete();
+      errors$.complete();
+    }),
   );
 
   return {
     request,
     response,
     error,
-    start() {
-      const triggerSub = triggerRequests$.subscribe();
-      const stopLimiter = startBucketLimiter();
-      return () => {
-        triggerSub.unsubscribe();
-        stopLimiter();
-        requests$.complete();
-        responses$.complete();
-        errors$.complete();
-      };
-    },
+    sideEffects$,
   };
 };

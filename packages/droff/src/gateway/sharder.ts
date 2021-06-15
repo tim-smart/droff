@@ -36,6 +36,7 @@ export const spawn = ({
     RxO.flatMap(({ url, shards, session_start_limit: limit }) => {
       const ids = shardIDs === "auto" ? [...Array(shards).keys()] : shardIDs;
       const count = shardIDs === "auto" ? shards : shardCount;
+
       return ids.map((id) => ({
         id,
         count,
@@ -51,7 +52,5 @@ export const spawn = ({
         RxO.map(({ id, count, url }) => createShard([id, count], url)),
       ),
     ),
-
-    RxO.share(),
   );
 };

@@ -28,7 +28,7 @@ export function create({
   const latestReady$ = Internal.latestReady(fromDispatch, conn.invalidSession$);
 
   // Identify
-  F.pipe(
+  const identifyEffects$ = F.pipe(
     Internal.identify$(
       conn,
       latestReady$,
@@ -37,8 +37,8 @@ export function create({
       intents,
       shard,
     }),
-    RxO.tap((p) => conn.send(p)),
-  ).subscribe();
+    RxO.map((p) => conn.send(p)),
+  );
 
   // Heartbeats
   const [heartbeats$, heartbeatDiff$] = Internal.heartbeats$(
@@ -46,22 +46,33 @@ export function create({
     sequenceNumber$,
   );
 
-  F.pipe(
+  const heartbeatEffects$ = F.pipe(
     heartbeats$,
-    RxO.tap((p) => conn.send(p)),
-  ).subscribe();
+    RxO.map((p) => conn.send(p)),
+  );
 
   // Reconnect when:
   // * heartbeats get out of sync
   // * reconnect is requested
   // * invalid session
-  Rx.merge(
+  const reconnectEffects$ = Rx.merge(
     heartbeatDiff$.pipe(RxO.filter((diff) => diff > 1)),
     conn.reconnect$,
     conn.invalidSession$,
-  ).subscribe(() => {
-    conn.reconnect();
-  });
+  ).pipe(
+    RxO.map(() => {
+      conn.reconnect();
+    }),
+  );
+
+  const effects$ = Rx.merge(
+    identifyEffects$,
+    heartbeatEffects$,
+    reconnectEffects$,
+  ).pipe(
+    RxO.finalize(() => conn.close()),
+    RxO.share(),
+  );
 
   return {
     id: shard,
@@ -70,7 +81,7 @@ export function create({
     raw$: conn.raw$,
     dispatch$: conn.dispatch$,
     ready$: latestReady$,
-    close: () => conn.close(),
+    effects$,
     reconnect: () => conn.reconnect(),
   };
 }

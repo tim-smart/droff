@@ -36,7 +36,7 @@ export function create(
   }
   sendSubject
     .pipe(
-      rateLimit("gateway.send", 61000, 120),
+      rateLimit("gateway.send", 60500, 120),
       RxO.tap((payload) => ws.sendData(encode(payload))),
     )
     .subscribe();
@@ -58,14 +58,9 @@ export function create(
     messageSubject.next(decode(data as Buffer) as GatewayPayload);
   });
 
-  ws.on("close", (code, reason) => {
+  ws.on("close", () => {
     if (!manuallyClosed) return;
-
-    if (code === 1000) {
-      messageSubject.complete();
-    } else {
-      messageSubject.error(F.tuple(code, reason));
-    }
+    messageSubject.complete();
   });
 
   const dispatch$ = raw$.pipe(opCode<GatewayEvent>(GatewayOpcode.DISPATCH));

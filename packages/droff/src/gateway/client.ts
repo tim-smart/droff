@@ -60,32 +60,9 @@ export const create =
       routes,
       shardIDs,
       shardCount,
-    });
+    }).pipe(RxO.share());
 
-    const shardsAcc$ = shards$.pipe(
-      RxO.scan((acc, shard) => [...acc, shard], [] as Shard.Shard[]),
-      RxO.shareReplay(1),
-    );
-    const shardsSub = shardsAcc$.subscribe();
-
-    function close() {
-      shardsAcc$
-        .pipe(
-          RxO.first(),
-          RxO.tap((shards) => shards.forEach((s) => s.close())),
-        )
-        .subscribe();
-      shardsSub.unsubscribe();
-    }
-
-    function reconnect() {
-      shardsAcc$
-        .pipe(
-          RxO.first(),
-          RxO.tap((shards) => shards.forEach((s) => s.reconnect())),
-        )
-        .subscribe();
-    }
+    const effects$ = shards$.pipe(RxO.flatMap((s) => s.effects$));
 
     const raw$ = shards$.pipe(
       RxO.flatMap((s) => s.raw$),
@@ -105,15 +82,13 @@ export const create =
     const latestDispatch = Dispatch.latestDispatch(fromDispatch);
 
     return {
+      effects$,
       raw$,
       dispatch$,
       fromDispatch,
       fromDispatchWithShard,
       latestDispatch,
-      shards$: shards$,
-      shardsArray$: shardsAcc$,
-      close,
-      reconnect,
+      shards$,
     };
   };
 

@@ -27,7 +27,7 @@ const commands = SlashCommands.create(client);
 
 // Global commands are for every guild.
 // They can take up to an hour to show up.
-commands
+const hello$ = commands
   .global({
     name: "hello",
     description: "A simple hello command",
@@ -36,30 +36,27 @@ commands
     RxO.flatMap(({ respond, member }) =>
       respond({ content: `Hi there ${member!.user!.username}` }),
     ),
-  )
-  .subscribe();
+  );
 
 // Guild commands can be enabled / disabled per guild.
 // They show up instantly.
-commands
+const ping$ = commands
   .guild({
     name: "ping",
     description: "A simple ping command",
   })
-  .pipe(RxO.flatMap(({ respond }) => respond({ content: "Pong!" })))
-  .subscribe();
+  .pipe(RxO.flatMap(({ respond }) => respond({ content: "Pong!" })));
 
-commands
+const disabled$ = commands
   .guild({
     name: "disabled",
     description: "A disabled command. Will not show up in Discord.",
     enabled: (_guild) => Rx.of(false),
   })
-  .pipe(RxO.flatMap(({ respond }) => respond({ content: "Pong!" })))
-  .subscribe();
+  .pipe(RxO.flatMap(({ respond }) => respond({ content: "Pong!" })));
 
 // You can set role or user level permissions
-commands
+const admin$ = commands
   .guild({
     name: "admin-only",
     description: "A restricted command",
@@ -109,18 +106,27 @@ commands
         ],
       }),
     ),
-  )
-  .subscribe();
+  );
 
 // Button / component interaction
-commands
+const button$ = commands
   .component("admin-button")
   .pipe(
     RxO.flatMap(({ respond }) =>
       respond({ content: "You clicked a button. wow.", flags: 64 }),
     ),
-  )
-  .subscribe();
+  );
 
-commands.start();
+// Subscribe
+Rx.merge(
+  client.effects$,
+  commands.effects$,
+
+  hello$,
+  ping$,
+  disabled$,
+  admin$,
+
+  button$,
+).subscribe();
 ```

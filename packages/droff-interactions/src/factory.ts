@@ -87,10 +87,10 @@ export interface SlashCommandsHelper {
     components: Component[],
   ) => Rx.Observable<readonly [SlashCommandContext, Component]>;
   /**
-   * Start syncing the commands to Discord. It returns a function that stops
-   * the syncing service.
+   * An observable of side effects. By `subscribe`-ing you start the syncing of
+   * commands to Discord.
    */
-  start: () => () => void;
+  effects$: Rx.Observable<void>;
 }
 
 export const create = (client: Client): SlashCommandsHelper => {
@@ -218,27 +218,20 @@ export const create = (client: Client): SlashCommandsHelper => {
   const { removeGuildCommands$, enableGuildCommands$, disableGuildCommands$ } =
     Sync.guild(client, setPermissions)(() => guildCommands);
 
-  function start() {
-    const pingPongSub = pingPong$.subscribe();
-    const removeGlobalCommandsSub = removeGlobalCommands$.subscribe();
-    const removeGuildCommandsSub = removeGuildCommands$.subscribe();
-    const enableGuildCommandsSub = enableGuildCommands$.subscribe();
-    const disableGuildCommandsSub = disableGuildCommands$.subscribe();
-
-    return () => {
-      pingPongSub.unsubscribe();
-      removeGlobalCommandsSub.unsubscribe();
-      removeGuildCommandsSub.unsubscribe();
-      enableGuildCommandsSub.unsubscribe();
-      disableGuildCommandsSub.unsubscribe();
-    };
-  }
+  // Effects
+  const effects$ = Rx.merge(
+    pingPong$,
+    removeGlobalCommands$,
+    removeGuildCommands$,
+    enableGuildCommands$,
+    disableGuildCommands$,
+  ).pipe(RxO.map(() => {}));
 
   return {
     global,
     guild,
     component,
     components,
-    start,
+    effects$,
   };
 };

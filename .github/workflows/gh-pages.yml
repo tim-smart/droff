@@ -21,6 +21,9 @@ jobs:
       - name: yarn
         run: yarn install
 
+      - name: build
+        run: lerna run tsc
+
       - name: typedoc
         run: yarn docs
 

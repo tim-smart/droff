@@ -98,8 +98,6 @@ export function create({
     gateway.raw$.subscribe((p) => console.error("[GATEWAY]", p));
   }
 
-  const effects$ = Rx.merge(rest.effects$, gateway.effects$);
-
   return {
     gateway,
 
@@ -120,8 +118,6 @@ export function create({
     rateLimit: RL.rateLimit(rateLimitStore),
 
     ...rest,
-
-    effects$,
   };
 }
 

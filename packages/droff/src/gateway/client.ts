@@ -49,35 +49,37 @@ export const create =
   }: Options) => {
     const rateLimit = RL.rateLimit(rateLimitStore);
 
-    const shards = new Set<Shard.Shard>();
-    const shards$ = Rx.merge(
-      Rx.NEVER,
-      Rx.defer(() =>
-        Sharder.spawn({
-          createShard: (id, baseURL) =>
-            Shard.create({
-              token,
-              baseURL,
-              intents: intents | GatewayIntents.GUILDS,
-              shard: id,
-              rateLimit,
-            }),
-          rateLimit,
-          routes,
-          shardIDs,
-          shardCount,
-        }),
-      ),
-    ).pipe(
-      RxO.tap((s) => shards.add(s)),
-      RxO.finalize(() => {
+    const shards$ = new Rx.Observable<Shard.Shard>((s) => {
+      const shards = new Set<Shard.Shard>();
+      const sub = Sharder.spawn({
+        createShard: (id, baseURL) =>
+          Shard.create({
+            token,
+            baseURL,
+            intents: intents | GatewayIntents.GUILDS,
+            shard: id,
+            rateLimit,
+          }),
+        rateLimit,
+        routes,
+        shardIDs,
+        shardCount,
+      })
+        .pipe(
+          RxO.tap((shard) => {
+            s.next(shard);
+            shards.add(shard);
+          }),
+          RxO.flatMap((shard) => shard.effects$),
+        )
+        .subscribe();
+
+      s.add(() => {
         shards.forEach((s) => s.conn.close());
         shards.clear();
-      }),
-      RxO.shareReplay(),
-    );
-
-    const effects$ = shards$.pipe(RxO.flatMap((s) => s.effects$));
+        sub.unsubscribe();
+      });
+    }).pipe(RxO.shareReplay({ refCount: true }));
 
     const raw$ = shards$.pipe(
       RxO.flatMap((s) => s.raw$),
@@ -97,7 +99,6 @@ export const create =
     const latestDispatch = Dispatch.latestDispatch(fromDispatch);
 
     return {
-      effects$,
       raw$,
       dispatch$,
       fromDispatch,

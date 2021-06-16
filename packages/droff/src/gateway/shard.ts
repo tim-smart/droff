@@ -2,6 +2,7 @@ import * as F from "fp-ts/function";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { RateLimitOp } from "../rate-limits/rxjs";
+import { GatewayPayload } from "../types";
 import * as Conn from "./connection";
 import * as Dispatch from "./dispatch";
 import * as Internal from "./internal";
@@ -21,7 +22,13 @@ export function create({
   shard = [0, 1],
   rateLimit,
 }: Options) {
-  const conn = Conn.create(baseURL, rateLimit);
+  const conn = Conn.create(baseURL);
+
+  const sendSubject = new Rx.Subject<GatewayPayload>();
+  function send(payload: GatewayPayload) {
+    sendSubject.next(payload);
+  }
+  sendSubject.pipe(rateLimit("gateway.send", 60500, 120)).subscribe(conn.send);
 
   const fromDispatch = Dispatch.listen(conn.dispatch$);
   const sequenceNumber$ = Internal.latestSequenceNumber(conn.dispatch$);
@@ -37,7 +44,7 @@ export function create({
       intents,
       shard,
     }),
-    RxO.map((p) => conn.send(p)),
+    RxO.map(send),
   );
 
   // Heartbeats
@@ -46,10 +53,7 @@ export function create({
     sequenceNumber$,
   );
 
-  const heartbeatEffects$ = F.pipe(
-    heartbeats$,
-    RxO.map((p) => conn.send(p)),
-  );
+  const heartbeatEffects$ = F.pipe(heartbeats$, RxO.map(send));
 
   // Reconnect when:
   // * heartbeats get out of sync
@@ -70,14 +74,16 @@ export function create({
     heartbeatEffects$,
     reconnectEffects$,
   ).pipe(
-    RxO.finalize(() => conn.close()),
+    RxO.finalize(() => {
+      sendSubject.complete();
+    }),
     RxO.share(),
   );
 
   return {
     id: shard,
     conn,
-    send: conn.send,
+    send,
     raw$: conn.raw$,
     dispatch$: conn.dispatch$,
     ready$: latestReady$,

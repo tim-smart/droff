@@ -2,7 +2,6 @@ import * as F from "fp-ts/function";
 import { WebSocketClient } from "reconnecting-ws";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import { RateLimitOp } from "../rate-limits/rxjs";
 import {
   GatewayEvent,
   GatewayOpcode,
@@ -21,29 +20,18 @@ const opCode = <T = any>(code: GatewayOpcode) =>
     RxO.share(),
   );
 
-export function create(
-  baseURL = "wss://gateway.discord.gg/",
-  rateLimit: RateLimitOp,
-) {
+export function create(baseURL = "wss://gateway.discord.gg/") {
   const { encode, decode, encoding } = Codec.create();
 
   const ws = new WebSocketClient();
   ws.connect(`${baseURL}?v=${VERSION}&encoding=${encoding}`);
 
-  const sendSubject = new Rx.Subject<GatewayPayload>();
   function send(data: GatewayPayload) {
-    sendSubject.next(data);
+    ws.sendData(encode(data));
   }
-  sendSubject
-    .pipe(
-      rateLimit("gateway.send", 60500, 120),
-      RxO.tap((payload) => ws.sendData(encode(payload))),
-    )
-    .subscribe();
 
   let manuallyClosed = false;
   function close() {
-    sendSubject.complete();
     ws.disconnect();
     manuallyClosed = true;
   }

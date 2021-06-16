@@ -1,3 +1,4 @@
+import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import * as RL from "../rate-limits/rxjs";
 import * as Store from "../rate-limits/store";
@@ -47,20 +48,34 @@ export const create =
     shardCount = 1,
   }: Options) => {
     const rateLimit = RL.rateLimit(rateLimitStore);
-    const shards$ = Sharder.spawn({
-      createShard: (id, baseURL) =>
-        Shard.create({
-          token,
-          baseURL,
-          intents: intents | GatewayIntents.GUILDS,
-          shard: id,
+
+    const shards = new Set<Shard.Shard>();
+    const shards$ = Rx.merge(
+      Rx.NEVER,
+      Rx.defer(() =>
+        Sharder.spawn({
+          createShard: (id, baseURL) =>
+            Shard.create({
+              token,
+              baseURL,
+              intents: intents | GatewayIntents.GUILDS,
+              shard: id,
+              rateLimit,
+            }),
           rateLimit,
+          routes,
+          shardIDs,
+          shardCount,
         }),
-      rateLimit,
-      routes,
-      shardIDs,
-      shardCount,
-    }).pipe(RxO.share());
+      ),
+    ).pipe(
+      RxO.tap((s) => shards.add(s)),
+      RxO.finalize(() => {
+        shards.forEach((s) => s.conn.close());
+        shards.clear();
+      }),
+      RxO.share(),
+    );
 
     const effects$ = shards$.pipe(RxO.flatMap((s) => s.effects$));
 

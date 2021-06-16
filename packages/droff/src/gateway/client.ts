@@ -49,9 +49,8 @@ export const create =
   }: Options) => {
     const rateLimit = RL.rateLimit(rateLimitStore);
 
-    const shards$ = new Rx.Observable<Shard.Shard>((s) => {
-      const shards = new Set<Shard.Shard>();
-      const sub = Sharder.spawn({
+    const shards$ = Sharder.withEffects(() =>
+      Sharder.spawn({
         createShard: (id, baseURL) =>
           Shard.create({
             token,
@@ -64,22 +63,8 @@ export const create =
         routes,
         shardIDs,
         shardCount,
-      })
-        .pipe(
-          RxO.tap((shard) => {
-            s.next(shard);
-            shards.add(shard);
-          }),
-          RxO.flatMap((shard) => shard.effects$),
-        )
-        .subscribe();
-
-      s.add(() => {
-        shards.forEach((s) => s.conn.close());
-        shards.clear();
-        sub.unsubscribe();
-      });
-    }).pipe(RxO.shareReplay({ refCount: true }));
+      }),
+    ).pipe(RxO.shareReplay({ refCount: true }));
 
     const raw$ = shards$.pipe(
       RxO.flatMap((s) => s.raw$),

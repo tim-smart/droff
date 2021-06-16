@@ -54,3 +54,22 @@ export const spawn = ({
     ),
   );
 };
+export const withEffects = (sharder: () => Rx.Observable<Shard.Shard>) =>
+  new Rx.Observable<Shard.Shard>((s) => {
+    const shards = new Set<Shard.Shard>();
+    const sub = sharder()
+      .pipe(
+        RxO.tap((shard) => {
+          s.next(shard);
+          shards.add(shard);
+        }),
+        RxO.flatMap((shard) => shard.effects$),
+      )
+      .subscribe();
+
+    s.add(() => {
+      shards.forEach((s) => s.conn.close());
+      shards.clear();
+      sub.unsubscribe();
+    });
+  });

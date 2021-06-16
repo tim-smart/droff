@@ -74,7 +74,7 @@ export const create =
         shards.forEach((s) => s.conn.close());
         shards.clear();
       }),
-      RxO.share(),
+      RxO.shareReplay(),
     );
 
     const effects$ = shards$.pipe(RxO.flatMap((s) => s.effects$));

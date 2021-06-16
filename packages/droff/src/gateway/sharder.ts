@@ -28,7 +28,7 @@ export const spawn = ({
 }: Options) => {
   // If we only need one shard, then short circuit.
   if (shardCount === 1 && shardIDs !== "auto") {
-    return Rx.timer(0).pipe(RxO.map(() => createShard([0, 1])));
+    return Rx.of(createShard([0, 1]));
   }
 
   // Start shards with rate limits

@@ -5,16 +5,14 @@ import {
   PermissionFlag,
   Role,
 } from "droff/dist/types";
-import * as Members from "./members";
 import * as F from "fp-ts/function";
+import * as Flags from "./flags";
+import * as Members from "./members";
 
 /**
  * A constant of all the permissions
  */
-export const ALL = Object.values(PermissionFlag).reduce(
-  (acc, flag) => acc | flag,
-  BigInt(0),
-);
+export const ALL = Flags.all(PermissionFlag);
 
 /**
  * Check if a flag exists in the permissions.

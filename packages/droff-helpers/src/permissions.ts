@@ -17,24 +17,17 @@ export const ALL = Flags.all(PermissionFlag);
 /**
  * Check if a flag exists in the permissions.
  */
-export const has = (flag: string | bigint) => (bits: string | bigint) =>
-  hasBigInt(BigInt(flag))(BigInt(bits));
-
-/**
- * Check if a flag exists in the permissions. This requires bigint's to be used
- * directly.
- */
-export const hasBigInt = (flag: bigint) => (bits: bigint) =>
-  (bits & flag) === flag;
+export const has = Flags.hasBigInt;
 
 /**
  * Convert a permissions bitfield to a list of flag names.
  */
-export const toList = (bits: bigint) =>
-  Object.entries(PermissionFlag).reduce(
-    (flags, [name, flag]) => (has(flag)(bits) ? [...flags, name] : flags),
-    [] as string[],
-  );
+export const toList = Flags.toList(PermissionFlag);
+
+/**
+ * Convert a list of flag names to a bitfield.
+ */
+export const fromList = Flags.fromListBigint(PermissionFlag);
 
 /**
  * Reduce a list of roles to a bitfield of all the permissions added together.

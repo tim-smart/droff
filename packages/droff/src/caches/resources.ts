@@ -5,29 +5,44 @@ import { Dispatch } from "../gateway/dispatch";
 import { Guild, Snowflake } from "../types";
 import { GuildMap, withOp } from "./guilds";
 
-export type SnowflakeMap<T> = Map<Snowflake, T>;
+export type SnowflakeMap<T> = Map<string, T>;
 export type GuildSnowflakeMap<T> = Map<Snowflake, SnowflakeMap<T>>;
 
 export interface CrudObserables<T> {
-  id: (resource: T) => Snowflake;
+  id: (resource: T) => string;
+  guildProp?: keyof Guild;
+  init?: (guild: Guild) => Promise<T[]>;
 
   create$?: Rx.Observable<readonly [Snowflake, T]>;
-  update$: Rx.Observable<readonly [Snowflake, T]>;
-  delete$?: Rx.Observable<readonly [Snowflake, Snowflake]>;
+  update$?: Rx.Observable<readonly [Snowflake, T]>;
+  delete$?: Rx.Observable<readonly [Snowflake, string]>;
 }
 
 export const watch$ = <T>(
   fromDispatch: Dispatch,
-  guildProp: keyof Guild,
-  { id, create$ = Rx.EMPTY, update$, delete$ = Rx.EMPTY }: CrudObserables<T>,
+  {
+    id,
+    guildProp,
+    init = () => Promise.resolve([]),
+    create$ = Rx.EMPTY,
+    update$ = Rx.EMPTY,
+    delete$ = Rx.EMPTY,
+  }: CrudObserables<T>,
 ): Rx.Observable<GuildSnowflakeMap<T>> =>
   Rx.merge(
     Rx.of(["init"] as const),
 
     fromDispatch("GUILD_CREATE").pipe(
       RxO.flatMap((guild) =>
-        Rx.from(((guild[guildProp]! as any[]) || []) as T[]).pipe(
-          RxO.map((r) => [guild.id, r] as const),
+        Rx.merge(
+          Rx.from((guildProp ? guild[guildProp] || [] : []) as T[]).pipe(
+            RxO.map((r) => [guild.id, r] as const),
+          ),
+          Rx.from(init(guild)).pipe(
+            RxO.catchError(() => []),
+            RxO.flatMap((items) => items),
+            RxO.map((r) => [guild.id, r] as const),
+          ),
         ),
       ),
       RxO.map(withOp("create")),
@@ -41,7 +56,7 @@ export const watch$ = <T>(
     RxO.scan((map, op) => {
       let guild_id: Snowflake;
       let resource: T;
-      let resourceID: Snowflake;
+      let resourceID: string;
 
       switch (op[0]) {
         case "guild_delete":

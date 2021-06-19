@@ -5,8 +5,9 @@ import { GuildMember } from "../types";
 import * as Resources from "./resources";
 
 export const watch$ = (fromDispatch: Dispatch) =>
-  Resources.watch$(fromDispatch, "members", {
+  Resources.watch$(fromDispatch, {
     id: (member: GuildMember) => member.user!.id,
+    guildProp: "members",
     create$: Rx.merge(
       fromDispatch("GUILD_MEMBERS_CHUNK").pipe(
         RxO.flatMap((chunk) =>

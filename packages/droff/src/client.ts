@@ -4,14 +4,25 @@ import * as Apps from "./caches/applications";
 import * as Channels from "./caches/channels";
 import * as Emojis from "./caches/emojis";
 import * as Guilds from "./caches/guilds";
+import { PartialInvite } from "./caches/invites";
 import * as Members from "./caches/members";
 import * as Resources from "./caches/resources";
 import * as Roles from "./caches/roles";
+import * as Invites from "./caches/invites";
+import * as StageInstances from "./caches/stage-instances";
 import * as GatewayClient from "./gateway/client";
 import * as RL from "./rate-limits/rxjs";
 import * as Store from "./rate-limits/store";
 import * as RestClient from "./rest/client";
-import { Application, Channel, Emoji, Guild, GuildMember, Role } from "./types";
+import {
+  Application,
+  Channel,
+  Emoji,
+  Guild,
+  GuildMember,
+  Role,
+  StageInstance,
+} from "./types";
 
 export interface RESTClient extends RestClient.Routes {
   /**
@@ -91,6 +102,8 @@ export function create({
   const roles$ = Roles.watch$(gateway.fromDispatch);
   const emojis$ = Emojis.watch$(gateway.fromDispatch);
   const members$ = Members.watch$(gateway.fromDispatch);
+  const invites$ = Invites.watch$(gateway.fromDispatch, rest);
+  const stageInstances$ = StageInstances.watch$(gateway.fromDispatch);
 
   const withCaches = Resources.withCaches(guilds$);
 
@@ -107,6 +120,8 @@ export function create({
     roles$,
     members$,
     emojis$,
+    invites$,
+    stageInstances$,
     withCaches,
 
     onlyWithGuild: Resources.onlyWithGuild,
@@ -147,6 +162,10 @@ export interface ClientExtras {
   members$: Rx.Observable<Resources.GuildSnowflakeMap<GuildMember>>;
   /** Cache of the latest emojis for each guild */
   emojis$: Rx.Observable<Resources.GuildSnowflakeMap<Emoji>>;
+  /** Cache of the latest invites for each guild */
+  invites$: Rx.Observable<Resources.GuildSnowflakeMap<PartialInvite>>;
+  /** Cache of the latest stageInstances for each guild */
+  stageInstances$: Rx.Observable<Resources.GuildSnowflakeMap<StageInstance>>;
 
   /**
    * RxJS operator that appends cached data to the stream. E.g.

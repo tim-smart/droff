@@ -3863,6 +3863,8 @@ export interface ModifyChannelGuildChannelParams {
   rtc_region?: string | null;
   /** the camera video quality mode of the voice channel */
   video_quality_mode?: VideoQualityMode | null;
+  /** the default duration for newly created threads in the channel, in minutes, to automatically archive the thread after recent activity */
+  default_auto_archive_duration?: number | null;
 }
 export type ModifyChannelParams =
   | ModifyChannelGroupDmParams

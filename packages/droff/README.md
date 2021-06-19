@@ -79,8 +79,10 @@ import { createClient, Intents } from "../src/mod";
 
 const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
-  // You will need to enable some intents for the caches to work
-  intents: Intents.GUILD_EMOJIS | Intents.GUILD_MEMBERS,
+  gateway: {
+    // You will need to enable some intents for the corresponding cache.
+    intents: Intents.GUILD_EMOJIS | Intents.GUILD_MEMBERS,
+  },
 });
 
 // Here are the different caches that you can use. Each cache is an Observable
@@ -94,6 +96,8 @@ client.roles$;
 client.channels$;
 client.members$;
 client.emojis$;
+client.invites$;
+client.stageInstances$;
 ```
 
 ## What's missing

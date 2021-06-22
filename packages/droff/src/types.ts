@@ -5,7 +5,7 @@ export interface Activity {
   type: ActivityType;
   /** stream url, is validated when type is 1 */
   url?: string | null;
-  /** unix timestamp of when the activity was added to the user's session */
+  /** unix timestamp (in milliseconds) of when the activity was added to the user's session */
   created_at: number;
   /** unix timestamps for start and/or end of the game */
   timestamps?: ActivityTimestamp;
@@ -3042,7 +3042,7 @@ export interface Guild {
   threads?: Channel[];
   /** presences of the members in the guild, will only include non-offline members if the size is greater than large threshold */
   presences?: PresenceUpdateEvent[];
-  /** the maximum number of presences for the guild (the default value, currently 25000, is in effect when null is returned) */
+  /** the maximum number of presences for the guild (null is always returned, apart from the largest of guilds) */
   max_presences?: number | null;
   /** the maximum number of members for the guild */
   max_members?: number;
@@ -3365,7 +3365,7 @@ export interface IntegrationApplication {
   icon?: string | null;
   /** the description of the app */
   description: string;
-  /** the description of the app */
+  /** the summary of the app */
   summary: string;
   /** the bot associated with this application */
   bot?: User;

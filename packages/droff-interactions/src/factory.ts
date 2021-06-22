@@ -12,33 +12,26 @@ import {
   InteractionType,
   User,
 } from "droff/dist/types";
-import * as F from "fp-ts/function";
 import { Map } from "immutable";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import * as Commands from "./commands";
 import * as Sync from "./sync";
 
-interface CommandOptions {
+interface GuildCommandOptions {
+  /** Used for enabling / disabling commands per guild */
+  enabled?: (guild: Guild) => Rx.Observable<boolean>;
   /** Used for setting permissions for the command per guild */
   permissions?: (guild: Guild) => Rx.Observable<ApplicationCommandPermission>;
 }
 
-interface GuildCommandOptions {
-  /** Used for enabling / disabling commands per guild */
-  enabled?: (guild: Guild) => Rx.Observable<boolean>;
-}
-
-export type GlobalCommand = CreateGlobalApplicationCommandParams &
-  CommandOptions;
+export type GlobalCommand = CreateGlobalApplicationCommandParams;
 
 export type GuildCommand = CreateGuildApplicationCommandParams &
-  Required<GuildCommandOptions> &
-  CommandOptions;
+  Required<GuildCommandOptions>;
 
 export type GuildCommandCreate = CreateGuildApplicationCommandParams &
-  GuildCommandOptions &
-  CommandOptions;
+  GuildCommandOptions;
 
 export interface SlashCommandContext {
   /** The interaction object */
@@ -68,7 +61,13 @@ export interface SlashCommandsHelper {
     command: GlobalCommand,
     create?: boolean,
   ) => Rx.Observable<SlashCommandContext>;
-  /** Create a guild slash command */
+  /**
+   * Create a guild slash command.
+   *
+   * It is only recommended to use guild commands for testing purposes.
+   * For large bots, you will very likely hit rate limits if you use guild
+   * commands.
+   */
   guild: (command: GuildCommandCreate) => Rx.Observable<SlashCommandContext>;
   /**
    * Listen to component interactions. Pass in a `custom_id` to determine what
@@ -113,7 +112,7 @@ export interface SlashCommandsHelper {
  * ```
  */
 export const create = (client: Client): SlashCommandsHelper => {
-  const { fromDispatch, application$, guilds$ } = client;
+  const { fromDispatch, application$ } = client;
 
   // Response helpers
   const respond = Commands.respond(
@@ -169,16 +168,6 @@ export const create = (client: Client): SlashCommandsHelper => {
       RxO.flatMap((app) =>
         client.createGlobalApplicationCommand(app.id, command),
       ),
-
-      // Update permissions
-      RxO.withLatestFrom(guilds$),
-      RxO.flatMap(([apiCommand, guilds]) =>
-        F.pipe(
-          Rx.from(guilds.values()),
-          RxO.flatMap((guild) => setPermissions(guild, command, apiCommand)),
-          RxO.last(),
-        ),
-      ),
     );
 
     return Rx.iif(() => create, create$, Rx.of(0)).pipe(
@@ -193,6 +182,7 @@ export const create = (client: Client): SlashCommandsHelper => {
     guildCommands = guildCommands.set(command.name, {
       ...command,
       enabled: command.enabled || (() => Rx.of(true)),
+      permissions: command.permissions || (() => Rx.EMPTY),
     });
 
     return interactionCreate$.pipe(

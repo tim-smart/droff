@@ -11,7 +11,7 @@ import * as O from "fp-ts/Option";
 import { Map } from "immutable";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import { GlobalCommand, GuildCommand } from "./factory";
+import { GuildCommand } from "./factory";
 
 export const enabled =
   (commands: Map<string, GuildCommand>) =>
@@ -43,7 +43,7 @@ export const editOriginal =
 
 export const setPermissions =
   (rest: Client) =>
-  (guild: Guild, command: GlobalCommand, apiCommand: ApplicationCommand) =>
+  (guild: Guild, command: GuildCommand, apiCommand: ApplicationCommand) =>
     F.pipe(
       O.fromNullable(command.permissions),
       O.fold(

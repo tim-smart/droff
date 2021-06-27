@@ -3650,8 +3650,6 @@ export interface Message {
   message_reference?: MessageReference;
   /** message flags combined as a bitfield */
   flags?: number;
-  /** Deprecated the stickers sent with the message (bots currently can only receive messages with stickers, not send) */
-  stickers?: MessageSticker[];
   /** the message associated with the message_reference */
   referenced_message?: Message | null;
   /** sent if the message is a response to an Interaction */
@@ -3660,6 +3658,10 @@ export interface Message {
   thread?: Channel;
   /** sent if the message contains components like buttons, action rows, or other interactive components */
   components?: Component[];
+  /** sent if the message contains stickers */
+  sticker_items?: MessageStickerItem[];
+  /** Deprecated the stickers sent with the message */
+  stickers?: MessageSticker[];
 }
 export interface MessageActivity {
   /** type of message activity */
@@ -3800,6 +3802,14 @@ export enum MessageStickerFormatType {
   PNG = 1,
   APNG = 2,
   LOTTIE = 3,
+}
+export interface MessageStickerItem {
+  /** id of the sticker */
+  id: Snowflake;
+  /** name of the sticker */
+  name: string;
+  /** type of sticker format */
+  format_type: MessageStickerFormatType;
 }
 export enum MessageType {
   DEFAULT = 0,
@@ -4270,6 +4280,8 @@ export interface StartThreadWithoutMessageParams {
   name: string;
   /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
   auto_archive_duration: number;
+  /** the type of thread to create */
+  type?: ChannelType;
 }
 export enum StatusType {
   /** Online */

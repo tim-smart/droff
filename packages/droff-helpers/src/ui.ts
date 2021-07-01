@@ -1,11 +1,19 @@
-import { ButtonStyle, Component, ComponentType } from "droff/dist/types";
+import {
+  ActionRow,
+  Button,
+  ButtonStyle,
+  Component,
+  ComponentType,
+} from "droff/dist/types";
+
+export type UIComponent = Exclude<Component, ActionRow>;
 
 /**
  * Helper to create an Action Row grid.
  */
-export const grid = (items: Component[][]): Component[] =>
+export const grid = (items: UIComponent[][]): ActionRow[] =>
   items.map(
-    (components): Component => ({
+    (components): ActionRow => ({
       type: ComponentType.ACTION_ROW,
       components,
     }),
@@ -14,9 +22,7 @@ export const grid = (items: Component[][]): Component[] =>
 /**
  * Helper to create a button component.
  */
-export const button = (
-  button: Omit<Component, "type" | "components">,
-): Component => ({
+export const button = (button: Partial<Button>): Button => ({
   type: ComponentType.BUTTON,
   style: ButtonStyle.PRIMARY,
   ...button,

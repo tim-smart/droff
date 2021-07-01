@@ -1,5 +1,6 @@
 import { Client } from "droff";
 import {
+  ActionRow,
   ApplicationCommandPermission,
   Component,
   CreateGlobalApplicationCommandParams,
@@ -65,8 +66,7 @@ export interface SlashCommandsHelper {
    * Create a guild slash command.
    *
    * It is only recommended to use guild commands for testing purposes.
-   * For large bots, you will very likely hit rate limits if you use guild
-   * commands.
+   * For large bots, you will very likely hit rate limits.
    */
   guild: (command: GuildCommandCreate) => Rx.Observable<SlashCommandContext>;
   /**
@@ -83,7 +83,7 @@ export interface SlashCommandsHelper {
   component: (customID: string | RegExp) => Rx.Observable<SlashCommandContext>;
   /** Listen to multiple component interactions */
   components: (
-    components: Component[],
+    components: Exclude<Component, ActionRow>[],
   ) => Rx.Observable<readonly [SlashCommandContext, Component]>;
   /**
    * An observable of side effects. By `subscribe`-ing you start the syncing of
@@ -199,7 +199,7 @@ export const create = (client: Client): SlashCommandsHelper => {
       ),
     );
 
-  const components = (components: Component[]) => {
+  const components = (components: Exclude<Component, ActionRow>[]) => {
     const map = components
       .filter(({ custom_id }) => !!custom_id)
       .reduce((map, c) => map.set(c.custom_id!, c), Map<string, Component>());

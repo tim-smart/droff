@@ -13,7 +13,7 @@
     "docs": "lerna run docs"
   },
   "devDependencies": {
-    "husky": "^6.0.0",
+    "husky": "^7.0.0",
     "lerna": "^4.0.0",
     "lint-staged": ">=10",
     "prettier": "^2.3.0"

@@ -1,3 +1,9 @@
+export interface ActionRow {
+  /** component type */
+  type: ComponentType;
+  /** a list of child components */
+  components: Component[];
+}
 export interface Activity {
   /** the activity's name */
   name: string;
@@ -185,7 +191,7 @@ export interface ApplicationCommandExtra {
 export interface ApplicationCommandInteractionDataOption {
   /** the name of the parameter */
   name: string;
-  /** value of ApplicationCommandOptionType */
+  /** value of application command option type */
   type: ApplicationCommandOptionType;
   /** the value of the pair */
   value?: any;
@@ -193,13 +199,13 @@ export interface ApplicationCommandInteractionDataOption {
   options?: ApplicationCommandInteractionDataOption[];
 }
 export interface ApplicationCommandInteractionDataResolved {
-  /** the IDs and User objects */
+  /** the ids and User objects */
   users?: Record<Snowflake, User>;
-  /** the IDs and partial Member objects */
+  /** the ids and partial Member objects */
   members?: Record<Snowflake, GuildMember>;
-  /** the IDs and Role objects */
+  /** the ids and Role objects */
   roles?: Record<Snowflake, Role>;
-  /** the IDs and partial Channel objects */
+  /** the ids and partial Channel objects */
   channels?: Record<Snowflake, Channel>;
 }
 export interface ApplicationCommandInteractionDatum {
@@ -217,7 +223,7 @@ export interface ApplicationCommandInteractionDatum {
   component_type: ComponentType;
 }
 export interface ApplicationCommandOption {
-  /** value of ApplicationCommandOptionType */
+  /** value of application command option type */
   type: ApplicationCommandOptionType;
   /** 1-32 lowercase character name matching ^[\w-]{1,32}$ */
   name: string;
@@ -412,7 +418,7 @@ export interface Button {
   custom_id?: string;
   /** a url for link-style buttons */
   url?: string;
-  /** whether the button is disabled, default false */
+  /** whether the button is disabled (default false) */
   disabled?: boolean;
 }
 export enum ButtonStyle {
@@ -527,29 +533,14 @@ export interface ClientStatus {
   /** the user's status set for an active web (browser, bot account) application session */
   web?: string;
 }
-export interface Component {
-  /** component type */
-  type: ComponentType;
-  /** one of button styles */
-  style?: ButtonStyle;
-  /** text that appears on the button, max 80 characters */
-  label?: string;
-  /** name, id, and animated */
-  emoji?: Emoji;
-  /** a developer-defined identifier for the button, max 100 characters */
-  custom_id?: string;
-  /** a url for link-style buttons */
-  url?: string;
-  /** whether the button is disabled, default false */
-  disabled?: boolean;
-  /** a list of child components */
-  components?: Component[];
-}
+export type Component = ActionRow | Button | SelectMenu;
 export enum ComponentType {
   /** A container for other components */
   ACTION_ROW = 1,
-  /** A clickable button */
+  /** A button object */
   BUTTON = 2,
+  /** A select menu for picking from choices */
+  SELECT_MENU = 3,
 }
 export interface Connection {
   /** id of the connection account */
@@ -1756,9 +1747,9 @@ export interface EditGlobalApplicationCommandParams {
   /** 1-100 character description */
   description: string;
   /** the parameters for the command */
-  options?: ApplicationCommandOption[] | null;
+  options?: ApplicationCommandOption[];
   /** whether the command is enabled by default when the app is added to a guild */
-  default_permission: boolean;
+  default_permission?: boolean;
 }
 export interface EditGuildApplicationCommandParams {
   /** 1-32 lowercase character name matching ^[\w-]{1,32}$ */
@@ -1766,9 +1757,9 @@ export interface EditGuildApplicationCommandParams {
   /** 1-100 character description */
   description: string;
   /** the parameters for the command */
-  options?: ApplicationCommandOption[] | null;
+  options?: ApplicationCommandOption[];
   /** whether the command is enabled by default when the app is added to a guild */
-  default_permission: boolean;
+  default_permission?: boolean;
 }
 export interface EditMessageParams {
   /** the message contents (up to 2000 characters) */
@@ -1967,12 +1958,12 @@ export interface Endpoints<O> {
     params: Partial<BulkDeleteMessageParams>,
     options?: O,
   ) => Promise<any>;
-  /** Takes a list of application commands, overwriting existing commands that are registered globally for this application. Updates will be available in all guilds after 1 hour. Returns 200 and a list of ApplicationCommand objects. Commands that do not already exist will count toward daily application command create limits. */
+  /** Takes a list of application commands, overwriting existing commands that are registered globally for this application. Updates will be available in all guilds after 1 hour. Returns 200 and a list of application command objects. Commands that do not already exist will count toward daily application command create limits. */
   bulkOverwriteGlobalApplicationCommands: (
     applicationId: string,
     options?: O,
   ) => Promise<ApplicationCommand[]>;
-  /** Takes a list of application commands, overwriting existing commands for the guild. Returns 200 and a list of ApplicationCommand objects. */
+  /** Takes a list of application commands, overwriting existing commands for the guild. Returns 200 and a list of application command objects. */
   bulkOverwriteGuildApplicationCommands: (
     applicationId: string,
     guildId: string,
@@ -2050,7 +2041,7 @@ export interface Endpoints<O> {
     params: Partial<CreateGuildTemplateParams>,
     options?: O,
   ) => Promise<GuildTemplate>;
-  /** Create a response to an Interaction from the gateway. Takes an Interaction response. */
+  /** Create a response to an Interaction from the gateway. Takes an interaction response. */
   createInteractionResponse: (
     interactionId: string,
     interactionToken: string,
@@ -2275,7 +2266,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params: Partial<FollowNewsChannelParams>,
     options?: O,
   ) => Promise<FollowedChannel>;
-  /** Fetches command permissions for a specific command for your application in a guild. Returns a GuildApplicationCommandPermissions object. */
+  /** Fetches command permissions for a specific command for your application in a guild. Returns a guild application command permissions object. */
   getApplicationCommandPermissions: (
     applicationId: string,
     guildId: string,
@@ -2309,13 +2300,13 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   ) => Promise<Guild[]>;
   getGateway: (options?: O) => Promise<any>;
   getGatewayBot: (options?: O) => Promise<GetGatewayBotResponse>;
-  /** Fetch a global command for your application. Returns an ApplicationCommand object. */
+  /** Fetch a global command for your application. Returns an application command object. */
   getGlobalApplicationCommand: (
     applicationId: string,
     commandId: string,
     options?: O,
   ) => Promise<ApplicationCommand>;
-  /** Fetch all of the global commands for your application. Returns an array of ApplicationCommand objects. */
+  /** Fetch all of the global commands for your application. Returns an array of application command objects. */
   getGlobalApplicationCommands: (
     applicationId: string,
     options?: O,
@@ -2326,20 +2317,20 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params: Partial<GetGuildParams>,
     options?: O,
   ) => Promise<Guild>;
-  /** Fetch a guild command for your application. Returns an ApplicationCommand object. */
+  /** Fetch a guild command for your application. Returns an application command object. */
   getGuildApplicationCommand: (
     applicationId: string,
     guildId: string,
     commandId: string,
     options?: O,
   ) => Promise<ApplicationCommand>;
-  /** Fetches command permissions for all commands for your application in a guild. Returns an array of GuildApplicationCommandPermissions objects. */
+  /** Fetches command permissions for all commands for your application in a guild. Returns an array of guild application command permissions objects. */
   getGuildApplicationCommandPermissions: (
     applicationId: string,
     guildId: string,
     options?: O,
   ) => Promise<GuildApplicationCommandPermission[]>;
-  /** Fetch all of the guild commands for your application for a specific guild. Returns an array of ApplicationCommand objects. */
+  /** Fetch all of the guild commands for your application for a specific guild. Returns an array of application command objects. */
   getGuildApplicationCommands: (
     applicationId: string,
     guildId: string,
@@ -2667,7 +2658,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params: Partial<StartThreadWithMessageParams>,
     options?: O,
   ) => Promise<Channel>;
-  /** Creates a new thread that is not connected to an existing message. The created thread is always a GUILD_PRIVATE_THREAD. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. Fires a Thread Create Gateway event. */
+  /** Creates a new thread that is not connected to an existing message. The created thread defaults to a GUILD_PRIVATE_THREAD*. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. Fires a Thread Create Gateway event. */
   startThreadWithoutMessage: (
     channelId: string,
     params: Partial<StartThreadWithoutMessageParams>,
@@ -3140,6 +3131,12 @@ export enum GuildFeature {
   MONETIZATION_ENABLED = "MONETIZATION_ENABLED",
   /** guild has increased custom sticker slots */
   MORE_STICKERS = "MORE_STICKERS",
+  /** guild has access to the three day archive time for threads */
+  THREE_DAY_THREAD_ARCHIVE = "THREE_DAY_THREAD_ARCHIVE",
+  /** guild has access to the seven day archive time for threads */
+  SEVEN_DAY_THREAD_ARCHIVE = "SEVEN_DAY_THREAD_ARCHIVE",
+  /** guild has access to create private threads */
+  PRIVATE_THREADS = "PRIVATE_THREADS",
 }
 export interface GuildIntegrationsUpdateEvent {
   /** id of the guild whose integrations were updated */
@@ -3416,6 +3413,10 @@ export interface Interaction {
   /** for components, the message they were attached to */
   message?: Message;
 }
+export const InteractionApplicationCommandCallbackDataFlag = {
+  /** only the user receiving the message can see it */
+  EPHEMERAL: 1 << 6,
+} as const;
 export interface InteractionApplicationCommandCallbackDatum {
   /** is the response TTS */
   tts?: boolean;
@@ -3425,7 +3426,7 @@ export interface InteractionApplicationCommandCallbackDatum {
   embeds?: Embed[];
   /** allowed mentions object */
   allowed_mentions?: AllowedMention;
-  /** set to 64 to make your response ephemeral */
+  /** interaction application command callback data flags */
   flags?: number;
   /** message components */
   components?: Component[];
@@ -3715,7 +3716,7 @@ export interface MessageInteraction {
   id: Snowflake;
   /** the type of interaction */
   type: InteractionType;
-  /** the name of the ApplicationCommand */
+  /** the name of the application command */
   name: string;
   /** the user who invoked the interaction */
   user: User;
@@ -4240,6 +4241,30 @@ export interface SearchGuildMemberParams {
   query: string;
   /** max number of members to return (1-1000) */
   limit: number;
+}
+export interface SelectMenu {
+  /** a developer-defined identifier for the button, max 100 characters */
+  custom_id: string;
+  /** the choices in the select, max 25 */
+  options: SelectOption[];
+  /** custom placeholder text if nothing is selected, max 100 characters */
+  placeholder?: string;
+  /** the minimum number of items that must be chosen; default 1, min 0, max 25 */
+  min_values?: number;
+  /** the maximum number of items that can be chosen; default 1, max 25 */
+  max_values?: number;
+}
+export interface SelectOption {
+  /** the user-facing name of the option, max 25 characters */
+  label: string;
+  /** the dev-define value of the option, max 100 characters */
+  value: string;
+  /** an additional description of the option, max 50 characters */
+  description?: string;
+  /** id, name, and animated */
+  emoji?: Emoji;
+  /** will render this option as selected by default */
+  default?: boolean;
 }
 export interface SessionStartLimit {
   /** The total number of session starts the current user is allowed */

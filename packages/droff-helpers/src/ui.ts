@@ -32,4 +32,7 @@ export const button = (button: Partial<Button>): Button => ({
 /**
  * Helper to create a select component.
  */
-export const select = (select: SelectMenu): SelectMenu => select;
+export const select = (select: Omit<SelectMenu, "type">): SelectMenu => ({
+  type: ComponentType.SELECT_MENU,
+  ...select,
+});

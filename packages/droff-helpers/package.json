@@ -1,6 +1,6 @@
 {
   "name": "droff-helpers",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "A utility library for the droff discord client",
   "keywords": [
     "droff",

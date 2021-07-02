@@ -4243,6 +4243,8 @@ export interface SearchGuildMemberParams {
   limit: number;
 }
 export interface SelectMenu {
+  /** 3 for a select menu */
+  type: number;
   /** a developer-defined identifier for the button, max 100 characters */
   custom_id: string;
   /** the choices in the select, max 25 */

@@ -4,6 +4,7 @@ import {
   ButtonStyle,
   Component,
   ComponentType,
+  SelectMenu,
 } from "droff/dist/types";
 
 export type UIComponent = Exclude<Component, ActionRow>;
@@ -27,3 +28,8 @@ export const button = (button: Partial<Button>): Button => ({
   style: ButtonStyle.PRIMARY,
   ...button,
 });
+
+/**
+ * Helper to create a select component.
+ */
+export const select = (select: SelectMenu): SelectMenu => select;

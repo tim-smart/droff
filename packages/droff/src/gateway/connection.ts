@@ -1,5 +1,5 @@
 import * as F from "fp-ts/function";
-import { WebSocketClient } from "reconnecting-ws";
+import WebSocket from "ws";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import {
@@ -23,33 +23,54 @@ const opCode = <T = any>(code: GatewayOpcode) =>
 export function create(baseURL = "wss://gateway.discord.gg/") {
   const { encode, decode, encoding } = Codec.create();
 
-  const ws = new WebSocketClient();
-  ws.connect(`${baseURL}?v=${VERSION}&encoding=${encoding}`);
+  const url = `${baseURL}?v=${VERSION}&encoding=${encoding}`;
+  const messageSubject = new Rx.Subject<GatewayPayload>();
+  const raw$ = messageSubject.asObservable();
+
+  const createWS = () => {
+    const ws = new WebSocket(url, { perMessageDeflate: false });
+
+    ws.on("message", (data) => {
+      messageSubject.next(decode(data as Buffer) as GatewayPayload);
+    });
+
+    ws.on("error", () => {
+      replaceWS();
+    });
+
+    ws.on("close", () => {
+      if (!manuallyClosed) {
+        replaceWS();
+      }
+      messageSubject.complete();
+    });
+    return ws;
+  };
+
+  let ws = createWS();
+
+  const replaceWS = () => {
+    ws.removeAllListeners();
+    try {
+      ws.close(1012, "reconnecting");
+    } catch (_) {}
+
+    ws = createWS();
+  };
 
   function send(data: GatewayPayload) {
-    ws.sendData(encode(data));
+    ws.send(encode(data));
   }
 
   let manuallyClosed = false;
   function close() {
-    ws.disconnect();
+    ws.close();
     manuallyClosed = true;
   }
 
   function reconnect() {
-    ws.WebSocketInstance.close(1012, "reconnecting");
+    replaceWS();
   }
-
-  const messageSubject = new Rx.Subject<GatewayPayload>();
-  const raw$ = messageSubject.asObservable();
-  ws.on("message", (data) => {
-    messageSubject.next(decode(data as Buffer) as GatewayPayload);
-  });
-
-  ws.on("close", () => {
-    if (!manuallyClosed) return;
-    messageSubject.complete();
-  });
 
   const dispatch$ = raw$.pipe(opCode<GatewayEvent>(GatewayOpcode.DISPATCH));
   const heartbeat$ = raw$.pipe(opCode<Heartbeat>(GatewayOpcode.HEARTBEAT));

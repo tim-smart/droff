@@ -35,15 +35,17 @@ export function create(baseURL = "wss://gateway.discord.gg/") {
     });
 
     ws.on("error", () => {
-      replaceWS();
+      ws.close(1012, "reconnecting");
     });
 
     ws.on("close", () => {
       if (!manuallyClosed) {
-        replaceWS();
+        return replaceWS();
       }
+
       messageSubject.complete();
     });
+
     return ws;
   };
 
@@ -51,10 +53,6 @@ export function create(baseURL = "wss://gateway.discord.gg/") {
 
   const replaceWS = () => {
     ws.removeAllListeners();
-    try {
-      ws.close(1012, "reconnecting");
-    } catch (_) {}
-
     ws = createWS();
   };
 
@@ -69,7 +67,7 @@ export function create(baseURL = "wss://gateway.discord.gg/") {
   }
 
   function reconnect() {
-    replaceWS();
+    ws.close(1012, "reconnecting");
   }
 
   const dispatch$ = raw$.pipe(opCode<GatewayEvent>(GatewayOpcode.DISPATCH));

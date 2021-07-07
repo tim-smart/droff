@@ -33,7 +33,7 @@ export function create({
     baseURL: `https://discord.com/api/v${VERSION}`,
     headers: {
       Authorization: `Bot ${token}`,
-      UserAgent: `DiscordBot (https://github.com/tim-smart/droff, ${Pkg.version})`,
+      "User-Agent": `DiscordBot (https://github.com/tim-smart/droff, ${Pkg.version})`,
     },
     timeout: 10000,
   });

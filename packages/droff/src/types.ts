@@ -3844,13 +3844,13 @@ export enum MfaLevel {
   ELEVATED = 1,
 }
 export interface ModifyChannelGroupDmParams {
-  /** 2-100 character channel name */
+  /** 1-100 character channel name */
   name: string;
   /** base64 encoded icon */
   icon: string;
 }
 export interface ModifyChannelGuildChannelParams {
-  /** 2-100 character channel name */
+  /** 1-100 character channel name */
   name: string;
   /** the type of channel; only conversion between text and news is supported and only in guilds with the "NEWS" feature */
   type: ChannelType;
@@ -3882,13 +3882,13 @@ export type ModifyChannelParams =
   | ModifyChannelGuildChannelParams
   | ModifyChannelThreadParams;
 export interface ModifyChannelThreadParams {
-  /** 2-100 character channel name */
+  /** 1-100 character channel name */
   name: string;
-  /** whether the channel is archived */
+  /** whether the thread is archived */
   archived: boolean;
   /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
   auto_archive_duration: number;
-  /** when a thread is locked, only users with MANAGE_THREADS can unarchive it */
+  /** whether the thread is locked; when a thread is locked, only users with MANAGE_THREADS can unarchive it */
   locked: boolean;
   /** amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages, manage_thread, or manage_channel, are unaffected */
   rate_limit_per_user?: number | null;
@@ -4255,6 +4255,8 @@ export interface SelectMenu {
   min_values?: number;
   /** the maximum number of items that can be chosen; default 1, max 25 */
   max_values?: number;
+  /** disable the select, default false */
+  disabled?: boolean;
 }
 export interface SelectOption {
   /** the user-facing name of the option, max 25 characters */
@@ -4297,13 +4299,13 @@ export type StageInstanceCreateEvent = StageInstance;
 export type StageInstanceDeleteEvent = StageInstance;
 export type StageInstanceUpdateEvent = StageInstance;
 export interface StartThreadWithMessageParams {
-  /** 2-100 character channel name */
+  /** 1-100 character channel name */
   name: string;
   /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
   auto_archive_duration: number;
 }
 export interface StartThreadWithoutMessageParams {
-  /** 2-100 character channel name */
+  /** 1-100 character channel name */
   name: string;
   /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
   auto_archive_duration: number;
@@ -4394,7 +4396,7 @@ export interface ThreadMetadatum {
   auto_archive_duration: number;
   /** timestamp when the thread's archive status was last changed, used for calculating recent activity */
   archive_timestamp: string;
-  /** when a thread is locked, only users with MANAGE_THREADS can unarchive it */
+  /** whether the thread is locked; when a thread is locked, only users with MANAGE_THREADS can unarchive it */
   locked?: boolean;
 }
 export type ThreadUpdateEvent = Channel;

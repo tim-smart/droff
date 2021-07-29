@@ -231,7 +231,7 @@ export interface ApplicationCommandOption {
   description: string;
   /** if the parameter is required or optional--default false */
   required?: boolean;
-  /** choices for string and int types for the user to pick from */
+  /** choices for STRING, INTEGER, and NUMBER types for the user to pick from */
   choices?: ApplicationCommandOptionChoice[];
   /** if the option is a subcommand or subcommand group type, this nested options will be the parameters */
   options?: ApplicationCommandOption[];
@@ -252,6 +252,7 @@ export enum ApplicationCommandOptionType {
   CHANNEL = 7,
   ROLE = 8,
   MENTIONABLE = 9,
+  NUMBER = 10,
 }
 export interface ApplicationCommandPermission {
   /** the id of the role or user */
@@ -384,6 +385,9 @@ export enum AuditLogEvent {
   STAGE_INSTANCE_CREATE = 83,
   STAGE_INSTANCE_UPDATE = 84,
   STAGE_INSTANCE_DELETE = 85,
+  STICKER_CREATE = 90,
+  STICKER_UPDATE = 91,
+  STICKER_DELETE = 92,
 }
 export interface Ban {
   /** the reason for the ban */
@@ -398,7 +402,7 @@ export interface BeginGuildPruneParams {
   compute_prune_count: boolean;
   /** role(s) to include */
   include_roles: Snowflake[];
-  /** reason for the prune */
+  /** reason for the prune (deprecated) */
   reason?: string;
 }
 export interface BulkDeleteMessageParams {
@@ -479,6 +483,8 @@ export interface Channel {
   member?: ThreadMember;
   /** default duration for newly created threads, in minutes, to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
   default_auto_archive_duration?: number;
+  /** computed permissions for the invoking user in the channel, including overwrites, only included when part of the resolved data received on a slash command interaction */
+  permissions?: string;
 }
 export type ChannelCreateEvent = Channel;
 export type ChannelDeleteEvent = Channel;
@@ -611,7 +617,7 @@ export interface CreateGuildApplicationCommandParams {
 export interface CreateGuildBanParams {
   /** number of days to delete messages for (0-7) */
   delete_message_days?: number;
-  /** reason for the ban */
+  /** reason for the ban (deprecated) */
   reason?: string;
 }
 export interface CreateGuildChannelParams {
@@ -688,6 +694,16 @@ export interface CreateGuildRoleParams {
   /** whether the role should be mentionable */
   mentionable: boolean;
 }
+export interface CreateGuildStickerParams {
+  /** name of the sticker (2-30 characters) */
+  name: string;
+  /** description of the sticker (empty or 2-100 characters) */
+  description: string;
+  /** the Discord name of a unicode emoji representing the sticker's expression (2-200 characters) */
+  tags: string;
+  /** the sticker file to upload, must be a PNG, APNG, or Lottie JSON file, max 500 KB */
+  file: string;
+}
 export interface CreateGuildTemplateParams {
   /** name of the template (1-100 characters) */
   name: string;
@@ -713,6 +729,8 @@ export interface CreateMessageParams {
   message_reference: MessageReference;
   /** the components to include with the message */
   components: Component[];
+  /** IDs of up to 3 stickers in the server to send in the message */
+  sticker_ids: Snowflake[];
 }
 export function createRoutes<O = any>(
   fetch: <R, P>(route: Route<P, O>) => Promise<R>,
@@ -858,6 +876,13 @@ export function createRoutes<O = any>(
         params,
         options,
       }),
+    createGuildSticker: (guildId, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/guilds/${guildId}/stickers`,
+        params,
+        options,
+      }),
     createGuildTemplate: (guildId, params, options) =>
       fetch({
         method: "POST",
@@ -984,6 +1009,12 @@ export function createRoutes<O = any>(
       fetch({
         method: "DELETE",
         url: `/guilds/${guildId}/roles/${roleId}`,
+        options,
+      }),
+    deleteGuildSticker: (guildId, stickerId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/guilds/${guildId}/stickers/${stickerId}`,
         options,
       }),
     deleteGuildTemplate: (guildId, templateCode, options) =>
@@ -1200,6 +1231,12 @@ export function createRoutes<O = any>(
         params,
         options,
       }),
+    getFollowupMessage: (applicationId, interactionToken, messageId, options) =>
+      fetch({
+        method: "GET",
+        url: `/webhooks/${applicationId}/${interactionToken}/messages/${messageId}`,
+        options,
+      }),
     getGateway: (options) =>
       fetch({
         method: "GET",
@@ -1317,6 +1354,12 @@ export function createRoutes<O = any>(
         url: `/guilds/${guildId}/roles`,
         options,
       }),
+    getGuildSticker: (guildId, stickerId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/stickers/${stickerId}`,
+        options,
+      }),
     getGuildTemplate: (templateCode, options) =>
       fetch({
         method: "GET",
@@ -1408,6 +1451,12 @@ export function createRoutes<O = any>(
         url: `/stage-instances/${channelId}`,
         options,
       }),
+    getSticker: (stickerId, options) =>
+      fetch({
+        method: "GET",
+        url: `/stickers/${stickerId}`,
+        options,
+      }),
     getUser: (userId, options) =>
       fetch({
         method: "GET",
@@ -1488,11 +1537,23 @@ export function createRoutes<O = any>(
         params,
         options,
       }),
+    listGuildStickers: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/stickers`,
+        options,
+      }),
     listJoinedPrivateArchivedThreads: (channelId, params, options) =>
       fetch({
         method: "GET",
         url: `/channels/${channelId}/users/@me/threads/archived/private`,
         params,
+        options,
+      }),
+    listNitroStickerPacks: (options) =>
+      fetch({
+        method: "GET",
+        url: `/sticker-packs`,
         options,
       }),
     listPrivateArchivedThreads: (channelId, params, options) =>
@@ -1588,6 +1649,13 @@ export function createRoutes<O = any>(
       fetch({
         method: "PATCH",
         url: `/guilds/${guildId}/roles`,
+        params,
+        options,
+      }),
+    modifyGuildSticker: (guildId, stickerId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/guilds/${guildId}/stickers/${stickerId}`,
         params,
         options,
       }),
@@ -2017,7 +2085,7 @@ export interface Endpoints<O> {
     params: Partial<CreateGuildChannelParams>,
     options?: O,
   ) => Promise<Channel>;
-  /** Create a new emoji for the guild. Requires the MANAGE_EMOJIS permission. Returns the new emoji object on success. Fires a Guild Emojis Update Gateway event. */
+  /** Create a new emoji for the guild. Requires the MANAGE_EMOJIS_AND_STICKERS permission. Returns the new emoji object on success. Fires a Guild Emojis Update Gateway event. */
   createGuildEmoji: (
     guildId: string,
     params: Partial<CreateGuildEmojiParams>,
@@ -2035,6 +2103,12 @@ export interface Endpoints<O> {
     params: Partial<CreateGuildRoleParams>,
     options?: O,
   ) => Promise<Role>;
+  /** Create a new sticker for the guild. Send a multipart/form-data body. Requires the MANAGE_EMOJIS_AND_STICKERS permission. Returns the new sticker object on success. */
+  createGuildSticker: (
+    guildId: string,
+    params: Partial<CreateGuildStickerParams>,
+    options?: O,
+  ) => Promise<Sticker>;
   /** Creates a template for the guild. Requires the MANAGE_GUILD permission. Returns the created guild template object on success. */
   createGuildTemplate: (
     guildId: string,
@@ -2100,7 +2174,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   ) => Promise<any>;
   /** Delete a channel, or close a private message. Requires the MANAGE_CHANNELS permission for the guild, or MANAGE_THREADS if the channel is a thread. Deleting a category does not delete its child channels; they will have their parent_id removed and a Channel Update Gateway event will fire for each of them. Returns a channel object on success. Fires a Channel Delete Gateway event (or Thread Delete if the channel was a thread). */
   deletecloseChannel: (channelId: string, options?: O) => Promise<Channel>;
-  /** Deletes a followup message for an Interaction. Returns 204 on success. */
+  /** Deletes a followup message for an Interaction. Returns 204 on success. Does not support ephemeral followups. */
   deleteFollowupMessage: (
     applicationId: string,
     interactionToken: string,
@@ -2122,7 +2196,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     commandId: string,
     options?: O,
   ) => Promise<any>;
-  /** Delete the given emoji. Requires the MANAGE_EMOJIS permission. Returns 204 No Content on success. Fires a Guild Emojis Update Gateway event. */
+  /** Delete the given emoji. Requires the MANAGE_EMOJIS_AND_STICKERS permission. Returns 204 No Content on success. Fires a Guild Emojis Update Gateway event. */
   deleteGuildEmoji: (
     guildId: string,
     emojiId: string,
@@ -2138,6 +2212,12 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   deleteGuildRole: (
     guildId: string,
     roleId: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Delete the given sticker. Requires the MANAGE_EMOJIS_AND_STICKERS permission. Returns 204 No Content on success. */
+  deleteGuildSticker: (
+    guildId: string,
+    stickerId: string,
     options?: O,
   ) => Promise<any>;
   /** Deletes the template. Requires the MANAGE_GUILD permission. Returns the deleted guild template object on success. */
@@ -2201,7 +2281,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params: Partial<EditChannelPermissionParams>,
     options?: O,
   ) => Promise<any>;
-  /** Edits a followup message for an Interaction. Functions the same as Edit Webhook Message. */
+  /** Edits a followup message for an Interaction. Functions the same as Edit Webhook Message. Does not support ephemeral followups. */
   editFollowupMessage: (
     applicationId: string,
     interactionToken: string,
@@ -2298,6 +2378,13 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params: Partial<GetCurrentUserGuildParams>,
     options?: O,
   ) => Promise<Guild[]>;
+  /** Returns a followup message for an Interaction. Functions the same as Get Webhook Message. Does not support ephemeral followups. */
+  getFollowupMessage: (
+    applicationId: string,
+    interactionToken: string,
+    messageId: string,
+    options?: O,
+  ) => Promise<any>;
   getGateway: (options?: O) => Promise<any>;
   getGatewayBot: (options?: O) => Promise<GetGatewayBotResponse>;
   /** Fetch a global command for your application. Returns an application command object. */
@@ -2377,6 +2464,12 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   ) => Promise<any>;
   /** Returns a list of role objects for the guild. */
   getGuildRoles: (guildId: string, options?: O) => Promise<Role[]>;
+  /** Returns a sticker object for the given guild and sticker IDs. Includes the user field if the bot has the MANAGE_EMOJIS_AND_STICKERS permission. */
+  getGuildSticker: (
+    guildId: string,
+    stickerId: string,
+    options?: O,
+  ) => Promise<Sticker>;
   /** Returns a guild template object for the given code. */
   getGuildTemplate: (
     templateCode: string,
@@ -2436,6 +2529,8 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   ) => Promise<User[]>;
   /** Gets the stage instance associated with the Stage channel, if it exists. */
   getStageInstance: (channelId: string, options?: O) => Promise<any>;
+  /** Returns a sticker object for the given sticker ID. */
+  getSticker: (stickerId: string, options?: O) => Promise<Sticker>;
   /** Returns a user object for a given user ID. */
   getUser: (userId: string, options?: O) => Promise<User>;
   /** Returns a list of connection objects. Requires the connections OAuth2 scope. */
@@ -2487,12 +2582,16 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params: Partial<ListGuildMemberParams>,
     options?: O,
   ) => Promise<GuildMember[]>;
+  /** Returns an array of sticker objects for the given guild. Includes user fields if the bot has the MANAGE_EMOJIS_AND_STICKERS permission. */
+  listGuildStickers: (guildId: string, options?: O) => Promise<Sticker[]>;
   /** Returns archived threads in the channel that are of type GUILD_PRIVATE_THREAD, and the user has joined. Threads are ordered by their id, in descending order. Requires the READ_MESSAGE_HISTORY permission. */
   listJoinedPrivateArchivedThreads: (
     channelId: string,
     params: Partial<ListJoinedPrivateArchivedThreadParams>,
     options?: O,
   ) => Promise<ListJoinedPrivateArchivedThreadResponse>;
+  /** Returns the list of sticker packs available to Nitro subscribers. */
+  listNitroStickerPacks: (options?: O) => Promise<any>;
   /** Returns archived threads in the channel that are of type GUILD_PRIVATE_THREAD. Threads are ordered by archive_timestamp, in descending order. Requires both the READ_MESSAGE_HISTORY and MANAGE_THREADS permissions. */
   listPrivateArchivedThreads: (
     channelId: string,
@@ -2547,7 +2646,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params: Partial<ModifyGuildChannelPositionParams>,
     options?: O,
   ) => Promise<any>;
-  /** Modify the given emoji. Requires the MANAGE_EMOJIS permission. Returns the updated emoji object on success. Fires a Guild Emojis Update Gateway event. */
+  /** Modify the given emoji. Requires the MANAGE_EMOJIS_AND_STICKERS permission. Returns the updated emoji object on success. Fires a Guild Emojis Update Gateway event. */
   modifyGuildEmoji: (
     guildId: string,
     emojiId: string,
@@ -2574,6 +2673,13 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params: Partial<ModifyGuildRolePositionParams>,
     options?: O,
   ) => Promise<Role[]>;
+  /** Modify the given sticker. Requires the MANAGE_EMOJIS_AND_STICKERS permission. Returns the updated sticker object on success. */
+  modifyGuildSticker: (
+    guildId: string,
+    stickerId: string,
+    params: Partial<ModifyGuildStickerParams>,
+    options?: O,
+  ) => Promise<Sticker>;
   /** Modifies the template's metadata. Requires the MANAGE_GUILD permission. Returns the guild template object on success. */
   modifyGuildTemplate: (
     guildId: string,
@@ -2757,6 +2863,7 @@ export type GatewayEvent =
   | GuildBanAddEvent
   | GuildBanRemoveEvent
   | GuildEmojisUpdateEvent
+  | GuildStickersUpdateEvent
   | GuildIntegrationsUpdateEvent
   | GuildMemberAddEvent
   | GuildMemberRemoveEvent
@@ -2813,6 +2920,7 @@ export interface GatewayEvents {
   GUILD_BAN_ADD: GuildBanAddEvent;
   GUILD_BAN_REMOVE: GuildBanRemoveEvent;
   GUILD_EMOJIS_UPDATE: GuildEmojisUpdateEvent;
+  GUILD_STICKERS_UPDATE: GuildStickersUpdateEvent;
   GUILD_INTEGRATIONS_UPDATE: GuildIntegrationsUpdateEvent;
   GUILD_MEMBER_ADD: GuildMemberAddEvent;
   GUILD_MEMBER_REMOVE: GuildMemberRemoveEvent;
@@ -2849,7 +2957,7 @@ export const GatewayIntents = {
   GUILDS: 1 << 0,
   GUILD_MEMBERS: 1 << 1,
   GUILD_BANS: 1 << 2,
-  GUILD_EMOJIS: 1 << 3,
+  GUILD_EMOJIS_AND_STICKERS: 1 << 3,
   GUILD_INTEGRATIONS: 1 << 4,
   GUILD_WEBHOOKS: 1 << 5,
   GUILD_INVITES: 1 << 6,
@@ -3063,6 +3171,8 @@ export interface Guild {
   nsfw_level: GuildNsfwLevel;
   /** Stage instances in the guild */
   stage_instances?: StageInstance[];
+  /** custom guild stickers */
+  stickers?: Sticker[];
 }
 export interface GuildApplicationCommandPermission {
   /** the id of the command */
@@ -3254,6 +3364,12 @@ export interface GuildRoleUpdateEvent {
   guild_id: Snowflake;
   /** the role updated */
   role: Role;
+}
+export interface GuildStickersUpdateEvent {
+  /** id of the guild */
+  guild_id: Snowflake;
+  /** array of stickers */
+  stickers: Sticker[];
 }
 export interface GuildTemplate {
   /** the template code (unique ID) */
@@ -3660,9 +3776,9 @@ export interface Message {
   /** sent if the message contains components like buttons, action rows, or other interactive components */
   components?: Component[];
   /** sent if the message contains stickers */
-  sticker_items?: MessageStickerItem[];
+  sticker_items?: StickerItem[];
   /** Deprecated the stickers sent with the message */
-  stickers?: MessageSticker[];
+  stickers?: Sticker[];
 }
 export interface MessageActivity {
   /** type of message activity */
@@ -3774,43 +3890,6 @@ export interface MessageReference {
   guild_id?: Snowflake;
   /** when sending, whether to error if the referenced message doesn't exist instead of sending as a normal (non-reply) message, default true */
   fail_if_not_exists?: boolean;
-}
-export interface MessageSticker {
-  /** id of the sticker */
-  id: Snowflake;
-  /** id of the pack the sticker is from */
-  pack_id?: Snowflake;
-  /** name of the sticker */
-  name: string;
-  /** description of the sticker */
-  description: string;
-  /** for guild stickers, a unicode emoji representing the sticker's expression. for nitro stickers, a comma-separated list of related expressions. */
-  tags: string;
-  /** Deprecated previously the sticker asset hash, now an empty string */
-  asset: string;
-  /** type of sticker format */
-  format_type: MessageStickerFormatType;
-  /** whether or not the sticker is available */
-  available?: boolean;
-  /** id of the guild that owns this sticker */
-  guild_id?: Snowflake;
-  /** the user that uploaded the sticker */
-  user?: User;
-  /** a sticker's sort order within a pack */
-  sort_value?: number;
-}
-export enum MessageStickerFormatType {
-  PNG = 1,
-  APNG = 2,
-  LOTTIE = 3,
-}
-export interface MessageStickerItem {
-  /** id of the sticker */
-  id: Snowflake;
-  /** name of the sticker */
-  name: string;
-  /** type of sticker format */
-  format_type: MessageStickerFormatType;
 }
 export enum MessageType {
   DEFAULT = 0,
@@ -3997,6 +4076,14 @@ export interface ModifyGuildRolePositionParams {
   /** sorting position of the role */
   position?: number | null;
 }
+export interface ModifyGuildStickerParams {
+  /** name of the sticker (2-30 characters) */
+  name: string;
+  /** description of the sticker (2-100 characters) */
+  description?: string | null;
+  /** the Discord name of a unicode emoji representing the sticker's expression (2-200 characters) */
+  tags: string;
+}
 export interface ModifyGuildTemplateParams {
   /** name of the template (1-100 characters) */
   name?: string;
@@ -4102,8 +4189,8 @@ export const PermissionFlag = {
   MANAGE_ROLES: BigInt(1) << BigInt(28),
   /** Allows management and editing of webhooks */
   MANAGE_WEBHOOKS: BigInt(1) << BigInt(29),
-  /** Allows management and editing of emojis */
-  MANAGE_EMOJIS: BigInt(1) << BigInt(30),
+  /** Allows management and editing of emojis and stickers */
+  MANAGE_EMOJIS_AND_STICKERS: BigInt(1) << BigInt(30),
   /** Allows members to use slash commands in text channels */
   USE_SLASH_COMMANDS: BigInt(1) << BigInt(31),
   /** Allows for requesting to speak in stage channels. (This permission is under active development and may be changed or removed.) */
@@ -4114,6 +4201,8 @@ export const PermissionFlag = {
   USE_PUBLIC_THREADS: BigInt(1) << BigInt(35),
   /** Allows for creating and participating in private threads */
   USE_PRIVATE_THREADS: BigInt(1) << BigInt(36),
+  /** Allows the usage of custom stickers from other servers */
+  USE_EXTERNAL_STICKERS: BigInt(1) << BigInt(37),
 } as const;
 export enum PremiumTier {
   /** guild has not unlocked any Server Boost perks */
@@ -4143,7 +4232,7 @@ export interface PresenceUpdateEvent {
   client_status: ClientStatus;
 }
 export enum PrivacyLevel {
-  /** The Stage instance is visible publicly, such as on Stage discovery. */
+  /** The Stage instance is visible publicly, such as on Stage Discovery. */
   PUBLIC = 1,
   /** The Stage instance is visible to only guild members. */
   GUILD_ONLY = 2,
@@ -4292,7 +4381,7 @@ export interface StageInstance {
   topic: string;
   /** The privacy level of the Stage instance */
   privacy_level: PrivacyLevel;
-  /** Whether or not Stage discovery is disabled */
+  /** Whether or not Stage Discovery is disabled */
   discoverable_disabled: boolean;
 }
 export type StageInstanceCreateEvent = StageInstance;
@@ -4323,6 +4412,67 @@ export enum StatusType {
   INVISIBLE = "invisible",
   /** Offline */
   OFFLINE = "offline",
+}
+export interface Sticker {
+  /** id of the sticker */
+  id: Snowflake;
+  /** for standard stickers, id of the pack the sticker is from */
+  pack_id?: Snowflake;
+  /** name of the sticker */
+  name: string;
+  /** description of the sticker */
+  description?: string | null;
+  /** for guild stickers, the Discord name of a unicode emoji representing the sticker's expression. for standard stickers, a comma-separated list of related expressions. */
+  tags: string;
+  /** Deprecated previously the sticker asset hash, now an empty string */
+  asset: string;
+  /** type of sticker */
+  type: StickerType;
+  /** type of sticker format */
+  format_type: StickerFormatType;
+  /** whether this guild sticker can be used, may be false due to loss of Server Boosts */
+  available?: boolean;
+  /** id of the guild that owns this sticker */
+  guild_id?: Snowflake;
+  /** the user that uploaded the guild sticker */
+  user?: User;
+  /** the standard sticker's sort order within its pack */
+  sort_value?: number;
+}
+export enum StickerFormatType {
+  PNG = 1,
+  APNG = 2,
+  LOTTIE = 3,
+}
+export interface StickerItem {
+  /** id of the sticker */
+  id: Snowflake;
+  /** name of the sticker */
+  name: string;
+  /** type of sticker format */
+  format_type: StickerFormatType;
+}
+export interface StickerPack {
+  /** id of the sticker pack */
+  id: Snowflake;
+  /** the stickers in the pack */
+  stickers: Sticker[];
+  /** name of the sticker pack */
+  name: string;
+  /** id of the pack's SKU */
+  sku_id: Snowflake;
+  /** id of a sticker in the pack which is shown as the pack's icon */
+  cover_sticker_id?: Snowflake;
+  /** description of the sticker pack */
+  description: string;
+  /** id of the sticker pack's banner image */
+  banner_asset_id: Snowflake;
+}
+export enum StickerType {
+  /** an official sticker in a pack, part of Nitro or in a removed purchasable pack */
+  STANDARD = 1,
+  /** a sticker uploaded to a Boosted guild for the guild's members */
+  GUILD = 2,
 }
 export const SystemChannelFlag = {
   /** Suppress member join notifications */

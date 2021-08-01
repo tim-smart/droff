@@ -33,5 +33,6 @@
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.3"
-  }
+  },
+  "gitHead": "465b6af8c550e3783bd25953dae931d3d3c1706e"
 }

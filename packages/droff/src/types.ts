@@ -1523,16 +1523,16 @@ export function createRoutes<O = any>(
         url: `/channels/${channelId}/thread-members/@me`,
         options,
       }),
-    listActiveThreads: (guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/threads/active`,
-        options,
-      }),
     listActiveThreads: (channelId, options) =>
       fetch({
         method: "GET",
         url: `/channels/${channelId}/threads/active`,
+        options,
+      }),
+    listGuildActiveThreads: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/threads/active`,
         options,
       }),
     listGuildEmojis: (guildId, options) =>
@@ -2580,16 +2580,16 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   leaveGuild: (guildId: string, options?: O) => Promise<any>;
   /** Removes the current user from a thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
   leaveThread: (channelId: string, options?: O) => Promise<any>;
-  /** Returns all active threads in the guild, including public and private threads. Threads are ordered by their id, in descending order. */
-  listActiveThreads: (
-    guildId: string,
-    options?: O,
-  ) => Promise<ListActiveThreadResponse>;
   /** Returns all active threads in the channel, including public and private threads. Threads are ordered by their id, in descending order. */
   listActiveThreads: (
     channelId: string,
     options?: O,
   ) => Promise<ListActiveThreadResponse>;
+  /** Returns all active threads in the guild, including public and private threads. Threads are ordered by their id, in descending order. */
+  listGuildActiveThreads: (
+    guildId: string,
+    options?: O,
+  ) => Promise<ListGuildActiveThreadResponse>;
   /** Returns a list of emoji objects for the given guild. */
   listGuildEmojis: (guildId: string, options?: O) => Promise<Emoji[]>;
   /** Returns a list of guild member objects that are members of the guild. */
@@ -3673,6 +3673,14 @@ export enum InviteTargetType {
   EMBEDDED_APPLICATION = 2,
 }
 export interface ListActiveThreadResponse {
+  /** the active threads */
+  threads: Channel[];
+  /** a thread member object for each returned thread the current user has joined */
+  members: ThreadMember[];
+  /** whether there are potentially additional threads that could be returned on a subsequent call */
+  has_more: boolean;
+}
+export interface ListGuildActiveThreadResponse {
   /** the active threads */
   threads: Channel[];
   /** a thread member object for each returned thread the current user has joined */

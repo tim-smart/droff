@@ -1,5 +1,7 @@
 # droff
 
+![Discord](https://img.shields.io/discord/887189613389705256?style=for-the-badge)
+
 Simple Discord client powered by RxJS and Axios
 
 - API documentation: https://tim-smart.github.io/droff/droff/

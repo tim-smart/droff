@@ -167,26 +167,22 @@ export interface Application {
 export interface ApplicationCommand {
   /** unique id of the command */
   id: Snowflake;
+  /** the type of command, defaults 1 if not set */
+  type?: ApplicationCommandType;
   /** unique id of the parent application */
   application_id: Snowflake;
   /** guild id of the command, if not global */
   guild_id?: Snowflake;
-  /** 1-32 lowercase character name matching ^[\w-]{1,32}$ */
+  /** 1-32 character name */
   name: string;
-  /** 1-100 character description */
+  /** 1-100 character description for CHAT_INPUT commands, empty string for USER and MESSAGE commands */
   description: string;
-  /** the parameters for the command */
+  /** the parameters for the command, max 25 */
   options?: ApplicationCommandOption[];
   /** whether the command is enabled by default when the app is added to a guild */
   default_permission?: boolean;
-}
-export type ApplicationCommandCreateEvent = ApplicationCommand &
-  ApplicationCommandExtra;
-export type ApplicationCommandDeleteEvent = ApplicationCommand &
-  ApplicationCommandExtra;
-export interface ApplicationCommandExtra {
-  /** id of the guild the command is in */
-  guild_id?: Snowflake;
+  /** autoincrementing version identifier updated during substantial record changes */
+  version: Snowflake;
 }
 export interface ApplicationCommandInteractionDataOption {
   /** the name of the parameter */
@@ -198,40 +194,16 @@ export interface ApplicationCommandInteractionDataOption {
   /** present if this option is a group or subcommand */
   options?: ApplicationCommandInteractionDataOption[];
 }
-export interface ApplicationCommandInteractionDataResolved {
-  /** the ids and User objects */
-  users?: Record<Snowflake, User>;
-  /** the ids and partial Member objects */
-  members?: Record<Snowflake, GuildMember>;
-  /** the ids and Role objects */
-  roles?: Record<Snowflake, Role>;
-  /** the ids and partial Channel objects */
-  channels?: Record<Snowflake, Channel>;
-}
-export interface ApplicationCommandInteractionDatum {
-  /** the ID of the invoked command */
-  id: Snowflake;
-  /** the name of the invoked command */
-  name: string;
-  /** converted users + roles + channels */
-  resolved?: ApplicationCommandInteractionDataResolved;
-  /** the params + values from the user */
-  options?: ApplicationCommandInteractionDataOption[];
-  /** for components, the custom_id of the component */
-  custom_id: string;
-  /** for components, the type of the component */
-  component_type: ComponentType;
-}
 export interface ApplicationCommandOption {
-  /** value of application command option type */
-  type: ApplicationCommandOptionType;
-  /** 1-32 lowercase character name matching ^[\w-]{1,32}$ */
+  /** the type of option */
+  type: any;
+  /** 1-32 character name */
   name: string;
   /** 1-100 character description */
   description: string;
   /** if the parameter is required or optional--default false */
   required?: boolean;
-  /** choices for STRING, INTEGER, and NUMBER types for the user to pick from */
+  /** choices for STRING, INTEGER, and NUMBER types for the user to pick from, max 25 */
   choices?: ApplicationCommandOptionChoice[];
   /** if the option is a subcommand or subcommand group type, this nested options will be the parameters */
   options?: ApplicationCommandOption[];
@@ -266,8 +238,14 @@ export enum ApplicationCommandPermissionType {
   ROLE = 1,
   USER = 2,
 }
-export type ApplicationCommandUpdateEvent = ApplicationCommand &
-  ApplicationCommandExtra;
+export enum ApplicationCommandType {
+  /** Slash commands; a text-based command that shows up when a user types / */
+  CHAT_INPUT = 1,
+  /** A UI-based command that shows up when you right click or tap on a user */
+  USER = 2,
+  /** A UI-based command that shows up when you right click or tap on a message */
+  MESSAGE = 3,
+}
 export const ApplicationFlag = {
   GATEWAY_PRESENCE: 1 << 12,
   GATEWAY_PRESENCE_LIMITED: 1 << 13,
@@ -594,7 +572,7 @@ export interface CreateDmParams {
   recipient_id: Snowflake;
 }
 export interface CreateGlobalApplicationCommandParams {
-  /** 1-32 lowercase character name matching ^[\w-]{1,32}$ */
+  /** 1-32 character name */
   name: string;
   /** 1-100 character description */
   description: string;
@@ -602,6 +580,8 @@ export interface CreateGlobalApplicationCommandParams {
   options?: ApplicationCommandOption[];
   /** whether the command is enabled by default when the app is added to a guild */
   default_permission?: boolean;
+  /** the type of command, defaults 1 if not set */
+  type?: ApplicationCommandType;
 }
 export interface CreateGroupDmParams {
   /** access tokens of users that have granted your app the gdm.join scope */
@@ -610,7 +590,7 @@ export interface CreateGroupDmParams {
   nicks: Record<string, string>;
 }
 export interface CreateGuildApplicationCommandParams {
-  /** 1-32 lowercase character name matching ^[\w-]{1,32}$ */
+  /** 1-32 character name */
   name: string;
   /** 1-100 character description */
   description: string;
@@ -618,6 +598,8 @@ export interface CreateGuildApplicationCommandParams {
   options?: ApplicationCommandOption[];
   /** whether the command is enabled by default when the app is added to a guild */
   default_permission?: boolean;
+  /** the type of command, defaults 1 if not set */
+  type?: ApplicationCommandType;
 }
 export interface CreateGuildBanParams {
   /** number of days to delete messages for (0-7) */
@@ -704,7 +686,7 @@ export interface CreateGuildStickerParams {
   name: string;
   /** description of the sticker (empty or 2-100 characters) */
   description: string;
-  /** the Discord name of a unicode emoji representing the sticker's expression (2-200 characters) */
+  /** autocomplete/suggestion tags for the sticker (max 200 characters) */
   tags: string;
   /** the sticker file to upload, must be a PNG, APNG, or Lottie JSON file, max 500 KB */
   file: string;
@@ -1523,16 +1505,16 @@ export function createRoutes<O = any>(
         url: `/channels/${channelId}/thread-members/@me`,
         options,
       }),
+    listActiveGuildThreads: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/threads/active`,
+        options,
+      }),
     listActiveThreads: (channelId, options) =>
       fetch({
         method: "GET",
         url: `/channels/${channelId}/threads/active`,
-        options,
-      }),
-    listGuildActiveThreads: (guildId, options) =>
-      fetch({
-        method: "GET",
-        url: `/guilds/${guildId}/threads/active`,
         options,
       }),
     listGuildEmojis: (guildId, options) =>
@@ -1821,20 +1803,20 @@ export interface EditChannelPermissionParams {
   type: number;
 }
 export interface EditGlobalApplicationCommandParams {
-  /** 1-32 lowercase character name matching ^[\w-]{1,32}$ */
-  name: string;
+  /** 1-32 character name */
+  name?: string;
   /** 1-100 character description */
-  description: string;
+  description?: string;
   /** the parameters for the command */
   options?: ApplicationCommandOption[];
   /** whether the command is enabled by default when the app is added to a guild */
   default_permission?: boolean;
 }
 export interface EditGuildApplicationCommandParams {
-  /** 1-32 lowercase character name matching ^[\w-]{1,32}$ */
-  name: string;
+  /** 1-32 character name */
+  name?: string;
   /** 1-100 character description */
-  description: string;
+  description?: string;
   /** the parameters for the command */
   options?: ApplicationCommandOption[];
   /** whether the command is enabled by default when the app is added to a guild */
@@ -1906,7 +1888,7 @@ export interface Embed {
 }
 export interface EmbedAuthor {
   /** name of author */
-  name?: string;
+  name: string;
   /** url of author */
   url?: string;
   /** url of author icon (only supports http(s) and attachments) */
@@ -1932,7 +1914,7 @@ export interface EmbedFooter {
 }
 export interface EmbedImage {
   /** source url of image (only supports http(s) and attachments) */
-  url?: string;
+  url: string;
   /** a proxied url of the image */
   proxy_url?: string;
   /** height of image */
@@ -1948,7 +1930,7 @@ export interface EmbedProvider {
 }
 export interface EmbedThumbnail {
   /** source url of thumbnail (only supports http(s) and attachments) */
-  url?: string;
+  url: string;
   /** a proxied url of the thumbnail */
   proxy_url?: string;
   /** height of thumbnail */
@@ -2037,12 +2019,12 @@ export interface Endpoints<O> {
     params: Partial<BulkDeleteMessageParams>,
     options?: O,
   ) => Promise<any>;
-  /** Takes a list of application commands, overwriting existing commands that are registered globally for this application. Updates will be available in all guilds after 1 hour. Returns 200 and a list of application command objects. Commands that do not already exist will count toward daily application command create limits. */
+  /** Takes a list of application commands, overwriting the existing global command list for this application. Updates will be available in all guilds after 1 hour. Returns 200 and a list of application command objects. Commands that do not already exist will count toward daily application command create limits. */
   bulkOverwriteGlobalApplicationCommands: (
     applicationId: string,
     options?: O,
   ) => Promise<ApplicationCommand[]>;
-  /** Takes a list of application commands, overwriting existing commands for the guild. Returns 200 and a list of application command objects. */
+  /** Takes a list of application commands, overwriting the existing command list for this application for the targeted guild. Returns 200 and a list of application command objects. */
   bulkOverwriteGuildApplicationCommands: (
     applicationId: string,
     guildId: string,
@@ -2580,16 +2562,16 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   leaveGuild: (guildId: string, options?: O) => Promise<any>;
   /** Removes the current user from a thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
   leaveThread: (channelId: string, options?: O) => Promise<any>;
+  /** Returns all active threads in the guild, including public and private threads. Threads are ordered by their id, in descending order. */
+  listActiveGuildThreads: (
+    guildId: string,
+    options?: O,
+  ) => Promise<ListActiveGuildThreadResponse>;
   /** Returns all active threads in the channel, including public and private threads. Threads are ordered by their id, in descending order. */
   listActiveThreads: (
     channelId: string,
     options?: O,
   ) => Promise<ListActiveThreadResponse>;
-  /** Returns all active threads in the guild, including public and private threads. Threads are ordered by their id, in descending order. */
-  listGuildActiveThreads: (
-    guildId: string,
-    options?: O,
-  ) => Promise<ListGuildActiveThreadResponse>;
   /** Returns a list of emoji objects for the given guild. */
   listGuildEmojis: (guildId: string, options?: O) => Promise<Emoji[]>;
   /** Returns a list of guild member objects that are members of the guild. */
@@ -2625,7 +2607,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     channelId: string,
     options?: O,
   ) => Promise<ThreadMember[]>;
-  /** Returns an array of voice region objects that can be used when creating servers. */
+  /** Returns an array of voice region objects that can be used when setting a voice or stage channel's rtc_region. */
   listVoiceRegions: (options?: O) => Promise<VoiceRegion[]>;
   /** Update a channel's settings. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. All JSON parameters are optional. */
   modifyChannel: (
@@ -2860,9 +2842,6 @@ export type GatewayEvent =
   | ResumedEvent
   | ReconnectEvent
   | InvalidSessionEvent
-  | ApplicationCommandCreateEvent
-  | ApplicationCommandUpdateEvent
-  | ApplicationCommandDeleteEvent
   | ChannelCreateEvent
   | ChannelUpdateEvent
   | ChannelDeleteEvent
@@ -2917,9 +2896,6 @@ export interface GatewayEvents {
   RESUMED: ResumedEvent;
   RECONNECT: ReconnectEvent;
   INVALID_SESSION: InvalidSessionEvent;
-  APPLICATION_COMMAND_CREATE: ApplicationCommandCreateEvent;
-  APPLICATION_COMMAND_UPDATE: ApplicationCommandUpdateEvent;
-  APPLICATION_COMMAND_DELETE: ApplicationCommandDeleteEvent;
   CHANNEL_CREATE: ChannelCreateEvent;
   CHANNEL_UPDATE: ChannelUpdateEvent;
   CHANNEL_DELETE: ChannelDeleteEvent;
@@ -3499,7 +3475,8 @@ export interface IntegrationApplication {
   /** the bot associated with this application */
   bot?: User;
 }
-export type IntegrationCreateEvent = Integration;
+export type IntegrationCreateEvent = Integration &
+  IntegrationCreateEventAdditional;
 export interface IntegrationCreateEventAdditional {
   /** id of the guild */
   guild_id: Snowflake;
@@ -3516,7 +3493,8 @@ export enum IntegrationExpireBehavior {
   REMOVE_ROLE = 0,
   KICK = 1,
 }
-export type IntegrationUpdateEvent = Integration;
+export type IntegrationUpdateEvent = Integration &
+  IntegrationUpdateEventAdditional;
 export interface IntegrationUpdateEventAdditional {
   /** id of the guild */
   guild_id: Snowflake;
@@ -3529,7 +3507,7 @@ export interface Interaction {
   /** the type of interaction */
   type: InteractionType;
   /** the command data payload */
-  data?: ApplicationCommandInteractionDatum;
+  data?: InteractionDatum;
   /** the guild it was sent from */
   guild_id?: Snowflake;
   /** the channel it was sent from */
@@ -3545,11 +3523,11 @@ export interface Interaction {
   /** for components, the message they were attached to */
   message?: Message;
 }
-export const InteractionApplicationCommandCallbackDataFlag = {
+export const InteractionCallbackDataFlag = {
   /** only the user receiving the message can see it */
   EPHEMERAL: 1 << 6,
 } as const;
-export interface InteractionApplicationCommandCallbackDatum {
+export interface InteractionCallbackDatum {
   /** is the response TTS */
   tts?: boolean;
   /** message content */
@@ -3558,7 +3536,7 @@ export interface InteractionApplicationCommandCallbackDatum {
   embeds?: Embed[];
   /** allowed mentions object */
   allowed_mentions?: AllowedMention;
-  /** interaction application command callback data flags */
+  /** interaction callback data flags */
   flags?: number;
   /** message components */
   components?: Component[];
@@ -3576,11 +3554,31 @@ export enum InteractionCallbackType {
   UPDATE_MESSAGE = 7,
 }
 export type InteractionCreateEvent = Interaction;
+export interface InteractionDatum {
+  /** the ID of the invoked command */
+  id: Snowflake;
+  /** the name of the invoked command */
+  name: string;
+  /** the type of the invoked command */
+  type: number;
+  /** converted users + roles + channels */
+  resolved?: ResolvedDatum;
+  /** the params + values from the user */
+  options?: ApplicationCommandInteractionDataOption[];
+  /** the custom_id of the component */
+  custom_id?: string;
+  /** the type of the component */
+  component_type?: ComponentType;
+  /** the values the user selected */
+  values?: SelectOption[];
+  /** id the of user or message targetted by a user or message command */
+  target_id?: Snowflake;
+}
 export interface InteractionResponse {
   /** the type of response */
   type: InteractionCallbackType;
   /** an optional response message */
-  data?: InteractionApplicationCommandCallbackDatum;
+  data?: InteractionCallbackDatum;
 }
 export enum InteractionType {
   PING = 1,
@@ -3672,6 +3670,12 @@ export enum InviteTargetType {
   STREAM = 1,
   EMBEDDED_APPLICATION = 2,
 }
+export interface ListActiveGuildThreadResponse {
+  /** the active threads */
+  threads: Channel[];
+  /** a thread member object for each returned thread the current user has joined */
+  members: ThreadMember[];
+}
 export interface ListActiveThreadResponse {
   /** the active threads */
   threads: Channel[];
@@ -3679,12 +3683,6 @@ export interface ListActiveThreadResponse {
   members: ThreadMember[];
   /** whether there are potentially additional threads that could be returned on a subsequent call */
   has_more: boolean;
-}
-export interface ListGuildActiveThreadResponse {
-  /** the active threads */
-  threads: Channel[];
-  /** a thread member object for each returned thread the current user has joined */
-  members: ThreadMember[];
 }
 export interface ListGuildMemberParams {
   /** max number of members to return (1-1000) */
@@ -3933,9 +3931,10 @@ export enum MessageType {
   GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING = 17,
   THREAD_CREATED = 18,
   REPLY = 19,
-  APPLICATION_COMMAND = 20,
+  CHAT_INPUT_COMMAND = 20,
   THREAD_STARTER_MESSAGE = 21,
   GUILD_INVITE_REMINDER = 22,
+  CONTEXT_MENU_COMMAND = 23,
 }
 export type MessageUpdateEvent = Message;
 export enum MfaLevel {
@@ -3991,6 +3990,8 @@ export interface ModifyChannelThreadParams {
   auto_archive_duration: number;
   /** whether the thread is locked; when a thread is locked, only users with MANAGE_THREADS can unarchive it */
   locked: boolean;
+  /** whether non-moderators can add other non-moderators to a thread; only available on private threads */
+  invitable: boolean;
   /** amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages, manage_thread, or manage_channel, are unaffected */
   rate_limit_per_user?: number | null;
 }
@@ -4103,7 +4104,7 @@ export interface ModifyGuildStickerParams {
   name: string;
   /** description of the sticker (2-100 characters) */
   description?: string | null;
-  /** the Discord name of a unicode emoji representing the sticker's expression (2-200 characters) */
+  /** autocomplete/suggestion tags for the sticker (max 200 characters) */
   tags: string;
 }
 export interface ModifyGuildTemplateParams {
@@ -4213,8 +4214,8 @@ export const PermissionFlag = {
   MANAGE_WEBHOOKS: BigInt(1) << BigInt(29),
   /** Allows management and editing of emojis and stickers */
   MANAGE_EMOJIS_AND_STICKERS: BigInt(1) << BigInt(30),
-  /** Allows members to use slash commands in text channels */
-  USE_SLASH_COMMANDS: BigInt(1) << BigInt(31),
+  /** Allows members to use application commands, including slash commands and context menu commands. */
+  USE_APPLICATION_COMMANDS: BigInt(1) << BigInt(31),
   /** Allows for requesting to speak in stage channels. (This permission is under active development and may be changed or removed.) */
   REQUEST_TO_SPEAK: BigInt(1) << BigInt(32),
   /** Allows for deleting and archiving threads, and viewing all private threads */
@@ -4296,6 +4297,18 @@ export interface RequestGuildMember {
   /** nonce to identify the Guild Members Chunk response */
   nonce?: string;
 }
+export interface ResolvedDatum {
+  /** the ids and User objects */
+  users?: Record<Snowflake, User>;
+  /** the ids and partial Member objects */
+  members?: Record<Snowflake, GuildMember>;
+  /** the ids and Role objects */
+  roles?: Record<Snowflake, Role>;
+  /** the ids and partial Channel objects */
+  channels?: Record<Snowflake, Channel>;
+  /** the ids and partial Message objects */
+  messages?: Record<Snowflake, Message>;
+}
 export interface ResponseBody {
   /** the active threads */
   threads: Channel[];
@@ -4368,11 +4381,11 @@ export interface SelectMenu {
   disabled?: boolean;
 }
 export interface SelectOption {
-  /** the user-facing name of the option, max 25 characters */
+  /** the user-facing name of the option, max 100 characters */
   label: string;
   /** the dev-define value of the option, max 100 characters */
   value: string;
-  /** an additional description of the option, max 50 characters */
+  /** an additional description of the option, max 100 characters */
   description?: string;
   /** id, name, and animated */
   emoji?: Emoji;
@@ -4420,6 +4433,8 @@ export interface StartThreadWithoutMessageParams {
   auto_archive_duration: number;
   /** the type of thread to create */
   type?: ChannelType;
+  /** whether non-moderators can add other non-moderators to a thread; only available when creating a private thread */
+  invitable?: boolean;
 }
 export enum StatusType {
   /** Online */
@@ -4442,22 +4457,8 @@ export interface Sticker {
   name: string;
   /** description of the sticker */
   description?: string | null;
-  /** for guild stickers, the Discord name of a unicode emoji representing the sticker's expression. for standard stickers, a comma-separated list of related expressions. */
+  /** autocomplete/suggestion tags for the sticker (max 200 characters) */
   tags: string;
-  /** Deprecated previously the sticker asset hash, now an empty string */
-  asset: string;
-  /** type of sticker */
-  type: StickerType;
-  /** type of sticker format */
-  format_type: StickerFormatType;
-  /** whether this guild sticker can be used, may be false due to loss of Server Boosts */
-  available?: boolean;
-  /** id of the guild that owns this sticker */
-  guild_id?: Snowflake;
-  /** the user that uploaded the guild sticker */
-  user?: User;
-  /** the standard sticker's sort order within its pack */
-  sort_value?: number;
 }
 export enum StickerFormatType {
   PNG = 1,
@@ -4567,7 +4568,9 @@ export interface ThreadMetadatum {
   /** timestamp when the thread's archive status was last changed, used for calculating recent activity */
   archive_timestamp: string;
   /** whether the thread is locked; when a thread is locked, only users with MANAGE_THREADS can unarchive it */
-  locked?: boolean;
+  locked: boolean;
+  /** whether non-moderators can add other non-moderators to a thread; only available on private threads */
+  invitable?: boolean;
 }
 export type ThreadUpdateEvent = Channel;
 export interface TypingStartEvent {
@@ -4623,6 +4626,10 @@ export interface User {
   system?: boolean;
   /** whether the user has two factor enabled on their account */
   mfa_enabled?: boolean;
+  /** the user's banner hash */
+  banner?: string | null;
+  /** the user's banner color encoded as an integer representation of hexadecimal color code */
+  accent_color?: number | null;
   /** the user's chosen language option */
   locale?: string;
   /** whether the email on this account has been verified */

@@ -1,6 +1,6 @@
 # droff
 
-![Discord](https://img.shields.io/discord/887189613389705256?style=for-the-badge)
+[![Discord](https://img.shields.io/discord/887189613389705256?style=for-the-badge)](https://discord.gg/dtR2Mtu66Q)
 
 Simple Discord client powered by RxJS and Axios
 

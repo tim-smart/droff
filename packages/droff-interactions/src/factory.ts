@@ -8,7 +8,7 @@ import {
   Guild,
   GuildMember,
   Interaction,
-  InteractionApplicationCommandCallbackDatum,
+  InteractionCallbackDatum,
   InteractionCallbackType,
   InteractionType,
   User,
@@ -43,17 +43,15 @@ export interface SlashCommandContext {
   user?: User;
 
   /** Respond to the interaction immediately */
-  respond: (data: InteractionApplicationCommandCallbackDatum) => Promise<any>;
+  respond: (data: InteractionCallbackDatum) => Promise<any>;
   /** Respond to the interaction later with editResponse */
   defer: () => Promise<any>;
   /** Update the original message (components only) */
-  update: (data: InteractionApplicationCommandCallbackDatum) => Promise<any>;
+  update: (data: InteractionCallbackDatum) => Promise<any>;
   /** Update the original message later (components only) */
   deferUpdate: () => Promise<any>;
   /** Follow up message when using deferred */
-  editResponse: (
-    data: InteractionApplicationCommandCallbackDatum,
-  ) => Promise<any>;
+  editResponse: (data: InteractionCallbackDatum) => Promise<any>;
 }
 
 export interface SlashCommandsHelper {
@@ -194,7 +192,7 @@ export const create = (client: Client): SlashCommandsHelper => {
     interactionComponent$.pipe(
       RxO.filter(({ interaction }) =>
         customID instanceof RegExp
-          ? customID.test(interaction.data!.custom_id)
+          ? customID.test(interaction.data!.custom_id || "")
           : interaction.data!.custom_id === customID,
       ),
     );
@@ -205,9 +203,12 @@ export const create = (client: Client): SlashCommandsHelper => {
       .reduce((map, c) => map.set(c.custom_id!, c), Map<string, Component>());
 
     return interactionComponent$.pipe(
-      RxO.filter(({ interaction }) => map.has(interaction.data!.custom_id)),
+      RxO.filter(({ interaction }) =>
+        map.has(interaction.data!.custom_id || ""),
+      ),
       RxO.map(
-        (ctx) => [ctx, map.get(ctx.interaction.data!.custom_id)!] as const,
+        (ctx) =>
+          [ctx, map.get(ctx.interaction.data!.custom_id || "")!] as const,
       ),
     );
   };

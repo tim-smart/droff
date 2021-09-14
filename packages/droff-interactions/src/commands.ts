@@ -3,7 +3,7 @@ import {
   ApplicationCommand,
   Guild,
   Interaction,
-  InteractionApplicationCommandCallbackDatum,
+  InteractionCallbackDatum,
   InteractionCallbackType,
 } from "droff/dist/types";
 import * as F from "fp-ts/function";
@@ -25,7 +25,7 @@ export const enabled =
 export const respond =
   (rest: Client, type: InteractionCallbackType) =>
   (interaction: Interaction) =>
-  (data?: InteractionApplicationCommandCallbackDatum) =>
+  (data?: InteractionCallbackDatum) =>
     rest.createInteractionResponse(interaction.id, interaction.token, {
       type,
       data,
@@ -34,7 +34,7 @@ export const respond =
 export const editOriginal =
   (rest: Client) =>
   (interaction: Interaction) =>
-  (data?: InteractionApplicationCommandCallbackDatum) =>
+  (data?: InteractionCallbackDatum) =>
     rest.editOriginalInteractionResponse(
       interaction.application_id,
       interaction.token,

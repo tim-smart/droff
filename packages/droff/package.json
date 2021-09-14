@@ -16,7 +16,7 @@
   "devDependencies": {
     "@tim-smart/discord-api-docs-parser": "^0.1.28",
     "@types/node": "^15.0.2",
-    "@types/ws": "^7.4.2",
+    "@types/ws": "^7.4.7",
     "dotenv": "^10.0.0",
     "nodemon": "^2.0.7",
     "ts-node": "^10.0.0",
@@ -29,7 +29,7 @@
     "immutable": "^4.0.0-rc.12",
     "rxjs": "^7.1.0",
     "tslib": "^2.3.0",
-    "ws": "^7.4.5"
+    "ws": "^8.2.2"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.3"

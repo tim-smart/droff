@@ -271,6 +271,8 @@ export interface Attachment {
   height?: number | null;
   /** width of file (if image) */
   width?: number | null;
+  /** whether this attachment is ephemeral */
+  ephemeral?: boolean;
 }
 export interface AuditEntryInfo {
   /** number of days after which inactive members were kicked */
@@ -4174,7 +4176,7 @@ export const PermissionFlag = {
   STREAM: BigInt(1) << BigInt(9),
   /** Allows guild members to view a channel, which includes reading messages in text channels */
   VIEW_CHANNEL: BigInt(1) << BigInt(10),
-  /** Allows for sending messages in a channel */
+  /** Allows for sending messages in a channel (does not allow sending messages in threads) */
   SEND_MESSAGES: BigInt(1) << BigInt(11),
   /** Allows for sending of /tts messages */
   SEND_TTS_MESSAGES: BigInt(1) << BigInt(12),
@@ -4220,12 +4222,16 @@ export const PermissionFlag = {
   REQUEST_TO_SPEAK: BigInt(1) << BigInt(32),
   /** Allows for deleting and archiving threads, and viewing all private threads */
   MANAGE_THREADS: BigInt(1) << BigInt(34),
-  /** Allows for creating and participating in threads */
-  USE_PUBLIC_THREADS: BigInt(1) << BigInt(35),
-  /** Allows for creating and participating in private threads */
-  USE_PRIVATE_THREADS: BigInt(1) << BigInt(36),
+  /** Allows for creating threads */
+  CREATE_PUBLIC_THREADS: BigInt(1) << BigInt(35),
+  /** Allows for creating private threads */
+  CREATE_PRIVATE_THREADS: BigInt(1) << BigInt(36),
   /** Allows the usage of custom stickers from other servers */
   USE_EXTERNAL_STICKERS: BigInt(1) << BigInt(37),
+  /** Allows for sending messages in threads */
+  SEND_MESSAGES_IN_THREADS: BigInt(1) << BigInt(38),
+  /** Allows for launching activities (applications with the EMBEDDED flag) in a voice channel */
+  START_EMBEDDED_ACTIVITIES: BigInt(1) << BigInt(39),
 } as const;
 export enum PremiumTier {
   /** guild has not unlocked any Server Boost perks */

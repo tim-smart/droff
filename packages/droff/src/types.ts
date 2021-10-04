@@ -207,6 +207,8 @@ export interface ApplicationCommandOption {
   choices?: ApplicationCommandOptionChoice[];
   /** if the option is a subcommand or subcommand group type, this nested options will be the parameters */
   options?: ApplicationCommandOption[];
+  /** if the option is a channel type, the channels shown will be restricted to these types */
+  channel_types?: ChannelType[];
 }
 export interface ApplicationCommandOptionChoice {
   /** 1-100 character choice name */
@@ -275,34 +277,34 @@ export interface Attachment {
   ephemeral?: boolean;
 }
 export interface AuditEntryInfo {
-  /** number of days after which inactive members were kicked */
-  delete_member_days: string;
-  /** number of members removed by the prune */
-  members_removed: string;
   /** channel in which the entities were targeted */
   channel_id: Snowflake;
-  /** id of the message that was targeted */
-  message_id: Snowflake;
   /** number of entities that were targeted */
   count: string;
+  /** number of days after which inactive members were kicked */
+  delete_member_days: string;
   /** id of the overwritten entity */
   id: Snowflake;
-  /** type of overwritten entity - "0" for "role" or "1" for "member" */
-  type: string;
+  /** number of members removed by the prune */
+  members_removed: string;
+  /** id of the message that was targeted */
+  message_id: Snowflake;
   /** name of the role if type is "0" (not present if type is "1") */
   role_name: string;
+  /** type of overwritten entity - "0" for "role" or "1" for "member" */
+  type: string;
 }
 export interface AuditLog {
-  /** list of webhooks found in the audit log */
-  webhooks: Webhook[];
-  /** list of users found in the audit log */
-  users: User[];
   /** list of audit log entries */
   audit_log_entries: AuditLogEntry[];
   /** list of partial integration objects */
   integrations: Integration[];
   /** list of threads found in the audit log* */
   threads: Channel[];
+  /** list of users found in the audit log */
+  users: User[];
+  /** list of webhooks found in the audit log */
+  webhooks: Webhook[];
 }
 export interface AuditLogChange {
   /** new value of the key */
@@ -680,6 +682,10 @@ export interface CreateGuildRoleParams {
   color: number;
   /** whether the role should be displayed separately in the sidebar */
   hoist: boolean;
+  /** the role's icon image (if the guild has the ROLE_ICONS feature) */
+  icon: string;
+  /** the role's unicode emoji as a standard emoji (if the guild has the ROLE_ICONS feature) */
+  unicode_emoji: string;
   /** whether the role should be mentionable */
   mentionable: boolean;
 }
@@ -1581,6 +1587,13 @@ export function createRoutes<O = any>(
       fetch({
         method: "PATCH",
         url: `/channels/${channelId}`,
+        params,
+        options,
+      }),
+    modifyCurrentMember: (guildId, params, options) =>
+      fetch({
+        method: "PATCH",
+        url: `/guilds/${guildId}/members/@me`,
         params,
         options,
       }),
@@ -2617,12 +2630,17 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params: Partial<ModifyChannelParams>,
     options?: O,
   ) => Promise<Channel>;
+  /** Modifies the current member in a guild. Returns a 200 with the updated member object on success. Fires a Guild Member Update Gateway event. */
+  modifyCurrentMember: (
+    guildId: string,
+    params: Partial<ModifyCurrentMemberParams>,
+    options?: O,
+  ) => Promise<any>;
   /** Modify the requester's user account settings. Returns a user object on success. */
   modifyCurrentUser: (
     params: Partial<ModifyCurrentUserParams>,
     options?: O,
   ) => Promise<User>;
-  /** Modifies the nickname of the current user in a guild. Returns a 200 with the nickname on success. Fires a Guild Member Update Gateway event. */
   modifyCurrentUserNick: (
     guildId: string,
     params: Partial<ModifyCurrentUserNickParams>,
@@ -3215,12 +3233,26 @@ export enum GuildFeature {
   INVITE_SPLASH = "INVITE_SPLASH",
   /** guild has enabled Membership Screening */
   MEMBER_VERIFICATION_GATE_ENABLED = "MEMBER_VERIFICATION_GATE_ENABLED",
+  /** guild has enabled monetization */
+  MONETIZATION_ENABLED = "MONETIZATION_ENABLED",
+  /** guild has increased custom sticker slots */
+  MORE_STICKERS = "MORE_STICKERS",
   /** guild has access to create news channels */
   NEWS = "NEWS",
   /** guild is partnered */
   PARTNERED = "PARTNERED",
   /** guild can be previewed before joining via Membership Screening or the directory */
   PREVIEW_ENABLED = "PREVIEW_ENABLED",
+  /** guild has access to create private threads */
+  PRIVATE_THREADS = "PRIVATE_THREADS",
+  /** guild is able to set role icons */
+  ROLE_ICONS = "ROLE_ICONS",
+  /** guild has access to the seven day archive time for threads */
+  SEVEN_DAY_THREAD_ARCHIVE = "SEVEN_DAY_THREAD_ARCHIVE",
+  /** guild has access to the three day archive time for threads */
+  THREE_DAY_THREAD_ARCHIVE = "THREE_DAY_THREAD_ARCHIVE",
+  /** guild has enabled ticketed events */
+  TICKETED_EVENTS_ENABLED = "TICKETED_EVENTS_ENABLED",
   /** guild has access to set a vanity URL */
   VANITY_URL = "VANITY_URL",
   /** guild is verified */
@@ -3229,18 +3261,6 @@ export enum GuildFeature {
   VIP_REGIONS = "VIP_REGIONS",
   /** guild has enabled the welcome screen */
   WELCOME_SCREEN_ENABLED = "WELCOME_SCREEN_ENABLED",
-  /** guild has enabled ticketed events */
-  TICKETED_EVENTS_ENABLED = "TICKETED_EVENTS_ENABLED",
-  /** guild has enabled monetization */
-  MONETIZATION_ENABLED = "MONETIZATION_ENABLED",
-  /** guild has increased custom sticker slots */
-  MORE_STICKERS = "MORE_STICKERS",
-  /** guild has access to the three day archive time for threads */
-  THREE_DAY_THREAD_ARCHIVE = "THREE_DAY_THREAD_ARCHIVE",
-  /** guild has access to the seven day archive time for threads */
-  SEVEN_DAY_THREAD_ARCHIVE = "SEVEN_DAY_THREAD_ARCHIVE",
-  /** guild has access to create private threads */
-  PRIVATE_THREADS = "PRIVATE_THREADS",
 }
 export interface GuildIntegrationsUpdateEvent {
   /** id of the guild whose integrations were updated */
@@ -3251,6 +3271,8 @@ export interface GuildMember {
   user?: User;
   /** this users guild nickname */
   nick?: string | null;
+  /** the member's guild avatar hash */
+  avatar?: string | null;
   /** array of role object ids */
   roles: Snowflake[];
   /** when the user joined the guild */
@@ -3302,6 +3324,8 @@ export interface GuildMemberUpdateEvent {
   user: User;
   /** nickname of the user in the guild */
   nick?: string | null;
+  /** the member's guild avatar hash */
+  avatar?: string | null;
   /** when the user joined the guild */
   joined_at?: string | null;
   /** when the user starting boosting the guild */
@@ -3997,6 +4021,10 @@ export interface ModifyChannelThreadParams {
   /** amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages, manage_thread, or manage_channel, are unaffected */
   rate_limit_per_user?: number | null;
 }
+export interface ModifyCurrentMemberParams {
+  /** value to set users nickname to */
+  nick?: string | null;
+}
 export interface ModifyCurrentUserNickParams {
   /** value to set users nickname to */
   nick?: string | null;
@@ -4092,6 +4120,10 @@ export interface ModifyGuildRoleParams {
   color: number;
   /** whether the role should be displayed separately in the sidebar */
   hoist: boolean;
+  /** the role's icon image (if the guild has the ROLE_ICONS feature) */
+  icon: string;
+  /** the role's unicode emoji as a standard emoji (if the guild has the ROLE_ICONS feature) */
+  unicode_emoji: string;
   /** whether the role should be mentionable */
   mentionable: boolean;
 }
@@ -4339,6 +4371,10 @@ export interface Role {
   color: number;
   /** if this role is pinned in the user listing */
   hoist: boolean;
+  /** role icon hash */
+  icon?: string | null;
+  /** role unicode emoji */
+  unicode_emoji?: string | null;
   /** position of this role */
   position: number;
   /** permission bit set */
@@ -4465,6 +4501,20 @@ export interface Sticker {
   description?: string | null;
   /** autocomplete/suggestion tags for the sticker (max 200 characters) */
   tags: string;
+  /** Deprecated previously the sticker asset hash, now an empty string */
+  asset: string;
+  /** type of sticker */
+  type: StickerType;
+  /** type of sticker format */
+  format_type: StickerFormatType;
+  /** whether this guild sticker can be used, may be false due to loss of Server Boosts */
+  available?: boolean;
+  /** id of the guild that owns this sticker */
+  guild_id?: Snowflake;
+  /** the user that uploaded the guild sticker */
+  user?: User;
+  /** the standard sticker's sort order within its pack */
+  sort_value?: number;
 }
 export enum StickerFormatType {
   PNG = 1,
@@ -4718,8 +4768,6 @@ export interface VoiceRegion {
   id: string;
   /** name of the region */
   name: string;
-  /** true if this is a vip-only server */
-  vip: boolean;
   /** true for a single server that is closest to the current user's client */
   optimal: boolean;
   /** whether this is a deprecated voice region (avoid switching to these) */

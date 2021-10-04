@@ -1,6 +1,6 @@
 {
   "name": "droff-helpers",
-  "version": "0.2.19",
+  "version": "0.2.20",
   "description": "A utility library for the droff discord client",
   "keywords": [
     "droff",
@@ -29,7 +29,7 @@
     "url": "https://github.com/tim-smart/droff/issues"
   },
   "dependencies": {
-    "droff": "^0.17.17",
+    "droff": "^0.17.18",
     "fp-ts": "^2.10.5",
     "rxjs": "^7.1.0"
   },

@@ -23,11 +23,9 @@ const echo$ = pipe(
     name: "Echo",
     description: "",
   }),
-  RxO.flatMap(({ interaction, respond }) =>
+  RxO.flatMap(({ targetMessage, respond }) =>
     respond({
-      content:
-        interaction.data!.resolved!.messages![interaction!.data!.target_id!]
-          .content,
+      content: targetMessage.content,
       flags: MessageFlag.EPHEMERAL,
     }),
   ),

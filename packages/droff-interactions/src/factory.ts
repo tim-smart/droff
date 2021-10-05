@@ -11,6 +11,7 @@ import {
   InteractionCallbackDatum,
   InteractionCallbackType,
   InteractionType,
+  Message,
   User,
 } from "droff/dist/types";
 import { Map } from "immutable";
@@ -18,6 +19,9 @@ import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import * as Commands from "./commands";
 import * as Sync from "./sync";
+import * as Utils from "./utils";
+import * as O from "fp-ts/lib/Option";
+import { pipe } from "fp-ts/lib/function";
 
 interface GuildCommandOptions {
   /** Used for enabling / disabling commands per guild */
@@ -34,13 +38,17 @@ export type GuildCommand = CreateGuildApplicationCommandParams &
 export type GuildCommandCreate = CreateGuildApplicationCommandParams &
   GuildCommandOptions;
 
-export interface SlashCommandContext {
+export interface InteractionContext {
   /** The interaction object */
   interaction: Interaction;
   /** The guild member who sent the interaction */
   member?: GuildMember;
   /** The user who sent the interaction (in a DM) */
   user?: User;
+  /** The target of the message command */
+  targetMessage?: Message;
+  /** The target of the user command */
+  targetUser?: User;
 
   /** Respond to the interaction immediately */
   respond: (data: InteractionCallbackDatum) => Promise<any>;
@@ -54,19 +62,19 @@ export interface SlashCommandContext {
   editResponse: (data: InteractionCallbackDatum) => Promise<any>;
 }
 
-export interface SlashCommandsHelper {
+export interface InteractionsHelper {
   /** Create a global slash command */
   global: (
     command: GlobalCommand,
     create?: boolean,
-  ) => Rx.Observable<SlashCommandContext>;
+  ) => Rx.Observable<InteractionContext>;
   /**
-   * Create a guild slash command.
+   * Create a guild-level interaction.
    *
    * It is only recommended to use guild commands for testing purposes.
    * For large bots, you will very likely hit rate limits.
    */
-  guild: (command: GuildCommandCreate) => Rx.Observable<SlashCommandContext>;
+  guild: (command: GuildCommandCreate) => Rx.Observable<InteractionContext>;
   /**
    * Listen to component interactions. Pass in a `custom_id` to determine what
    * interfactions to listen for.
@@ -78,11 +86,11 @@ export interface SlashCommandsHelper {
    * commands.component(/^button_/).subscribe()
    * ```
    */
-  component: (customID: string | RegExp) => Rx.Observable<SlashCommandContext>;
+  component: (customID: string | RegExp) => Rx.Observable<InteractionContext>;
   /** Listen to multiple component interactions */
   components: (
     components: Exclude<Component, ActionRow>[],
-  ) => Rx.Observable<readonly [SlashCommandContext, Component]>;
+  ) => Rx.Observable<readonly [InteractionContext, Component]>;
   /**
    * An observable of side effects. By `subscribe`-ing you start the syncing of
    * commands to Discord.
@@ -109,7 +117,7 @@ export interface SlashCommandsHelper {
  * Rx.merge(interactions.effects$, ping$).subscribe();
  * ```
  */
-export const create = (client: Client): SlashCommandsHelper => {
+export const create = (client: Client): InteractionsHelper => {
   const { fromDispatch, application$ } = client;
 
   // Response helpers
@@ -130,10 +138,12 @@ export const create = (client: Client): SlashCommandsHelper => {
     InteractionCallbackType.DEFERRED_UPDATE_MESSAGE,
   );
   const editOriginal = Commands.editOriginal(client);
-  const createContext = (interaction: Interaction): SlashCommandContext => ({
+  const createContext = (interaction: Interaction): InteractionContext => ({
     interaction,
     member: interaction.member,
     user: interaction.user,
+    targetMessage: pipe(Utils.targetMessage(interaction), O.toUndefined),
+    targetUser: pipe(Utils.targetUser(interaction), O.toUndefined),
     respond: respond(interaction),
     defer: respondDeferred(interaction),
     update: update(interaction),

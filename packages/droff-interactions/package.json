@@ -1,6 +1,6 @@
 {
   "name": "droff-interactions",
-  "version": "0.2.19",
+  "version": "0.3.0",
   "description": "Helpers for using Discord interactions (slash commands and buttons) with droff",
   "keywords": [
     "discord",

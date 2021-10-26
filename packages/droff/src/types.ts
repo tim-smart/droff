@@ -261,6 +261,8 @@ export interface Attachment {
   id: Snowflake;
   /** name of file attached */
   filename: string;
+  /** description for the file */
+  description?: string;
   /** the attachment's media type */
   content_type?: string;
   /** size of file in bytes */
@@ -468,7 +470,7 @@ export interface Channel {
   thread_metadata?: ThreadMetadatum;
   /** thread member object for the current user, if they have joined the thread, only included on certain API endpoints */
   member?: ThreadMember;
-  /** default duration for newly created threads, in minutes, to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
+  /** default duration that the clients (not the API) will use for newly created threads, in minutes, to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
   default_auto_archive_duration?: number;
   /** computed permissions for the invoking user in the channel, including overwrites, only included when part of the resolved data received on a slash command interaction */
   permissions?: string;
@@ -710,14 +712,10 @@ export interface CreateMessageParams {
   content: string;
   /** true if this is a TTS message */
   tts: boolean;
-  /** the contents of the file being sent */
-  file: string;
   /** embedded rich content (up to 6000 characters) */
   embeds: Embed[];
   /** embedded rich content, deprecated in favor of embeds */
   embed: Embed;
-  /** JSON encoded body of non-file params */
-  payload_json: string;
   /** allowed mentions for the message */
   allowed_mentions: AllowedMention;
   /** include to make your message a reply */
@@ -726,6 +724,12 @@ export interface CreateMessageParams {
   components: Component[];
   /** IDs of up to 3 stickers in the server to send in the message */
   sticker_ids: Snowflake[];
+  /** the contents of the file being sent */
+  files: string;
+  /** JSON encoded body of non-file params */
+  payload_json: string;
+  /** attachment objects with filename and description */
+  attachments: Attachment[];
 }
 export function createRoutes<O = any>(
   fetch: <R, P>(route: Route<P, O>) => Promise<R>,
@@ -1452,6 +1456,12 @@ export function createRoutes<O = any>(
         url: `/stickers/${stickerId}`,
         options,
       }),
+    getThreadMember: (channelId, userId, options) =>
+      fetch({
+        method: "GET",
+        url: `/channels/${channelId}/thread-members/${userId}`,
+        options,
+      }),
     getUser: (userId, options) =>
       fetch({
         method: "GET",
@@ -1846,32 +1856,32 @@ export interface EditMessageParams {
   embed: Embed;
   /** edit the flags of a message (only SUPPRESS_EMBEDS can currently be set/unset) */
   flags: number;
-  /** the contents of the file being sent/edited */
-  file: string;
-  /** JSON encoded body of non-file params (multipart/form-data only) */
-  payload_json: string;
   /** allowed mentions for the message */
   allowed_mentions: AllowedMention;
-  /** attached files to keep */
-  attachments: Attachment[];
   /** the components to include with the message */
   components: Component[];
+  /** the contents of the file being sent/edited */
+  files: string;
+  /** JSON encoded body of non-file params (multipart/form-data only) */
+  payload_json: string;
+  /** attached files to keep and possible descriptions for new files */
+  attachments: Attachment[];
 }
 export interface EditWebhookMessageParams {
   /** the message contents (up to 2000 characters) */
   content: string;
   /** embedded rich content */
   embeds: Embed[];
-  /** the contents of the file being sent/edited */
-  file: string;
-  /** JSON encoded body of non-file params (multipart/form-data only) */
-  payload_json: string;
   /** allowed mentions for the message */
   allowed_mentions: AllowedMention;
-  /** attached files to keep */
-  attachments: Attachment[];
   /** the components to include with the message */
   components: Component[];
+  /** the contents of the file being sent/edited */
+  files: string;
+  /** JSON encoded body of non-file params (multipart/form-data only) */
+  payload_json: string;
+  /** attached files to keep and possible descriptions for new files */
+  attachments: Attachment[];
 }
 export interface Embed {
   /** title of embed */
@@ -2123,7 +2133,8 @@ export interface Endpoints<O> {
     params: Partial<CreateGuildTemplateParams>,
     options?: O,
   ) => Promise<GuildTemplate>;
-  /** Create a response to an Interaction from the gateway. Takes an interaction response. */
+  /** Create a response to an Interaction from the gateway. Takes an interaction response.
+This endpoint also supports file attachments similar to the webhook endpoints. Refer to Uploading Files for details on uploading files and multipart/form-data requests. */
   createInteractionResponse: (
     interactionId: string,
     interactionToken: string,
@@ -2342,6 +2353,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     webhookToken: string,
     options?: O,
   ) => Promise<any>;
+  /** Refer to Uploading Files for details on attachments and multipart/form-data requests. */
   executeWebhook: (
     webhookId: string,
     webhookToken: string,
@@ -2539,6 +2551,12 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   getStageInstance: (channelId: string, options?: O) => Promise<any>;
   /** Returns a sticker object for the given sticker ID. */
   getSticker: (stickerId: string, options?: O) => Promise<Sticker>;
+  /** Returns a thread member object for the specified user if they are a member of the thread, returns a 404 response otherwise. */
+  getThreadMember: (
+    channelId: string,
+    userId: string,
+    options?: O,
+  ) => Promise<ThreadMember>;
   /** Returns a user object for a given user ID. */
   getUser: (userId: string, options?: O) => Promise<User>;
   /** Returns a list of connection objects. Requires the connections OAuth2 scope. */
@@ -2812,16 +2830,18 @@ export interface ExecuteWebhookParams {
   avatar_url: string;
   /** true if this is a TTS message */
   tts: boolean;
-  /** the contents of the file being sent */
-  file: string;
   /** embedded rich content */
   embeds: Embed[];
-  /** JSON encoded body of non-file params */
-  payload_json: string;
   /** allowed mentions for the message */
   allowed_mentions: AllowedMention;
   /** the components to include with the message */
   components: Component[];
+  /** the contents of the file being sent */
+  files: string;
+  /** JSON encoded body of non-file params */
+  payload_json: string;
+  /** attachment objects with filename and description */
+  attachments: Attachment[];
 }
 export enum ExplicitContentFilterLevel {
   /** media content will not be scanned */
@@ -3566,6 +3586,8 @@ export interface InteractionCallbackDatum {
   flags?: number;
   /** message components */
   components?: Component[];
+  /** attachment objects with filename and description */
+  attachments?: Attachment[];
 }
 export enum InteractionCallbackType {
   /** ACK a Ping */
@@ -4000,7 +4022,7 @@ export interface ModifyChannelGuildChannelParams {
   rtc_region?: string | null;
   /** the camera video quality mode of the voice channel */
   video_quality_mode?: VideoQualityMode | null;
-  /** the default duration for newly created threads in the channel, in minutes, to automatically archive the thread after recent activity */
+  /** the default duration that the clients use (not the API) for newly created threads in the channel, in minutes, to automatically archive the thread after recent activity */
   default_auto_archive_duration?: number | null;
 }
 export type ModifyChannelParams =
@@ -4352,6 +4374,8 @@ export interface ResponseBody {
   threads: Channel[];
   /** a thread member object for each returned thread the current user has joined */
   members: ThreadMember[];
+  /** whether there are potentially additional threads that could be returned on a subsequent call */
+  has_more: boolean;
 }
 export interface Resume {
   /** session token */
@@ -4466,13 +4490,13 @@ export interface StartThreadWithMessageParams {
   /** 1-100 character channel name */
   name: string;
   /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
-  auto_archive_duration: number;
+  auto_archive_duration?: number;
 }
 export interface StartThreadWithoutMessageParams {
   /** 1-100 character channel name */
   name: string;
   /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
-  auto_archive_duration: number;
+  auto_archive_duration?: number;
   /** the type of thread to create */
   type?: ChannelType;
   /** whether non-moderators can add other non-moderators to a thread; only available when creating a private thread */

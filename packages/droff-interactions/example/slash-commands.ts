@@ -8,7 +8,7 @@ import {
 } from "droff/dist/types";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import * as SlashCommands from "../src/mod";
+import * as Interactions from "../src/mod";
 
 const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
@@ -17,7 +17,7 @@ const client = createClient({
   },
 });
 
-const commands = SlashCommands.create(client);
+const commands = Interactions.create(client);
 
 // Global commands are for every guild.
 // They can take up to an hour to show up.

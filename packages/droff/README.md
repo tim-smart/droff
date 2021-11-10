@@ -16,12 +16,12 @@ Simple Discord client powered by RxJS and Axios
 
 ## Packages
 
-| Name                                                                                           | Description                                                      |
-| ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| [droff](https://github.com/tim-smart/droff/tree/main/packages/droff)                           | The core Discord client library                                  |
-| [droff-interactions](https://github.com/tim-smart/droff/tree/main/packages/droff-interactions) | Accompanying library for using slash commands and buttons        |
-| [droff-commands](https://github.com/tim-smart/droff/tree/main/packages/droff-commands)         | Accompanying library to help implementing message based commands |
-| [droff-helpers](https://github.com/tim-smart/droff/tree/main/packages/droff-helpers)           | A collection of helper functions to make using droff easier      |
+| Name                                                                                           | Description                                                                                         |
+| ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [droff](https://github.com/tim-smart/droff/tree/main/packages/droff)                           | The core Discord client library                                                                     |
+| [droff-interactions](https://github.com/tim-smart/droff/tree/main/packages/droff-interactions) | Accompanying library for interaction based components (slash commands, buttons, menus, selects etc) |
+| [droff-commands](https://github.com/tim-smart/droff/tree/main/packages/droff-commands)         | Accompanying library to help implementing message based commands                                    |
+| [droff-helpers](https://github.com/tim-smart/droff/tree/main/packages/droff-helpers)           | A collection of helper functions to make using droff easier                                         |
 
 ## Install
 

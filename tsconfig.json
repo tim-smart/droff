@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "declaration": true,
+    "downlevelIteration": true,
     "lib": ["ESNext"],
     "target": "ESNext",
     "moduleResolution": "node",

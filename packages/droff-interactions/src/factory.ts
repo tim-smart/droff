@@ -1,6 +1,7 @@
 import { Client } from "droff";
 import {
   ActionRow,
+  ApplicationCommandInteractionDataOption,
   ApplicationCommandPermission,
   Component,
   CreateGlobalApplicationCommandParams,
@@ -14,14 +15,14 @@ import {
   Message,
   User,
 } from "droff/dist/types";
+import { pipe } from "fp-ts/lib/function";
+import * as O from "fp-ts/lib/Option";
 import { Map } from "immutable";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import * as Commands from "./commands";
 import * as Sync from "./sync";
 import * as Utils from "./utils";
-import * as O from "fp-ts/lib/Option";
-import { pipe } from "fp-ts/lib/function";
 
 interface GuildCommandOptions {
   /** Used for enabling / disabling commands per guild */
@@ -49,6 +50,8 @@ export interface InteractionContext {
   targetMessage?: Message;
   /** The target of the user command */
   targetUser?: User;
+  /** The focused option for autocomplete */
+  focusedOption?: ApplicationCommandInteractionDataOption;
 
   /** Respond to the interaction immediately */
   respond: (data: InteractionCallbackDatum) => Promise<any>;
@@ -60,6 +63,8 @@ export interface InteractionContext {
   deferUpdate: () => Promise<any>;
   /** Follow up message when using deferred */
   editResponse: (data: InteractionCallbackDatum) => Promise<any>;
+  /** Respond with autocomplete choices */
+  autocomplete: (data: InteractionCallbackDatum) => Promise<any>;
 }
 
 export interface InteractionsHelper {
@@ -75,6 +80,13 @@ export interface InteractionsHelper {
    * For large bots, you will very likely hit rate limits.
    */
   guild: (command: GuildCommandCreate) => Rx.Observable<InteractionContext>;
+  /**
+   * Listen for autocomplete requests for the given command and option
+   */
+  autocomplete: (
+    command: string,
+    option: string,
+  ) => Rx.Observable<InteractionContext>;
   /**
    * Listen to component interactions. Pass in a `custom_id` to determine what
    * interfactions to listen for.
@@ -137,6 +149,10 @@ export const create = (client: Client): InteractionsHelper => {
     client,
     InteractionCallbackType.DEFERRED_UPDATE_MESSAGE,
   );
+  const autocompleteResponse = Commands.respond(
+    client,
+    InteractionCallbackType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT,
+  );
   const editOriginal = Commands.editOriginal(client);
   const createContext = (interaction: Interaction): InteractionContext => ({
     interaction,
@@ -144,10 +160,12 @@ export const create = (client: Client): InteractionsHelper => {
     user: interaction.user,
     targetMessage: pipe(Utils.targetMessage(interaction), O.toUndefined),
     targetUser: pipe(Utils.targetUser(interaction), O.toUndefined),
+    focusedOption: pipe(Utils.focusedOption(interaction), O.toUndefined),
     respond: respond(interaction),
     defer: respondDeferred(interaction),
     update: update(interaction),
     deferUpdate: updateDeferred(interaction),
+    autocomplete: autocompleteResponse(interaction),
     editResponse: editOriginal(interaction),
   });
 
@@ -157,6 +175,13 @@ export const create = (client: Client): InteractionsHelper => {
   // Shared command create observable
   const interactionCreate$ = fromDispatch("INTERACTION_CREATE").pipe(
     RxO.filter((i) => i.type === InteractionType.APPLICATION_COMMAND),
+    RxO.map(createContext),
+    RxO.share(),
+  );
+  const interactionAutocomplete$ = fromDispatch("INTERACTION_CREATE").pipe(
+    RxO.filter(
+      (i) => i.type === InteractionType.APPLICATION_COMMAND_AUTOCOMPLETE,
+    ),
     RxO.map(createContext),
     RxO.share(),
   );
@@ -197,6 +222,14 @@ export const create = (client: Client): InteractionsHelper => {
       RxO.filter(({ interaction }) => interaction.data!.name === command.name),
     );
   };
+
+  const autocomplete = (command: string, option: string) =>
+    interactionAutocomplete$.pipe(
+      RxO.filter(
+        ({ interaction, focusedOption }) =>
+          interaction.data!.name === command && focusedOption?.name === option,
+      ),
+    );
 
   const component = (customID: string | RegExp) =>
     interactionComponent$.pipe(
@@ -250,6 +283,7 @@ export const create = (client: Client): InteractionsHelper => {
   return {
     global,
     guild,
+    autocomplete,
     component,
     components,
     effects$,

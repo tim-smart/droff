@@ -2,6 +2,7 @@ require("dotenv").config();
 
 import { createClient, Intents, Permissions } from "droff";
 import {
+  ApplicationCommandOptionType,
   ApplicationCommandPermissionType,
   ButtonStyle,
   ComponentType,
@@ -31,6 +32,51 @@ const hello$ = commands
       respond({ content: `Hi there ${member!.user!.username}` }),
     ),
   );
+
+// Command with autocomplete
+const countries$ = commands
+  .guild({
+    name: "country",
+    description: "A simple country command",
+    options: [
+      {
+        type: ApplicationCommandOptionType.STRING,
+        name: "name",
+        description: "The name of the country",
+        autocomplete: true,
+      },
+    ],
+  })
+  .pipe(
+    RxO.flatMap(({ interaction, respond }) =>
+      respond({
+        content: `You chose the country: ${
+          interaction.data!.options![0].value
+        }`,
+      }),
+    ),
+  );
+// Add the autocomplete handler
+const countryAutocomplete$ = commands.autocomplete("country", "name").pipe(
+  RxO.flatMap(({ autocomplete, focusedOption }) =>
+    autocomplete({
+      choices: [
+        {
+          name: `Other: ${focusedOption!.value}`,
+          value: `Other: ${focusedOption!.value}`,
+        },
+        {
+          name: "New Zealand",
+          value: "New Zealand",
+        },
+        {
+          name: "United States",
+          value: "USA",
+        },
+      ],
+    }),
+  ),
+);
 
 // Guild commands can be enabled / disabled per guild.
 // They show up instantly.
@@ -117,6 +163,8 @@ Rx.merge(
   commands.effects$,
 
   hello$,
+  countries$,
+  countryAutocomplete$,
   ping$,
   disabled$,
   admin$,

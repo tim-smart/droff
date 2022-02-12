@@ -8,9 +8,11 @@ export type CommandPrefix =
   | string
   | ((guild: Guild | undefined) => Promise<string>);
 
-export interface CommandOptions {
-  /** The name for the command, excluding the prefix */
-  name: string;
+export interface CreateOptions {
+  /**
+   * Set the prefix. Defaults to "!"
+   */
+  prefix?: CommandPrefix;
 
   /**
    * Do you want to filter out message's from bot users?
@@ -28,6 +30,11 @@ export interface CommandOptions {
    * Create a custom `lexure.Parser` for parsing commands.
    */
   createParser?: (tokens: Token[]) => Parser;
+}
+
+export interface CommandOptions {
+  /** The name for the command, excluding the prefix */
+  name: string;
 }
 
 export interface CommandContext {
@@ -62,12 +69,12 @@ export type CreateCommandFn = (
 
 const parseCommand =
   (
-    createLexer: CommandOptions["createLexer"] = (content) =>
+    createLexer: CreateOptions["createLexer"] = (content) =>
       new Lexer(content).setQuotes([
         ['"', '"'],
         ["'", "'"],
       ]),
-    createParser: CommandOptions["createParser"] = (tokens) =>
+    createParser: CreateOptions["createParser"] = (tokens) =>
       new Parser(tokens).setUnorderedStrategy(longShortStrategy()),
   ) =>
   (prefix: string, message: Message) => {
@@ -93,32 +100,44 @@ const parseCommand =
  * );
  * ```
  */
-export const create =
-  (client: Client) =>
-  (prefix: CommandPrefix): CreateCommandFn =>
-  ({ name, filterBotMessages = true, createLexer, createParser }) => {
-    const parse = parseCommand(createLexer, createParser);
-    return client.fromDispatch("MESSAGE_CREATE").pipe(
-      filterBotMessages
-        ? RxO.filter(({ author }) => author.bot !== true)
-        : (o) => o,
+export const create = (
+  client: Client,
+  {
+    prefix = "!",
+    filterBotMessages = true,
+    createLexer,
+    createParser,
+  }: CreateOptions = {},
+): CreateCommandFn => {
+  const parse = parseCommand(createLexer, createParser);
 
-      RxO.withLatestFrom(client.guilds$),
-      RxO.flatMap(([message, guilds]) => {
-        const guild = guilds.get(message.guild_id!);
+  const messages$ = client.fromDispatch("MESSAGE_CREATE").pipe(
+    filterBotMessages
+      ? RxO.filter(({ author }) => author.bot !== true)
+      : (o) => o,
 
-        return Rx.zip(
-          typeof prefix === "string" ? Rx.of(prefix) : prefix(guild),
-          Rx.of(message),
-          Rx.of(guild),
-        );
-      }),
+    RxO.withLatestFrom(client.guilds$),
+    RxO.flatMap(([message, guilds]) => {
+      const guild = guilds.get(message.guild_id!);
 
-      RxO.filter(([prefix, message]) => message.content.startsWith(prefix)),
-      RxO.map(([prefix, message, guild]) => {
-        const [command, args] = parse(prefix, message);
-        return { command, args, guild, message };
-      }),
+      return Rx.zip(
+        typeof prefix === "string" ? Rx.of(prefix) : prefix(guild),
+        Rx.of(message),
+        Rx.of(guild),
+      );
+    }),
+
+    RxO.filter(([prefix, message]) => message.content.startsWith(prefix)),
+    RxO.map(([prefix, message, guild]) => {
+      const [command, args] = parse(prefix, message);
+      return { command, args, guild, message };
+    }),
+
+    RxO.share(),
+  );
+
+  return ({ name }) => {
+    return messages$.pipe(
       RxO.filter(({ command }) => command === name),
 
       RxO.map(
@@ -129,6 +148,7 @@ export const create =
       ),
     );
   };
+};
 
 const reply =
   (client: Client) =>

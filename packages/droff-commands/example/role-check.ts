@@ -12,7 +12,7 @@ const client = createClient({
   },
 });
 
-const command$ = Commands.create(client)("!");
+const command$ = Commands.create(client);
 
 const roleCheck$ = command$({ name: "role-check" }).pipe(
   // Append the guild and roles to the message
@@ -26,7 +26,9 @@ const roleCheck$ = command$({ name: "role-check" }).pipe(
     const isAdmin = memberRoles.some((role) => role.name === "Admin");
     const isOwner = guild.owner_id === message.author.id;
 
-    return isAdmin || isOwner ? reply("Hi sir!") : reply("Nice try.");
+    return isAdmin || isOwner
+      ? reply({ content: "Hi sir!" })
+      : reply({ content: "Nice try." });
   }),
 );
 

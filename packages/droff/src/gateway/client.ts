@@ -44,7 +44,7 @@ export const create =
     token,
     intents,
     rateLimitStore,
-    shardIDs = [0],
+    shardIDs = "auto",
     shardCount = 1,
   }: Options) => {
     const rateLimit = RL.rateLimit(rateLimitStore);

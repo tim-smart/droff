@@ -31,6 +31,7 @@
   "dependencies": {
     "droff": "^0.18.0",
     "fp-ts": "^2.10.5",
+    "immutable": "*",
     "rxjs": "^7.1.0"
   },
   "devDependencies": {

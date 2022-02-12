@@ -5,6 +5,8 @@ import {
   Component,
   ComponentType,
   SelectMenu,
+  TextInput,
+  TextInputStyle,
 } from "droff/dist/types";
 
 export type UIComponent = Exclude<Component, ActionRow>;
@@ -35,4 +37,17 @@ export const button = (button: Partial<Button>): Button => ({
 export const select = (select: Omit<SelectMenu, "type">): SelectMenu => ({
   type: ComponentType.SELECT_MENU,
   ...select,
+});
+
+type TextInputOpts = Omit<TextInput, "type" | "style"> & {
+  style?: TextInputStyle;
+};
+
+/**
+ * Helper to create a text input
+ */
+export const textInput = (input: TextInputOpts): TextInput => ({
+  type: ComponentType.TEXT_INPUT,
+  style: TextInputStyle.SHORT,
+  ...input,
 });

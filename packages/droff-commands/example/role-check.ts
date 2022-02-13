@@ -1,8 +1,8 @@
 require("dotenv").config();
 
+import { createClient, Intents } from "droff";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import { createClient, Intents } from "droff";
 import * as Commands from "../src/mod";
 
 const client = createClient({
@@ -14,7 +14,10 @@ const client = createClient({
 
 const command$ = Commands.create(client);
 
-const roleCheck$ = command$({ name: "role-check" }).pipe(
+const roleCheck$ = command$({
+  name: "role-check",
+  help: ({ reply }) => reply({ content: "Help message" }),
+}).pipe(
   // Append the guild and roles to the message
   client.withCaches({
     roles: client.roles$,

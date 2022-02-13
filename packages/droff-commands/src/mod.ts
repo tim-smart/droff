@@ -35,6 +35,9 @@ export interface CreateOptions {
 export interface CommandOptions {
   /** The name for the command, excluding the prefix */
   name: string;
+
+  /** Optionally respond to help <command> */
+  help?: (ctx: CommandContext) => Promise<any>;
 }
 
 export interface CommandContext {
@@ -128,25 +131,29 @@ export const create = (
     }),
 
     RxO.filter(([prefix, message]) => message.content.startsWith(prefix)),
-    RxO.map(([prefix, message, guild]) => {
+    RxO.map(([prefix, message, guild]): CommandContext => {
       const [command, args] = parse(prefix, message);
-      return { command, args, guild, message };
+      return { command, args, guild, message, reply: reply(client)(message) };
     }),
 
     RxO.share(),
   );
 
-  return ({ name }) => {
-    return messages$.pipe(
-      RxO.filter(({ command }) => command === name),
+  const help$ = messages$.pipe(RxO.filter(({ command }) => command === "help"));
 
-      RxO.map(
-        (ctx): CommandContext => ({
-          ...ctx,
-          reply: reply(client)(ctx.message),
-        }),
-      ),
+  return ({ name, help }) => {
+    const createHelp = () =>
+      help$.pipe(
+        RxO.filter(({ args }) => args.single() === name),
+        RxO.flatMap(help!),
+        RxO.ignoreElements(),
+      );
+
+    const command$ = messages$.pipe(
+      RxO.filter(({ command }) => command === name),
     );
+
+    return help ? Rx.merge(createHelp(), command$) : command$;
   };
 };
 

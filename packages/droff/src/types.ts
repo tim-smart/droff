@@ -2383,7 +2383,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     messageId: string,
     options?: O,
   ) => Promise<any>;
-  /** Deletes the initial Interaction response. Returns 204 No Content on success. */
+  /** Deletes the initial Interaction response. Returns 204 No Content on success. Does not support ephemeral followups. */
   deleteOriginalInteractionResponse: (
     applicationId: string,
     interactionToken: string,
@@ -4999,7 +4999,7 @@ export interface TextInput {
   min_length?: number;
   /** the maximum input length for a text input, min 1, max 4000 */
   max_length?: number;
-  /** whether this component is required to be filled, default false */
+  /** whether this component is required to be filled, default true */
   required?: boolean;
   /** a pre-filled value for this component, max 4000 characters */
   value?: string;

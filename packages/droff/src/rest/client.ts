@@ -16,7 +16,7 @@ export interface Options {
   /** Bot token */
   token: string;
   /** Rate limit store */
-  rateLimitStore: Store.Store;
+  rateLimitStore?: Store.Store;
   /** Global rate limit in requests per second */
   rateLimit?: number;
   /** Turn on debug logging */

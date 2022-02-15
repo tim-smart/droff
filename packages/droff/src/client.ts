@@ -184,13 +184,14 @@ export interface ClientExtras {
    * Use this operator in combination with withCaches.
    * It will filter out any direct messages etc.
    *
-   * ```typescript
+   * ```
    * client.dispatch$(Events.GuildMemberAdd).pipe(
    *   client.withCaches({
    *     roles: client.roles$,
    *   })(({ message }) => message.guild_id),
    *   client.onlyWithGuild(),
    * );
+   * ```
    */
   onlyWithGuild: typeof Resources.onlyWithGuild;
 

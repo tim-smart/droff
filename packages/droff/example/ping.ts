@@ -12,6 +12,7 @@ const client = createClient({
 });
 
 const pings$ = client.fromDispatch("MESSAGE_CREATE").pipe(
+  RxO.filter((msg) => msg.author.bot !== true),
   RxO.filter((msg) => msg.content === "!ping"),
   RxO.flatMap((msg) =>
     client.createMessage(msg.channel_id, {

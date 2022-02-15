@@ -4751,6 +4751,8 @@ export interface ResponseBody {
   threads: Channel[];
   /** a thread member object for each returned thread the current user has joined */
   members: ThreadMember[];
+  /** whether there are potentially additional threads that could be returned on a subsequent call */
+  has_more: boolean;
 }
 export interface Resume {
   /** session token */

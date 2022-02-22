@@ -23,9 +23,12 @@ export const enabled =
     );
 
 export const respond =
-  (rest: Client, type: InteractionCallbackType) =>
+  <T extends InteractionCallbackDatum>(
+    rest: Client,
+    type: InteractionCallbackType,
+  ) =>
   (interaction: Interaction) =>
-  (data?: InteractionCallbackDatum) =>
+  (data?: T) =>
     rest.createInteractionResponse(interaction.id, interaction.token, {
       type,
       data,

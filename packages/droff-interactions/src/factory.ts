@@ -9,7 +9,10 @@ import {
   Guild,
   GuildMember,
   Interaction,
+  InteractionCallbackAutocomplete,
   InteractionCallbackDatum,
+  InteractionCallbackMessage,
+  InteractionCallbackModal,
   InteractionCallbackType,
   InteractionType,
   Message,
@@ -54,17 +57,19 @@ export interface InteractionContext {
   focusedOption?: ApplicationCommandInteractionDataOption;
 
   /** Respond to the interaction immediately */
-  respond: (data: InteractionCallbackDatum) => Promise<any>;
+  respond: (data: InteractionCallbackMessage) => Promise<any>;
   /** Respond to the interaction later with editResponse */
   defer: () => Promise<any>;
   /** Update the original message (components only) */
-  update: (data: InteractionCallbackDatum) => Promise<any>;
+  update: (data: InteractionCallbackMessage) => Promise<any>;
   /** Update the original message later (components only) */
   deferUpdate: () => Promise<any>;
   /** Follow up message when using deferred */
-  editResponse: (data: InteractionCallbackDatum) => Promise<any>;
+  editResponse: (data: InteractionCallbackMessage) => Promise<any>;
   /** Respond with autocomplete choices */
-  autocomplete: (data: InteractionCallbackDatum) => Promise<any>;
+  autocomplete: (data: InteractionCallbackAutocomplete) => Promise<any>;
+  /** Respond with a modal */
+  modal: (data: InteractionCallbackModal) => Promise<any>;
 }
 
 export interface InteractionsHelper {
@@ -133,7 +138,7 @@ export const create = (client: Client): InteractionsHelper => {
   const { fromDispatch, application$ } = client;
 
   // Response helpers
-  const respond = Commands.respond(
+  const respond = Commands.respond<InteractionCallbackMessage>(
     client,
     InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
   );
@@ -153,6 +158,7 @@ export const create = (client: Client): InteractionsHelper => {
     client,
     InteractionCallbackType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT,
   );
+  const modalResponse = Commands.respond(client, InteractionCallbackType.MODAL);
   const editOriginal = Commands.editOriginal(client);
   const createContext = (interaction: Interaction): InteractionContext => ({
     interaction,
@@ -166,6 +172,7 @@ export const create = (client: Client): InteractionsHelper => {
     update: update(interaction),
     deferUpdate: updateDeferred(interaction),
     autocomplete: autocompleteResponse(interaction),
+    modal: modalResponse(interaction),
     editResponse: editOriginal(interaction),
   });
 

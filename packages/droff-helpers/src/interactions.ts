@@ -1,7 +1,9 @@
 import {
   ApplicationCommandInteractionDataOption,
   ApplicationCommandOptionType,
+  Component,
   Interaction,
+  TextInput,
 } from "droff/dist/types";
 import * as Arr from "fp-ts/Array";
 import * as F from "fp-ts/function";
@@ -57,18 +59,13 @@ export const transformOptions = (
 ) =>
   options.reduce(
     (map, option) => map.set(option.name, option.value),
-    Im.Map<string, any>(),
+    Im.Map<string, string | undefined>(),
   );
 
 /**
  * Return the interaction options as a name / value map.
  */
-export const optionsMap = F.flow(
-  options,
-  Arr.reduce(Im.Map<string, string | undefined>(), (map, option) =>
-    map.set(option.name, option.value),
-  ),
-);
+export const optionsMap = F.flow(options, transformOptions);
 
 /**
  * Try find a matching option from the interaction.
@@ -86,4 +83,45 @@ export const optionValue = (name: string) =>
   F.flow(
     getOption(name),
     O.chainNullableK((o) => o.value),
+  );
+
+/**
+ * A lens for accessing the components in a interaction.
+ */
+export const components = (interaction: Interaction): Component[] =>
+  F.pipe(
+    O.fromNullable(interaction.data?.components),
+    O.getOrElseW(() => []),
+  );
+
+/**
+ * Return the interaction components as an id / value map.
+ */
+export const transformComponents = (options: Component[]) =>
+  (options as TextInput[]).reduce(
+    (map, c) => (c.custom_id ? map.set(c.custom_id, c.value) : map),
+    Im.Map<string, string | undefined>(),
+  );
+
+/**
+ * Return the interaction components as an id / value map.
+ */
+export const componentsMap = F.flow(components, transformComponents);
+
+/**
+ * Try find a matching component from the interaction.
+ */
+export const getComponent = (id: string) =>
+  F.flow(
+    components,
+    Arr.findFirst((o) => (o as TextInput).custom_id === id),
+  );
+
+/**
+ * Try find a matching component value from the interaction.
+ */
+export const componentValue = (id: string) =>
+  F.flow(
+    getComponent(id),
+    O.chainNullableK((o) => (o as TextInput).value),
   );

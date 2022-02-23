@@ -4,11 +4,13 @@ import { createClient, Intents, Permissions } from "droff";
 import {
   ApplicationCommandOptionType,
   ApplicationCommandPermissionType,
-  ButtonStyle,
-  ComponentType,
+  MessageFlag,
 } from "droff/dist/types";
+import { flow } from "fp-ts/lib/function";
+import { toUndefined } from "fp-ts/lib/Option";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
+import { Interactions as Helpers, UI } from "../../droff-helpers";
 import * as Interactions from "../src/mod";
 
 const client = createClient({
@@ -34,6 +36,7 @@ const hello$ = commands
   );
 
 // Command with autocomplete
+const getCountry = flow(Helpers.optionValue("name"), toUndefined);
 const countries$ = commands
   .guild({
     name: "country",
@@ -50,12 +53,11 @@ const countries$ = commands
   .pipe(
     RxO.flatMap(({ interaction, respond }) =>
       respond({
-        content: `You chose the country: ${
-          interaction.data!.options![0].value
-        }`,
+        content: `You chose the country: ${getCountry(interaction)}`,
       }),
     ),
   );
+
 // Add the autocomplete handler
 const countryAutocomplete$ = commands.autocomplete("country", "name").pipe(
   RxO.flatMap(({ autocomplete, focusedOption }) =>
@@ -131,29 +133,58 @@ const admin$ = commands
         content: "You are the special.",
 
         // Add some buttons
-        components: [
-          {
-            type: ComponentType.ACTION_ROW,
-            components: [
-              {
-                type: ComponentType.BUTTON,
-                label: "Here is a button",
-                custom_id: "admin-button",
-                style: ButtonStyle.PRIMARY,
-              },
-            ],
-          },
-        ],
+        components: UI.grid([
+          [
+            UI.button({
+              custom_id: "admin-button",
+              label: "Here is a button",
+            }),
+          ],
+        ]),
       }),
     ),
   );
 
 // Button / component interaction
-const button$ = commands
-  .component("admin-button")
+const button$ = commands.component("admin-button").pipe(
+  RxO.flatMap(({ respond }) =>
+    respond({
+      content: "You clicked a button. wow.",
+      flags: MessageFlag.EPHEMERAL,
+    }),
+  ),
+);
+
+// Modals
+const greeting$ = commands
+  .guild({
+    name: "greeting",
+    description: "Give a nice greeting :)",
+  })
   .pipe(
-    RxO.flatMap(({ respond }) =>
-      respond({ content: "You clicked a button. wow.", flags: 64 }),
+    RxO.flatMap(({ modal }) =>
+      modal({
+        custom_id: "greeting-modal",
+        title: "What is your name?",
+        components: UI.grid([
+          [
+            UI.textInput({
+              custom_id: "name",
+              label: "Name",
+            }),
+          ],
+        ]),
+      }),
+    ),
+  );
+
+const getName = flow(Helpers.componentValue("name"), toUndefined);
+
+const greetingModal$ = commands
+  .modalSubmit("greeting-modal")
+  .pipe(
+    RxO.flatMap(({ respond, interaction }) =>
+      respond({ content: `Hello there ${getName(interaction)}` }),
     ),
   );
 
@@ -168,6 +199,8 @@ Rx.merge(
   ping$,
   disabled$,
   admin$,
+  greeting$,
 
   button$,
+  greetingModal$,
 ).subscribe();

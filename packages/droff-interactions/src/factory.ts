@@ -10,7 +10,6 @@ import {
   GuildMember,
   Interaction,
   InteractionCallbackAutocomplete,
-  InteractionCallbackDatum,
   InteractionCallbackMessage,
   InteractionCallbackModal,
   InteractionCallbackType,
@@ -92,6 +91,10 @@ export interface InteractionsHelper {
     command: string,
     option: string,
   ) => Rx.Observable<InteractionContext>;
+  /**
+   * Listen for modal submit requests for the given custom_id
+   */
+  modalSubmit: (customID: string) => Rx.Observable<InteractionContext>;
   /**
    * Listen to component interactions. Pass in a `custom_id` to determine what
    * interfactions to listen for.
@@ -192,7 +195,11 @@ export const create = (client: Client): InteractionsHelper => {
     RxO.map(createContext),
     RxO.share(),
   );
-
+  const interactionModalSubmit$ = fromDispatch("INTERACTION_CREATE").pipe(
+    RxO.filter((i) => i.type === InteractionType.MODAL_SUBMIT),
+    RxO.map(createContext),
+    RxO.share(),
+  );
   const interactionComponent$ = fromDispatch("INTERACTION_CREATE").pipe(
     RxO.filter((i) => i.type === InteractionType.MESSAGE_COMPONENT),
     RxO.map(createContext),
@@ -236,6 +243,11 @@ export const create = (client: Client): InteractionsHelper => {
         ({ interaction, focusedOption }) =>
           interaction.data!.name === command && focusedOption?.name === option,
       ),
+    );
+
+  const modalSubmit = (customID: string) =>
+    interactionModalSubmit$.pipe(
+      RxO.filter(({ interaction }) => interaction.data!.custom_id === customID),
     );
 
   const component = (customID: string | RegExp) =>
@@ -291,6 +303,7 @@ export const create = (client: Client): InteractionsHelper => {
     global,
     guild,
     autocomplete,
+    modalSubmit,
     component,
     components,
     effects$,

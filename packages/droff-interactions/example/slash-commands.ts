@@ -133,11 +133,13 @@ const admin$ = commands
         content: "You are the special.",
 
         // Add some buttons
-        components: UI.singleColumn([
-          UI.button({
-            custom_id: "admin-button",
-            label: "Here is a button",
-          }),
+        components: UI.grid([
+          [
+            UI.button({
+              custom_id: "admin-button",
+              label: "Here is a button",
+            }),
+          ],
         ]),
       }),
     ),
@@ -164,13 +166,11 @@ const greeting$ = commands
       modal({
         custom_id: "greeting-modal",
         title: "What is your name?",
-        components: UI.grid([
-          [
-            UI.textInput({
-              custom_id: "name",
-              label: "Name",
-            }),
-          ],
+        components: UI.singleColumn([
+          UI.textInput({
+            custom_id: "name",
+            label: "Name",
+          }),
         ]),
       }),
     ),

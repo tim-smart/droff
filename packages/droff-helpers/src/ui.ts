@@ -23,6 +23,15 @@ export const grid = (items: UIComponent[][]): ActionRow[] =>
   );
 
 /**
+ * Helper to create a single column of components
+ */
+export const singleColumn = (items: UIComponent[]): ActionRow[] =>
+  items.map((c) => ({
+    type: ComponentType.ACTION_ROW,
+    components: [c],
+  }));
+
+/**
  * Helper to create a button component.
  */
 export const button = (button: Partial<Button>): Button => ({

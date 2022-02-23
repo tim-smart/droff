@@ -133,13 +133,11 @@ const admin$ = commands
         content: "You are the special.",
 
         // Add some buttons
-        components: UI.grid([
-          [
-            UI.button({
-              custom_id: "admin-button",
-              label: "Here is a button",
-            }),
-          ],
+        components: UI.singleColumn([
+          UI.button({
+            custom_id: "admin-button",
+            label: "Here is a button",
+          }),
         ]),
       }),
     ),

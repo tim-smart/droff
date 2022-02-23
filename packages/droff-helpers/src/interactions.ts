@@ -85,14 +85,31 @@ export const optionValue = (name: string) =>
     O.chainNullableK((o) => o.value),
   );
 
+const extractComponents = (c: Component): Component[] => {
+  if ("components" in c) {
+    return [...c.components, ...c.components.flatMap(extractComponents)];
+  }
+
+  return [];
+};
+
 /**
  * A lens for accessing the components in a interaction.
  */
 export const components = (interaction: Interaction): Component[] =>
   F.pipe(
     O.fromNullable(interaction.data?.components),
+    O.map((arr) => [...arr, ...arr.flatMap(extractComponents)]),
     O.getOrElseW(() => []),
   );
+
+/**
+ * A lens for accessing the components in a interaction.
+ */
+export const componentsWithValue = F.flow(
+  components,
+  Arr.filter((c) => "value" in c && c.value !== undefined),
+);
 
 /**
  * Return the interaction components as an id / value map.

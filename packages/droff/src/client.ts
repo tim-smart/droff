@@ -24,12 +24,15 @@ import {
   StageInstance,
 } from "./types";
 
+export { createHandler as createProxyHandler } from "./rest/proxy";
+
 export interface RESTClient extends RestClient.Routes {
   /**
    * Observable of side effects. It is required that you subscribe to this for
    * the client to function.
    */
   effects$: Rx.Observable<void>;
+  request: AxiosInstance["request"];
   get: AxiosInstance["get"];
   post: AxiosInstance["post"];
   patch: AxiosInstance["patch"];
@@ -44,6 +47,7 @@ export function createRestClient(opts: RestClient.Options): RESTClient {
   return {
     effects$: rateLimiting$,
 
+    request: client.request.bind(client),
     delete: client.delete.bind(client),
     get: client.get.bind(client),
     patch: client.patch.bind(client),

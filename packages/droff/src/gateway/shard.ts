@@ -36,13 +36,13 @@ export function create({
 
   // Identify
   const identifyEffects$ = F.pipe(
-    Internal.identify$(
+    Internal.identify$({
+      token,
       conn,
-      latestReady$,
-      sequenceNumber$,
-    )(token, {
-      intents,
       shard,
+      intents,
+      latestReady: latestReady$,
+      latestSequence: sequenceNumber$,
     }),
     RxO.map(send),
   );

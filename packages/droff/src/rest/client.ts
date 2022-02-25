@@ -21,6 +21,8 @@ export interface Options {
   rateLimit?: number;
   /** Turn on debug logging */
   debug?: boolean;
+  /** Change baseURL (if using a proxy) */
+  baseURL?: string;
 }
 
 export function create({
@@ -28,9 +30,10 @@ export function create({
   rateLimitStore = Store.createMemoryStore(),
   rateLimit = 50,
   debug = false,
+  baseURL = `https://discord.com/api/v${VERSION}`,
 }: Options) {
   const client = Axios.create({
-    baseURL: `https://discord.com/api/v${VERSION}`,
+    baseURL,
     headers: {
       Authorization: `Bot ${token}`,
       "User-Agent": `DiscordBot (https://github.com/tim-smart/droff, ${Pkg.version})`,

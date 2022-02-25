@@ -25,7 +25,7 @@ export function create(baseURL = "wss://gateway.discord.gg/") {
 
   const url = `${baseURL}?v=${VERSION}&encoding=${encoding}`;
   const messageSubject = new Rx.Subject<GatewayPayload>();
-  const raw$ = messageSubject.asObservable();
+  const raw$: Rx.Observable<GatewayPayload> = messageSubject;
 
   const createWS = () => {
     const ws = new WebSocket(url, { perMessageDeflate: false });

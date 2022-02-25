@@ -1,3 +1,4 @@
+import { string } from "fp-ts";
 import * as F from "fp-ts/function";
 import { sequenceT } from "fp-ts/lib/Apply";
 import * as O from "fp-ts/Option";
@@ -16,42 +17,48 @@ import { Connection } from "./connection";
 import * as Dispatch from "./dispatch";
 import { Options } from "./shard";
 
-export const identify$ =
-  (
-    conn: Connection,
-    latestReady: Rx.Observable<O.Option<ReadyEvent>>,
-    latestSequence: Rx.Observable<O.Option<number>>,
-  ) =>
-  (token: string, { intents, shard }: Pick<Options, "intents" | "shard">) =>
-    F.pipe(
-      conn.hello$,
-      RxO.withLatestFrom(latestReady, latestSequence),
-      RxO.map(([_, ready, sequence]) =>
-        F.pipe(
-          sequenceT(O.Apply)(ready, sequence),
-          O.fold(
-            () =>
-              Commands.identify({
-                token,
-                intents,
-                properties: {
-                  $os: OS.platform(),
-                  $browser: "droff",
-                  $device: "droff",
-                },
-                shard,
-              }),
+export const identify$ = ({
+  conn,
+  latestReady,
+  latestSequence,
+  token,
+  intents,
+  shard,
+}: {
+  token: string;
+  conn: Connection;
+  latestReady: Rx.Observable<O.Option<ReadyEvent>>;
+  latestSequence: Rx.Observable<O.Option<number>>;
+} & Pick<Options, "token" | "intents" | "shard">) =>
+  F.pipe(
+    conn.hello$,
+    RxO.withLatestFrom(latestReady, latestSequence),
+    RxO.map(([_, ready, sequence]) =>
+      F.pipe(
+        sequenceT(O.Apply)(ready, sequence),
+        O.fold(
+          () =>
+            Commands.identify({
+              token,
+              intents,
+              properties: {
+                $os: OS.platform(),
+                $browser: "droff",
+                $device: "droff",
+              },
+              shard,
+            }),
 
-            ([ready, seq]) =>
-              Commands.resume({
-                token,
-                session_id: ready.session_id,
-                seq,
-              }),
-          ),
+          ([ready, seq]) =>
+            Commands.resume({
+              token,
+              session_id: ready.session_id,
+              seq,
+            }),
         ),
       ),
-    );
+    ),
+  );
 
 export const heartbeats$ = (
   conn: Connection,
@@ -63,14 +70,14 @@ export const heartbeats$ = (
   // Heartbeat counters
   const diff$ = heartbeatDiff(interval$, conn.heartbeatAck$, conn.hello$);
 
-  return F.tuple(
+  return [
     F.pipe(
       interval$,
       RxO.withLatestFrom(sequenceNumber),
       RxO.map(([_, sequence]) => Commands.heartbeat(O.toNullable(sequence))),
     ),
     diff$,
-  );
+  ] as const;
 };
 
 const latest = <T, V>(

@@ -54,6 +54,7 @@ export const spawn = ({
     ),
   );
 };
+
 export const withEffects = (sharder: () => Rx.Observable<Shard.Shard>) =>
   new Rx.Observable<Shard.Shard>((s) => {
     const shards = new Set<Shard.Shard>();

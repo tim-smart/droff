@@ -1,5 +1,5 @@
 import { createServer } from "http";
-import { createProxyHandler, createRestClient } from "../src/client";
+import { createProxyHandler, createRestClient } from "../src/mod";
 
 const client = createRestClient({
   token: process.env.DISCORD_BOT_TOKEN!,

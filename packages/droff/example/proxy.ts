@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 import * as Http from "http";
 import {
   createProxyHandler,

@@ -69,6 +69,12 @@ const pings$ = client.fromDispatch("MESSAGE_CREATE").pipe(
 Rx.merge(client.effects$, pings$).subscribe();
 ```
 
+## REST proxy
+
+Larger bots may want to funnel all Discord HTTP requests through a single proxy server, to simplify rate limiting.
+
+See [example/proxy.ts](example/proxy.ts) for an example.
+
 ## Caching
 
 Droff will only activate the caches that you use. So by default nothing is

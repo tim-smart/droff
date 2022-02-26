@@ -9,6 +9,7 @@ import Axios, {
 import { createRoutes } from "../types";
 import * as RateLimits from "./rate-limits";
 import * as Store from "../rate-limits/store";
+import { EMPTY } from "rxjs";
 
 const VERSION = 9;
 
@@ -23,6 +24,8 @@ export interface Options {
   debug?: boolean;
   /** Change baseURL (if using a proxy) */
   baseURL?: string;
+  /** Disable rate limiting */
+  disableRateLimiter?: boolean;
 }
 
 export function create({
@@ -31,7 +34,18 @@ export function create({
   rateLimit = 50,
   debug = false,
   baseURL = `https://discord.com/api/v${VERSION}`,
+  disableRateLimiter = false,
 }: Options) {
+  if (disableRateLimiter) {
+    return [
+      Axios.create({
+        baseURL,
+        timeout: 10000,
+      }),
+      EMPTY,
+    ] as const;
+  }
+
   const client = Axios.create({
     baseURL,
     headers: {

@@ -1,9 +1,9 @@
-import { AxiosInstance, Method } from "axios";
+import { AxiosInstance, AxiosResponse, Method } from "axios";
 import * as Http from "http";
 
 export const createHandler =
   (client: Pick<AxiosInstance, "request">): Http.RequestListener =>
-  (req, res) => {
+  (req, res) =>
     client
       .request({
         method: req.method as Method,
@@ -11,5 +11,15 @@ export const createHandler =
         data: req,
         responseType: "stream",
       })
-      .then((r) => r.data.pipe(res));
-  };
+      .then(handleResponse(res));
+
+const handleResponse = (res: Http.ServerResponse) => (r: AxiosResponse) => {
+  const headers = r.headers;
+  delete headers["date"];
+  delete headers["connection"];
+  delete headers["keep-alive"];
+  delete headers["transfer-encoding"];
+
+  res.writeHead(r.status, headers);
+  return r.data.pipe(res);
+};

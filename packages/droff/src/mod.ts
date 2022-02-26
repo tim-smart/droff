@@ -6,6 +6,7 @@ export {
   create as createClient,
   createRestClient,
   createProxyHandler,
+  createProxyClient,
 } from "./client";
 
 export type { Client, ClientExtras, Options, RESTClient } from "./client";

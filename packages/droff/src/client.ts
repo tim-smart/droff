@@ -58,6 +58,13 @@ export function createRestClient(opts: RestClient.Options): RESTClient {
   };
 }
 
+export const createProxyClient = (baseURL: string) =>
+  createRestClient({
+    token: "",
+    baseURL,
+    disableRateLimiter: true,
+  });
+
 export interface Options {
   /** The discord bot token */
   token: string;

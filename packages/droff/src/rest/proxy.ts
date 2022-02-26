@@ -11,7 +11,11 @@ export const createHandler =
         data: req,
         responseType: "stream",
       })
-      .then(handleResponse(res));
+      .then(handleResponse(res))
+      .catch(() => {
+        res.writeHead(500);
+        res.end();
+      });
 
 const handleResponse = (res: Http.ServerResponse) => (r: AxiosResponse) => {
   const headers = r.headers;

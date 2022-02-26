@@ -10,7 +10,7 @@ import { flow } from "fp-ts/lib/function";
 import { toUndefined } from "fp-ts/lib/Option";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import { Interactions as Helpers, UI } from "../../droff-helpers";
+import * as H from "../../droff-helpers";
 import * as Interactions from "../src/mod";
 
 const client = createClient({
@@ -36,7 +36,7 @@ const hello$ = commands
   );
 
 // Command with autocomplete
-const getCountry = flow(Helpers.optionValue("name"), toUndefined);
+const getCountry = flow(H.Ix.optionValue("name"), toUndefined);
 const countries$ = commands
   .guild({
     name: "country",
@@ -98,6 +98,7 @@ const disabled$ = commands
   .pipe(RxO.flatMap(({ respond }) => respond({ content: "Pong!" })));
 
 // You can set role or user level permissions
+const hasAdmin = H.Perms.has(Permissions.ADMINISTRATOR);
 const admin$ = commands
   .guild({
     name: "admin-only",
@@ -108,9 +109,7 @@ const admin$ = commands
         // Permissions for roles with ADMINISTRATOR enabled
         RxO.flatMap((roles) =>
           roles
-            .filter(
-              (role) => BigInt(role.permissions) & Permissions.ADMINISTRATOR,
-            )
+            .filter((role) => hasAdmin(role.permissions))
             .map((role) => ({
               id: role.id,
               type: ApplicationCommandPermissionType.ROLE,
@@ -133,9 +132,9 @@ const admin$ = commands
         content: "You are the special.",
 
         // Add some buttons
-        components: UI.grid([
+        components: H.UI.grid([
           [
-            UI.button({
+            H.UI.button({
               custom_id: "admin-button",
               label: "Here is a button",
             }),
@@ -166,8 +165,8 @@ const greeting$ = commands
       modal({
         custom_id: "greeting-modal",
         title: "What is your name?",
-        components: UI.singleColumn([
-          UI.textInput({
+        components: H.UI.singleColumn([
+          H.UI.textInput({
             custom_id: "name",
             label: "Name",
           }),
@@ -176,7 +175,7 @@ const greeting$ = commands
     ),
   );
 
-const getName = flow(Helpers.componentValue("name"), toUndefined);
+const getName = flow(H.Ix.componentValue("name"), toUndefined);
 
 const greetingModal$ = commands
   .modalSubmit("greeting-modal")

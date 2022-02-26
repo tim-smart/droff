@@ -73,7 +73,7 @@ Rx.merge(client.effects$, pings$).subscribe();
 
 Larger bots may want to funnel all Discord HTTP requests through a single proxy server, to simplify rate limiting.
 
-See [example/proxy.ts](example/proxy.ts) for an example.
+See [example/proxy.ts](https://github.com/tim-smart/droff/blob/main/packages/droff/example/proxy.ts) for an example.
 
 ## Caching
 

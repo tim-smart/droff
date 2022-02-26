@@ -1,4 +1,9 @@
-# droff
+<div align="center">
+  <br />
+  <p>
+    <img src="https://raw.githubusercontent.com/tim-smart/droff/main/assets/droff.svg" alt="droff" />
+  </p>
+</div>
 
 [![Discord](https://img.shields.io/discord/887189613389705256?style=for-the-badge)](https://discord.gg/dtR2Mtu66Q)
 

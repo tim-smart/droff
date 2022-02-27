@@ -3,7 +3,13 @@ import * as RxO from "rxjs/operators";
 import * as RL from "../rate-limits/rxjs";
 import * as Store from "../rate-limits/store";
 import { Routes } from "../rest/client";
-import { GatewayIntents } from "../types";
+import {
+  GatewayEvent,
+  GatewayIntents,
+  GatewayOpcode,
+  GatewayPayload,
+} from "../types";
+import { opCode } from "./connection";
 import * as Dispatch from "./dispatch";
 import * as Shard from "./shard";
 import * as Sharder from "./sharder";
@@ -16,7 +22,7 @@ export interface Options {
    * Bitfield of the gateway intents you want to subscribe to.
    * `Intents.GUILDS` is always enabled.
    */
-  intents: number;
+  intents?: number;
 
   /**
    * Array of shard IDs you want to start.
@@ -42,7 +48,7 @@ export const create =
   (routes: Routes) =>
   ({
     token,
-    intents,
+    intents = GatewayIntents.GUILDS,
     rateLimitStore,
     shardIDs = "auto",
     shardCount = 1,
@@ -94,3 +100,25 @@ export const create =
   };
 
 export type Client = ReturnType<ReturnType<typeof create>>;
+
+export const createFromPayloads = (
+  payloads$: Rx.Observable<GatewayPayload>,
+): Client => {
+  const raw$ = payloads$;
+  const dispatch$ = raw$.pipe(opCode<GatewayEvent>(GatewayOpcode.DISPATCH));
+  const dispatchWithShard$ = Rx.EMPTY;
+  const shards$ = Rx.EMPTY;
+
+  const fromDispatch = Dispatch.listen(dispatch$);
+  const fromDispatchWithShard = Dispatch.listenWithShard(dispatchWithShard$);
+  const latestDispatch = Dispatch.latestDispatch(fromDispatch);
+
+  return {
+    raw$,
+    dispatch$,
+    fromDispatch,
+    fromDispatchWithShard,
+    latestDispatch,
+    shards$,
+  };
+};

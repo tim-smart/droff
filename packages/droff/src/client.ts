@@ -9,8 +9,8 @@ import { PartialInvite } from "./caches/invites";
 import * as Members from "./caches/members";
 import * as Roles from "./caches/roles";
 import * as StageInstances from "./caches/stage-instances";
-import * as CacheStore from "./caches/store";
-import { CacheStoreFactory, NonGuildCacheStoreFactory } from "./caches/store";
+import * as CacheStore from "./caches/stores";
+import { CacheStoreFactory, NonGuildCacheStoreFactory } from "./caches/stores";
 import * as GatewayClient from "./gateway/client";
 import * as RL from "./rate-limits/rxjs";
 import * as Store from "./rate-limits/store";
@@ -20,6 +20,7 @@ import {
   Application,
   Channel,
   Emoji,
+  GatewayPayload,
   Guild,
   GuildMember,
   Role,
@@ -83,10 +84,15 @@ export interface Options {
   debug?: boolean;
 
   /** Gateway configuration */
-  gateway: Omit<GatewayClient.Options, "token" | "rateLimitStore">;
+  gateway?: Omit<GatewayClient.Options, "token" | "rateLimitStore">;
 
   /** REST API configuration */
   rest?: Omit<RestClient.Options, "token" | "rateLimitStore">;
+
+  /**
+   * Override gateway with custom payload stream
+   */
+  gatewayPayloads$?: Rx.Observable<GatewayPayload>;
 }
 
 export function create({
@@ -94,7 +100,8 @@ export function create({
   rateLimitStore = createMemoryStore(),
   debug = false,
   rest: restOptions = {},
-  gateway: gatewayOptions,
+  gateway: gatewayOptions = {},
+  gatewayPayloads$,
 }: Options): Client {
   const rest = createRestClient({
     token,
@@ -102,11 +109,13 @@ export function create({
     debug,
     ...restOptions,
   });
-  const gateway = GatewayClient.create(rest)({
-    token,
-    rateLimitStore,
-    ...gatewayOptions,
-  });
+  const gateway = gatewayPayloads$
+    ? GatewayClient.createFromPayloads(gatewayPayloads$)
+    : GatewayClient.create(rest)({
+        token,
+        rateLimitStore,
+        ...gatewayOptions,
+      });
 
   // Cached resources
   const applicationCache = CacheStore.fromWatchNonGuild(

@@ -1,8 +1,9 @@
 import { pipe } from "fp-ts/lib/function";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import { Guild, Snowflake } from "../types";
-import { WatchOp } from "./resources";
+import { Guild, Snowflake } from "../../types";
+import { WatchOp } from "../resources";
+import { createMemoryStore, createNonGuildMemoryStore } from "./memory";
 
 export type SnowflakeMap<T> = Map<string, T>;
 export type GuildSnowflakeMap<T> = Map<Snowflake, SnowflakeMap<T>>;
@@ -23,74 +24,14 @@ export interface NonGuildCacheStore<T> {
 
 export type CacheStoreFactory<T> = (
   store?: CacheStore<T>,
-) => readonly [CacheStore<T>, Rx.Observable<void>];
+) => readonly [Pick<CacheStore<T>, "get" | "getForGuild">, Rx.Observable<void>];
 
 export type NonGuildCacheStoreFactory<T> = (
   store?: NonGuildCacheStore<T>,
-) => readonly [NonGuildCacheStore<T>, Rx.Observable<void>];
-
-export const createMemoryStore = <T>(): CacheStore<T> => {
-  const map = new Map<string, T>();
-  const guildMap = new Map<Snowflake, Map<string, T>>();
-
-  return {
-    get: (resourceId) => Promise.resolve(map.get(resourceId)),
-
-    getForGuild: (guildId) => {
-      const map = guildMap.get(guildId) || new Map<string, T>();
-      return Promise.resolve(map);
-    },
-
-    set: (guildId, resourceId, resource) => {
-      map.set(resourceId, resource);
-      if (!guildMap.has(guildId)) {
-        guildMap.set(guildId, new Map());
-      }
-      guildMap.get(guildId)!.set(resourceId, resource);
-      return Promise.resolve();
-    },
-
-    delete: (guildId, resourceId) => {
-      map.delete(resourceId);
-      guildMap.get(guildId)?.delete(resourceId);
-      return Promise.resolve();
-    },
-
-    guildDelete: (guildId) => {
-      const ids = guildMap.get(guildId)?.keys();
-      if (ids) {
-        for (const id in ids) {
-          map.delete(id);
-        }
-      }
-
-      guildMap.delete(guildId);
-
-      return Promise.resolve();
-    },
-  };
-};
-
-export const createNonGuildMemoryStore = <T>(): NonGuildCacheStore<T> => {
-  const map = new Map<string, T>();
-
-  return {
-    get: (resourceId) => Promise.resolve(map.get(resourceId)),
-
-    set: (resourceId, resource) => {
-      map.set(resourceId, resource);
-      return Promise.resolve();
-    },
-
-    delete: (resourceId) => {
-      map.delete(resourceId);
-      return Promise.resolve();
-    },
-  };
-};
+) => readonly [Pick<NonGuildCacheStore<T>, "get">, Rx.Observable<void>];
 
 export const fromWatch =
-  <T>(watch$: Rx.Observable<WatchOp<T>>) =>
+  <T>(watch$: Rx.Observable<WatchOp<T>>): CacheStoreFactory<T> =>
   (store = createMemoryStore<T>()) => {
     const effects$ = pipe(
       watch$,
@@ -109,11 +50,17 @@ export const fromWatch =
       }),
     );
 
-    return [store, effects$] as const;
+    return [
+      {
+        get: store.get,
+        getForGuild: store.getForGuild,
+      },
+      effects$,
+    ] as const;
   };
 
 export const fromWatchNonGuild =
-  <T>(watch$: Rx.Observable<WatchOp<T>>) =>
+  <T>(watch$: Rx.Observable<WatchOp<T>>): NonGuildCacheStoreFactory<T> =>
   (store = createNonGuildMemoryStore<T>()) => {
     const effects$ = pipe(
       watch$,
@@ -132,7 +79,7 @@ export const fromWatchNonGuild =
       }),
     );
 
-    return [store, effects$] as const;
+    return [{ get: store.get }, effects$] as const;
   };
 
 type CacheResult<M extends { [key: string]: CacheStore<any> }> = {

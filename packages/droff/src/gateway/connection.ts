@@ -14,7 +14,7 @@ import * as Codec from "./codec";
 
 const VERSION = 9;
 
-const opCode = <T = any>(code: GatewayOpcode) =>
+export const opCode = <T = any>(code: GatewayOpcode) =>
   F.flow(
     RxO.filter((p: GatewayPayload<T>) => p.op === code),
     RxO.share(),

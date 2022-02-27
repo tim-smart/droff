@@ -14,6 +14,7 @@ import { CacheStoreFactory, NonGuildCacheStoreFactory } from "./caches/store";
 import * as GatewayClient from "./gateway/client";
 import * as RL from "./rate-limits/rxjs";
 import * as Store from "./rate-limits/store";
+import { createMemoryStore } from "./rate-limits/stores/memory";
 import * as RestClient from "./rest/client";
 import {
   Application,
@@ -90,7 +91,7 @@ export interface Options {
 
 export function create({
   token,
-  rateLimitStore = Store.createMemoryStore(),
+  rateLimitStore = createMemoryStore(),
   debug = false,
   rest: restOptions = {},
   gateway: gatewayOptions,

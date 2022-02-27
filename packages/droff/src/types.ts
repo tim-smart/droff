@@ -4657,8 +4657,8 @@ export const PermissionFlag = {
   USE_EXTERNAL_STICKERS: BigInt(1) << BigInt(37),
   /** Allows for sending messages in threads */
   SEND_MESSAGES_IN_THREADS: BigInt(1) << BigInt(38),
-  /** Allows for launching activities (applications with the EMBEDDED flag) in a voice channel */
-  START_EMBEDDED_ACTIVITIES: BigInt(1) << BigInt(39),
+  /** Allows for using Activities (applications with the EMBEDDED flag) in a voice channel */
+  USE_EMBEDDED_ACTIVITIES: BigInt(1) << BigInt(39),
   /** Allows for timing out users to prevent them from sending or reacting to messages in chat and threads, and from speaking in voice and stage channels */
   MODERATE_MEMBERS: BigInt(1) << BigInt(40),
 } as const;

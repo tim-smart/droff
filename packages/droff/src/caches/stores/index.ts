@@ -1,7 +1,7 @@
 import { pipe } from "fp-ts/lib/function";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import { Guild, Snowflake } from "../../types";
+import { Snowflake } from "../../types";
 import { WatchOp } from "../resources";
 import { createMemoryStore, createNonGuildMemoryStore } from "./memory";
 

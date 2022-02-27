@@ -98,9 +98,11 @@ See [example/proxy.ts](https://github.com/tim-smart/droff/blob/main/packages/dro
 Droff will only activate the caches that you use. So by default nothing is
 cached.
 
-Here are the caches available to use right now:
+To use a cache, you call one of the cache factory methods, optionally passing in
+a store implementation.
 
 ```typescript
+import * as Rx from "rxjs";
 import { createClient, Intents } from "../src/mod";
 
 const client = createClient({
@@ -111,19 +113,14 @@ const client = createClient({
   },
 });
 
-// Here are the different caches that you can use. Each cache is an Observable
-// which emits maps with the following structure:
-//
-// Map<GuildID, Map<ResourceID, Resource>>
-//
-// Where the `Resource` is the actual API object i.e. channel, role, member etc.
-client.guilds$;
-client.roles$;
-client.channels$;
-client.members$;
-client.emojis$;
-client.invites$;
-client.stageInstances$;
+const [roleCache, roleCacheEffects$] = client.rolesCache();
+
+// Subscribe to the cache effects if you want to populate the cache from the
+// gateway events
+Rx.merge(client.effects$, roleCacheEffects$).subscribe();
+
+// You can then use the cache:
+roleCache.getForGuild("guild id xxx").then((map) => map.get("role id xxx"));
 ```
 
 ## What's missing

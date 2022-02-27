@@ -6,7 +6,6 @@ import {
   createRestClient,
   createProxyClient,
   createClient,
-  Intents,
 } from "../src/mod";
 
 // Create the proxy server by:
@@ -33,9 +32,6 @@ const client = createClient({
     // Here is where we tell droff to use the REST proxy
     baseURL: "http://localhost:3000",
     disableRateLimiter: true,
-  },
-  gateway: {
-    intents: Intents.GUILDS,
   },
 });
 client.getGatewayBot().then(console.error);

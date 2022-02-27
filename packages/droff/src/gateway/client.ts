@@ -104,7 +104,7 @@ export type Client = ReturnType<ReturnType<typeof create>>;
 export const createFromPayloads = (
   payloads$: Rx.Observable<GatewayPayload>,
 ): Client => {
-  const raw$ = payloads$;
+  const raw$ = payloads$.pipe(RxO.share());
   const dispatch$ = raw$.pipe(opCode<GatewayEvent>(GatewayOpcode.DISPATCH));
   const dispatchWithShard$ = Rx.EMPTY;
   const shards$ = Rx.EMPTY;

@@ -74,6 +74,19 @@ const pings$ = client.fromDispatch("MESSAGE_CREATE").pipe(
 Rx.merge(client.effects$, pings$).subscribe();
 ```
 
+## Gateway proxy
+
+Larger bots may want to seperate the websocket handling from the bot logic, for
+zero downtime deployments.
+
+To do this you would pipe the gateway dispatch events into a event streaming
+tool, like Apache Kafka or Rabbitmq, then subscribe to the events in your bot
+logic.
+
+See
+[example/gateway-proxy.ts](https://github.com/tim-smart/droff/blob/main/packages/droff/example/gateway-proxy.ts)
+for an example.
+
 ## REST proxy
 
 Larger bots may want to funnel all Discord HTTP requests through a single proxy server, to simplify rate limiting.

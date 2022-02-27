@@ -4,12 +4,13 @@ import * as Apps from "./caches/applications";
 import * as Channels from "./caches/channels";
 import * as Emojis from "./caches/emojis";
 import * as Guilds from "./caches/guilds";
+import * as Invites from "./caches/invites";
 import { PartialInvite } from "./caches/invites";
 import * as Members from "./caches/members";
-import * as Resources from "./caches/resources";
 import * as Roles from "./caches/roles";
-import * as Invites from "./caches/invites";
 import * as StageInstances from "./caches/stage-instances";
+import * as CacheStore from "./caches/store";
+import { CacheStoreFactory, NonGuildCacheStoreFactory } from "./caches/store";
 import * as GatewayClient from "./gateway/client";
 import * as RL from "./rate-limits/rxjs";
 import * as Store from "./rate-limits/store";
@@ -107,16 +108,26 @@ export function create({
   });
 
   // Cached resources
-  const application$ = Apps.watch$(gateway.fromDispatch);
-  const guilds$ = Guilds.watch$(gateway.fromDispatch);
-  const channels$ = Channels.watch$(gateway.fromDispatch);
-  const roles$ = Roles.watch$(gateway.fromDispatch);
-  const emojis$ = Emojis.watch$(gateway.fromDispatch);
-  const members$ = Members.watch$(gateway.fromDispatch);
-  const invites$ = Invites.watch$(gateway.fromDispatch, rest);
-  const stageInstances$ = StageInstances.watch$(gateway.fromDispatch);
-
-  const withCaches = Resources.withCaches(guilds$);
+  const applicationCache = CacheStore.fromWatchNonGuild(
+    Apps.watch$(gateway.fromDispatch),
+  );
+  const guildsCache = CacheStore.fromWatchNonGuild(
+    Guilds.watch$(gateway.fromDispatch),
+  );
+  const channelsCache = CacheStore.fromWatch(
+    Channels.watch$(gateway.fromDispatch),
+  );
+  const rolesCache = CacheStore.fromWatch(Roles.watch$(gateway.fromDispatch));
+  const emojisCache = CacheStore.fromWatch(Emojis.watch$(gateway.fromDispatch));
+  const membersCache = CacheStore.fromWatch(
+    Members.watch$(gateway.fromDispatch),
+  );
+  const invitesCache = CacheStore.fromWatch(
+    Invites.watch$(gateway.fromDispatch, rest),
+  );
+  const stageInstancesCache = CacheStore.fromWatch(
+    StageInstances.watch$(gateway.fromDispatch),
+  );
 
   if (debug) {
     gateway.raw$.subscribe((p) => console.error("[GATEWAY]", p));
@@ -125,17 +136,17 @@ export function create({
   return {
     gateway,
 
-    application$,
-    guilds$,
-    channels$,
-    roles$,
-    members$,
-    emojis$,
-    invites$,
-    stageInstances$,
-    withCaches,
+    applicationCache,
+    guildsCache,
+    channelsCache,
+    rolesCache,
+    membersCache,
+    emojisCache,
+    invitesCache,
+    stageInstancesCache,
 
-    onlyWithGuild: Resources.onlyWithGuild,
+    withCaches: CacheStore.withCaches,
+    onlyWithCacheResults: CacheStore.onlyWithCacheResults,
 
     dispatch$: gateway.dispatch$,
     fromDispatch: gateway.fromDispatch,
@@ -162,21 +173,21 @@ export interface ClientExtras {
   fromDispatchWithShard: GatewayClient.Client["fromDispatchWithShard"];
 
   /** Cache of the latest application */
-  application$: Rx.Observable<Application>;
+  applicationCache: NonGuildCacheStoreFactory<Application>;
   /** Cache of the latest guilds */
-  guilds$: Rx.Observable<Resources.SnowflakeMap<Guild>>;
+  guildsCache: NonGuildCacheStoreFactory<Guild>;
   /** Cache of the latest roles for each guild */
-  roles$: Rx.Observable<Resources.GuildSnowflakeMap<Role>>;
+  rolesCache: CacheStoreFactory<Role>;
   /** Cache of the latest channels for each guild */
-  channels$: Rx.Observable<Resources.GuildSnowflakeMap<Channel>>;
+  channelsCache: CacheStoreFactory<Channel>;
   /** Cache of the latest members for each guild */
-  members$: Rx.Observable<Resources.GuildSnowflakeMap<GuildMember>>;
+  membersCache: CacheStoreFactory<GuildMember>;
   /** Cache of the latest emojis for each guild */
-  emojis$: Rx.Observable<Resources.GuildSnowflakeMap<Emoji>>;
+  emojisCache: CacheStoreFactory<Emoji>;
   /** Cache of the latest invites for each guild */
-  invites$: Rx.Observable<Resources.GuildSnowflakeMap<PartialInvite>>;
+  invitesCache: CacheStoreFactory<PartialInvite>;
   /** Cache of the latest stageInstances for each guild */
-  stageInstances$: Rx.Observable<Resources.GuildSnowflakeMap<StageInstance>>;
+  stageInstancesCache: CacheStoreFactory<StageInstance>;
 
   /**
    * RxJS operator that appends cached data to the stream. E.g.
@@ -184,12 +195,12 @@ export interface ClientExtras {
    * ```typescript
    * client.dispatch$("GUILD_MEMBER_ADD").pipe(
    *   client.withCaches({
-   *     roles: client.roles$,
+   *     roles: rolesCache,
    *   })(({ message }) => message.guild_id),
    * );
    * ```
    */
-  withCaches: ReturnType<typeof Resources.withCaches>;
+  withCaches: typeof CacheStore.withCaches;
 
   /**
    * Use this operator in combination with withCaches.
@@ -198,13 +209,13 @@ export interface ClientExtras {
    * ```
    * client.dispatch$(Events.GuildMemberAdd).pipe(
    *   client.withCaches({
-   *     roles: client.roles$,
+   *     roles: rolesCache,
    *   })(({ message }) => message.guild_id),
-   *   client.onlyWithGuild(),
+   *   client.onlyWithCacheResults(),
    * );
    * ```
    */
-  onlyWithGuild: typeof Resources.onlyWithGuild;
+  onlyWithCacheResults: typeof CacheStore.onlyWithCacheResults;
 
   /**
    * RxJS rate limit operator, which is backed by the store.

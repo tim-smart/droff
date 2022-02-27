@@ -1,41 +1,47 @@
-import { Map } from "immutable";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { Dispatch } from "../gateway/dispatch";
-import { Guild, Snowflake } from "../types";
+import { Guild } from "../types";
+import { WatchOp } from "./resources";
 
-export const withOp =
-  <K extends string>(key: K) =>
-  <T>(data: T) =>
+const withOp =
+  <K extends string, T>(key: K) =>
+  (data: T) =>
     [key, data] as const;
 
-export type GuildMap = Map<Snowflake, Guild>;
-
-export const watch$ = (fromDispatch: Dispatch): Rx.Observable<GuildMap> =>
+export const watch$ = (fromDispatch: Dispatch) =>
   Rx.merge(
-    Rx.of(["init"] as const),
     fromDispatch("GUILD_CREATE").pipe(RxO.map(withOp("create"))),
     fromDispatch("GUILD_UPDATE").pipe(RxO.map(withOp("update"))),
     fromDispatch("GUILD_DELETE").pipe(RxO.map(withOp("delete"))),
   ).pipe(
-    RxO.scan((map, op) => {
-      if (op[0] === "init") {
-        return map;
-      } else if (op[0] === "delete") {
-        return map.delete(op[1].id);
+    RxO.map((op): WatchOp<Guild> => {
+      switch (op[0]) {
+        case "create":
+        case "update":
+          // Un-reference some data that might be garbage collected later.
+          // We collect these in the other `watch$` methods.
+          const guild: Guild = {
+            ...op[1],
+            roles: [],
+            emojis: [],
+            channels: [],
+            members: [],
+          };
+
+          return {
+            event: op[0],
+            guildId: guild.id,
+            resourceId: guild.id,
+            resource: guild,
+          };
+
+        case "delete":
+          return {
+            event: "delete",
+            guildId: op[1].id,
+            resourceId: op[1].id,
+          };
       }
-
-      const guild: Guild = { ...op[1] };
-
-      // Un-reference some data that might be garbage collected later.
-      // We collect these in the other `watch$` methods.
-      guild.roles = [];
-      guild.emojis = [];
-      delete guild.channels;
-      delete guild.members;
-
-      return map.set(guild.id, guild);
-    }, Map<Snowflake, Guild>()),
-
-    RxO.shareReplay(1),
+    }),
   );

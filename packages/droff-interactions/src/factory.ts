@@ -138,7 +138,11 @@ export interface InteractionsHelper {
  * ```
  */
 export const create = (client: Client): InteractionsHelper => {
-  const { fromDispatch, application$ } = client;
+  const { fromDispatch } = client;
+  const application$ = client.fromDispatch("READY").pipe(
+    RxO.map((e) => e.application),
+    RxO.shareReplay(1),
+  );
 
   // Response helpers
   const respond = Commands.respond<InteractionCallbackMessage>(
@@ -286,9 +290,12 @@ export const create = (client: Client): InteractionsHelper => {
   );
 
   // Sync
-  const { removeGlobalCommands$ } = Sync.global(client)(() => globalCommands);
+  const { removeGlobalCommands$ } = Sync.global(
+    client,
+    application$,
+  )(() => globalCommands);
   const { removeGuildCommands$, enableGuildCommands$, disableGuildCommands$ } =
-    Sync.guild(client, setPermissions)(() => guildCommands);
+    Sync.guild(client, application$, setPermissions)(() => guildCommands);
 
   // Effects
   const effects$ = Rx.merge(

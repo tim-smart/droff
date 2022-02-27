@@ -1,4 +1,5 @@
 import { Client } from "droff";
+import { Application } from "droff/dist/types";
 import * as F from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { Map } from "immutable";
@@ -8,9 +9,8 @@ import * as Commands from "./commands";
 import { GlobalCommand, GuildCommand } from "./factory";
 
 export const global =
-  (client: Client) => (globalCommands: () => Map<string, GlobalCommand>) => {
-    const { application$ } = client;
-
+  (client: Client, application$: Rx.Observable<Application>) =>
+  (globalCommands: () => Map<string, GlobalCommand>) => {
     const globalCommands$ = application$.pipe(
       RxO.flatMap((app) => client.getGlobalApplicationCommands(app.id)),
       RxO.shareReplay(1),
@@ -34,9 +34,13 @@ export const global =
   };
 
 export const guild =
-  (client: Client, setPermissions: Commands.SetPermissionsFn) =>
+  (
+    client: Client,
+    application$: Rx.Observable<Application>,
+    setPermissions: Commands.SetPermissionsFn,
+  ) =>
   (guildCommands: () => Map<string, GuildCommand>) => {
-    const { fromDispatch, application$ } = client;
+    const { fromDispatch } = client;
 
     // Common guild command observables
     const guildCommands$ = Rx.merge(

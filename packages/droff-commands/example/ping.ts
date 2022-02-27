@@ -12,11 +12,13 @@ const client = createClient({
   },
 });
 
-const command$ = Commands.create(client);
+const [guildCache, guildCache$] = client.guildsCache();
+
+const command$ = Commands.create(client, { guildsCache: guildCache });
 
 const ping$ = command$({ name: "ping" }).pipe(
   RxO.flatMap(({ reply }) => reply({ content: "Pong!" })),
 );
 
 // Subscribe
-Rx.merge(client.effects$, ping$).subscribe();
+Rx.merge(client.effects$, guildCache$, ping$).subscribe();

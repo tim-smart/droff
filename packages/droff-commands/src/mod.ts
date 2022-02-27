@@ -3,6 +3,7 @@ import { CreateMessageParams, Guild, Message } from "droff/dist/types";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { Args, Lexer, longShortStrategy, Parser, Token } from "lexure";
+import { NonGuildCacheStore } from "droff/dist/caches/store";
 
 export type CommandPrefix =
   | string
@@ -30,6 +31,11 @@ export interface CreateOptions {
    * Create a custom `lexure.Parser` for parsing commands.
    */
   createParser?: (tokens: Token[]) => Parser;
+
+  /**
+   * The guilds cache is required
+   */
+  guildCache: NonGuildCacheStore<Guild>;
 }
 
 export interface CommandOptions {
@@ -110,7 +116,8 @@ export const create = (
     filterBotMessages = true,
     createLexer,
     createParser,
-  }: CreateOptions = {},
+    guildCache,
+  }: CreateOptions,
 ): CreateCommandFn => {
   const parse = parseCommand(createLexer, createParser);
 
@@ -119,16 +126,16 @@ export const create = (
       ? RxO.filter(({ author }) => author.bot !== true)
       : (o) => o,
 
-    RxO.withLatestFrom(client.guilds$),
-    RxO.flatMap(([message, guilds]) => {
-      const guild = guilds.get(message.guild_id!);
-
-      return Rx.zip(
+    RxO.flatMap((message) =>
+      Rx.zip(Rx.of(message), guildCache.get(message.guild_id!)),
+    ),
+    RxO.flatMap(([message, guild]) =>
+      Rx.zip(
         typeof prefix === "string" ? Rx.of(prefix) : prefix(guild),
         Rx.of(message),
         Rx.of(guild),
-      );
-    }),
+      ),
+    ),
 
     RxO.filter(([prefix, message]) => message.content.startsWith(prefix)),
     RxO.map(([prefix, message, guild]): CommandContext => {

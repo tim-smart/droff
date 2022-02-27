@@ -11,23 +11,22 @@ const client = createClient({
     intents: Intents.GUILD_MESSAGES,
   },
 });
+const [guildCache, guildCache$] = client.guildsCache();
+const [roleCache, roleCache$] = client.rolesCache();
 
-const command$ = Commands.create(client);
+const command$ = Commands.create(client, { guildCache: guildCache });
 
 const roleCheck$ = command$({
   name: "role-check",
   help: ({ reply }) => reply({ content: "Help message" }),
 }).pipe(
-  // Append the guild and roles to the message
-  client.withCaches({
-    roles: client.roles$,
-  })(({ message }) => message.guild_id),
-  client.onlyWithGuild(),
+  client.withCaches({ roles: roleCache })(({ guild }) => guild?.id),
+  client.onlyWithCacheResults(),
 
-  RxO.flatMap(([{ message, reply }, { guild, roles }]) => {
+  RxO.flatMap(([{ message, reply, guild }, { roles }]) => {
     const memberRoles = message.member!.roles.map((id) => roles.get(id)!);
     const isAdmin = memberRoles.some((role) => role.name === "Admin");
-    const isOwner = guild.owner_id === message.author.id;
+    const isOwner = guild!.owner_id === message.author.id;
 
     return isAdmin || isOwner
       ? reply({ content: "Hi sir!" })
@@ -36,4 +35,4 @@ const roleCheck$ = command$({
 );
 
 // Subscribe
-Rx.merge(client.effects$, roleCheck$).subscribe();
+Rx.merge(client.effects$, guildCache$, roleCache$, roleCheck$).subscribe();

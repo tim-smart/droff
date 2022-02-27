@@ -3,7 +3,7 @@ import { CreateMessageParams, Guild, Message } from "droff/dist/types";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { Args, Lexer, longShortStrategy, Parser, Token } from "lexure";
-import { NonGuildCacheStore } from "droff/dist/caches/store";
+import { NonGuildCacheStore } from "droff/dist/caches/stores";
 
 export type CommandPrefix =
   | string

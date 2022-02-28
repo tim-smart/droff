@@ -23,13 +23,23 @@ export interface NonGuildCacheStore<T> {
   delete: (resourceId: string) => Promise<void>;
 }
 
+export interface ReadOnlyCacheStore<T>
+  extends Pick<CacheStore<T>, "get" | "getForGuild"> {
+  watch$: Rx.Observable<WatchOp<T>>;
+}
+
+export interface ReadOnlyNonGuildCacheStore<T>
+  extends Pick<NonGuildCacheStore<T>, "get" | "size"> {
+  watch$: Rx.Observable<WatchOp<T>>;
+}
+
 export type CacheStoreFactory<T> = (
   store?: CacheStore<T>,
-) => readonly [Pick<CacheStore<T>, "get" | "getForGuild">, Rx.Observable<void>];
+) => readonly [ReadOnlyCacheStore<T>, Rx.Observable<void>];
 
 export type NonGuildCacheStoreFactory<T> = (
   store?: NonGuildCacheStore<T>,
-) => readonly [Pick<NonGuildCacheStore<T>, "get">, Rx.Observable<void>];
+) => readonly [ReadOnlyNonGuildCacheStore<T>, Rx.Observable<void>];
 
 export const fromWatch =
   <T>(watch$: Rx.Observable<WatchOp<T>>): CacheStoreFactory<T> =>
@@ -53,6 +63,7 @@ export const fromWatch =
 
     return [
       {
+        watch$,
         get: store.get,
         getForGuild: store.getForGuild,
       },
@@ -80,7 +91,7 @@ export const fromWatchNonGuild =
       }),
     );
 
-    return [{ get: store.get }, effects$] as const;
+    return [{ watch$, get: store.get, size: store.size }, effects$] as const;
   };
 
 type WithCachesResult<M extends { [key: string]: WithCachesFn<any> }> = {

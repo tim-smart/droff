@@ -27,6 +27,7 @@ Simple Discord client powered by RxJS and Axios
 | [droff-interactions](https://github.com/tim-smart/droff/tree/main/packages/droff-interactions) | Accompanying library for interaction based components (slash commands, buttons, menus, selects etc) |
 | [droff-commands](https://github.com/tim-smart/droff/tree/main/packages/droff-commands)         | Accompanying library to help implementing message based commands                                    |
 | [droff-helpers](https://github.com/tim-smart/droff/tree/main/packages/droff-helpers)           | A collection of helper functions to make using droff easier                                         |
+| [droff-redis](https://github.com/tim-smart/droff/tree/main/packages/droff-redis)               | An implementation of a Redis powered gateway proxy, cache store and rate limit store                |
 
 ## Install
 
@@ -86,6 +87,8 @@ logic.
 See
 [example/gateway-proxy.ts](https://github.com/tim-smart/droff/blob/main/packages/droff/example/gateway-proxy.ts)
 for an example.
+
+[Also see the Redis example.](https://github.com/tim-smart/droff/blob/main/packages/droff-redis/example/basic.ts)
 
 ## REST proxy
 

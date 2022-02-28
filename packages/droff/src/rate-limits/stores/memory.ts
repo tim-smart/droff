@@ -10,7 +10,10 @@ export const createMemoryStore = (): Store => {
 
   const getCounter = (key: string) => {
     const counter = counters.get(key);
-    if (!counter || counter.expires > Date.now()) return undefined;
+
+    if (!counter || counter.expires > Date.now()) {
+      return undefined;
+    }
 
     return counter;
   };

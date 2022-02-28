@@ -1,4 +1,3 @@
-import { string } from "fp-ts";
 import * as F from "fp-ts/function";
 import { sequenceT } from "fp-ts/lib/Apply";
 import * as O from "fp-ts/Option";

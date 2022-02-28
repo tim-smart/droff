@@ -9,6 +9,7 @@ export type SnowflakeMap<T> = Map<string, T>;
 export type GuildSnowflakeMap<T> = Map<Snowflake, SnowflakeMap<T>>;
 
 export interface CacheStore<T> {
+  size: () => Promise<number>;
   get: (resourceId: string) => Promise<T | undefined>;
   getForGuild: (guildId: Snowflake) => Promise<Map<string, T>>;
   set: (guildId: Snowflake, resourceId: string, resource: T) => Promise<void>;

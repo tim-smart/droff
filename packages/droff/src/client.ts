@@ -7,6 +7,7 @@ import * as Guilds from "./caches/guilds";
 import * as Invites from "./caches/invites";
 import { PartialInvite } from "./caches/invites";
 import * as Members from "./caches/members";
+import * as Messages from "./caches/messages";
 import * as Roles from "./caches/roles";
 import * as StageInstances from "./caches/stage-instances";
 import * as CacheStore from "./caches/stores";
@@ -23,6 +24,7 @@ import {
   GatewayPayload,
   Guild,
   GuildMember,
+  Message,
   Role,
   StageInstance,
 } from "./types";
@@ -132,6 +134,9 @@ export function create({
   const membersCache = CacheStore.fromWatch(
     Members.watch$(gateway.fromDispatch),
   );
+  const messagesCache = CacheStore.fromWatch(
+    Messages.watch$(gateway.fromDispatch),
+  );
   const invitesCache = CacheStore.fromWatch(
     Invites.watch$(gateway.fromDispatch, rest),
   );
@@ -151,6 +156,7 @@ export function create({
     channelsCache,
     rolesCache,
     membersCache,
+    messagesCache,
     emojisCache,
     invitesCache,
     stageInstancesCache,
@@ -192,6 +198,8 @@ export interface ClientExtras {
   channelsCache: CacheStoreFactory<Channel>;
   /** Cache of the latest members for each guild */
   membersCache: CacheStoreFactory<GuildMember>;
+  /** Cache of the latest messages for each guild */
+  messagesCache: CacheStoreFactory<Message>;
   /** Cache of the latest emojis for each guild */
   emojisCache: CacheStoreFactory<Emoji>;
   /** Cache of the latest invites for each guild */

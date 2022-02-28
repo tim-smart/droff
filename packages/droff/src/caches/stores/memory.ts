@@ -6,6 +6,8 @@ export const createMemoryStore = <T>(): CacheStore<T> => {
   const guildMap = new Map<Snowflake, Map<string, T>>();
 
   return {
+    size: () => Promise.resolve(map.size),
+
     get: (resourceId) => Promise.resolve(map.get(resourceId)),
 
     getForGuild: (guildId) => {

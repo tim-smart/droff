@@ -46,7 +46,7 @@ export const createRateLimitStore = ({
 
       return {
         count: +count,
-        expires: expires as number,
+        expires: Date.now() + (expires as number),
       };
     },
 

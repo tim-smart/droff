@@ -17,6 +17,7 @@ export interface CacheStore<T> {
 }
 
 export interface NonGuildCacheStore<T> {
+  size: () => Promise<number>;
   get: (resourceId: string) => Promise<T | undefined>;
   set: (resourceId: string, resource: T) => Promise<void>;
   delete: (resourceId: string) => Promise<void>;
@@ -82,35 +83,29 @@ export const fromWatchNonGuild =
     return [{ get: store.get }, effects$] as const;
   };
 
-type GuildCacheStore<T> = Pick<CacheStore<T>, "getForGuild">;
-type CacheResult<M extends { [key: string]: GuildCacheStore<any> }> = {
-  [K in keyof M]: M[K] extends GuildCacheStore<infer V>
-    ? Map<string, V>
-    : never;
+type WithCachesResult<M extends { [key: string]: WithCachesFn<any> }> = {
+  [K in keyof M]: M[K] extends WithCachesFn<infer V> ? V : never;
 };
+type WithCachesFn<T> = (guildId: Snowflake) => Promise<T | undefined>;
 
-export const withCaches = <M extends { [key: string]: GuildCacheStore<any> }>(
+export const withCaches = <M extends { [key: string]: WithCachesFn<any> }>(
   stores: M,
 ) => {
   const storeEntries = Object.entries(stores);
   const storeKeys = storeEntries.map((e) => e[0]);
   const storeValues = storeEntries.map((e) => e[1]);
 
-  return <T>(getGuildID: (resource: T) => Snowflake | undefined) =>
+  return <T>(getParentId: (resource: T) => Snowflake | undefined) =>
     (
       source$: Rx.Observable<T>,
-    ): Rx.Observable<readonly [T, CacheResult<M> | undefined]> => {
+    ): Rx.Observable<readonly [T, WithCachesResult<M> | undefined]> => {
       if (storeValues.length === 0) return source$ as any;
 
       return source$.pipe(
         RxO.flatMap((item) => {
-          const guildId = getGuildID(item);
-          if (!guildId) return Rx.of(item);
-
-          return Rx.zip(
-            Rx.of(item),
-            ...storeValues.map((s) => s.getForGuild(guildId)),
-          );
+          const parentId = getParentId(item);
+          if (!parentId) return Rx.of(item);
+          return Rx.zip(Rx.of(item), ...storeValues.map((s) => s(parentId)));
         }),
         RxO.map((item) => {
           if (!Array.isArray(item)) return [item, undefined] as const;
@@ -122,7 +117,7 @@ export const withCaches = <M extends { [key: string]: GuildCacheStore<any> }>(
               ...map,
               [key]: results[index],
             }),
-            {} as CacheResult<M>,
+            {} as WithCachesResult<M>,
           );
 
           return [resource, resultMap];

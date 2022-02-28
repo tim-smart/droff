@@ -65,20 +65,22 @@ export const createCacheStore =
 export const createNonGuildCacheStore =
   ({ client, prefix = "droff" }: CreateStoreOpts) =>
   <T>(storePrefix: string): NonGuildCacheStore<T> => {
-    const key = (key: string) => `${prefix}:${storePrefix}:${key}`;
+    const key = `${prefix}:${storePrefix}`;
 
     return {
+      size: () => client.hLen(key),
+
       get: async (resourceId) => {
-        const json = await client.get(key(resourceId));
+        const json = await client.hGet(key, resourceId);
         return json ? JSON.parse(json) : undefined;
       },
 
       set: async (resourceId, resource) => {
-        await client.set(key(resourceId), JSON.stringify(resource));
+        await client.HSET(key, resourceId, JSON.stringify(resource));
       },
 
       delete: async (resourceId) => {
-        await client.del(key(resourceId));
+        await client.HDEL(key, resourceId);
       },
     };
   };

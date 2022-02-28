@@ -47,6 +47,8 @@ export const createNonGuildMemoryStore = <T>(): NonGuildCacheStore<T> => {
   const map = new Map<string, T>();
 
   return {
+    size: () => Promise.resolve(map.size),
+
     get: (resourceId) => Promise.resolve(map.get(resourceId)),
 
     set: (resourceId, resource) => {

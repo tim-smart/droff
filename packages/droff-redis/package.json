@@ -28,7 +28,7 @@
     "url": "https://github.com/tim-smart/droff/issues"
   },
   "dependencies": {
-    "droff": "^0.19.2",
+    "droff": "^0.20.0-alpha.0",
     "fp-ts": "^2.10.5",
     "redis": "^4.0.4",
     "rxjs": "^7.1.0"

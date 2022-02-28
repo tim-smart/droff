@@ -10,7 +10,9 @@
   ],
   "scripts": {
     "prepare": "husky install",
-    "docs": "lerna run docs"
+    "docs": "lerna run docs",
+    "version": "lerna version --conventional-commits --create-release github",
+    "publish": "lerna publish from-package"
   },
   "devDependencies": {
     "husky": "^7.0.0",

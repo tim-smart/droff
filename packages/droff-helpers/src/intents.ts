@@ -7,7 +7,18 @@ import * as Flags from "./flags";
 export const ALL = Flags.all(GatewayIntents);
 
 /**
- * Function that converts a intents bitfield value toa list of intent names.
+ * Privileged intents
+ */
+export const PRIVILEGED =
+  GatewayIntents.GUILD_PRESENCES | GatewayIntents.GUILD_MEMBERS;
+
+/**
+ * Un-privileged intents
+ */
+export const UNPRIVILEGED = ALL ^ PRIVILEGED;
+
+/**
+ * Function that converts a intents bitfield value to a list of intent names.
  */
 export const toList = Flags.toList(GatewayIntents);
 

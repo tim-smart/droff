@@ -25,7 +25,7 @@ export interface NonGuildCacheStore<T> {
 }
 
 export interface ReadOnlyCacheStore<T>
-  extends Pick<CacheStore<T>, "get" | "getForGuild"> {
+  extends Pick<CacheStore<T>, "get" | "getForGuild" | "size"> {
   watch$: Rx.Observable<WatchOp<T>>;
 }
 
@@ -67,6 +67,7 @@ export const fromWatch =
         watch$,
         get: store.get,
         getForGuild: store.getForGuild,
+        size: store.size,
       },
       effects$,
     ] as const;

@@ -8,6 +8,13 @@ export const createMemoryStore = (): Store => {
   const routes = new Map<string, string>();
   const counters = new Map<string, Counter>();
 
+  const getCounter = (key: string) => {
+    const counter = counters.get(key);
+    if (!counter || counter.expires > Date.now()) return undefined;
+
+    return counter;
+  };
+
   return {
     hasBucket: async (key) => buckets.has(key),
     putBucket: async (bucket) => {
@@ -19,9 +26,18 @@ export const createMemoryStore = (): Store => {
       routes.set(route, bucket);
     },
 
-    getCounter: (key) => Promise.resolve(counters.get(key)),
-    putCounter: (key, counter) => {
-      counters.set(key, counter);
+    getCounter: (key) => Promise.resolve(getCounter(key)),
+    incrementCounter: (key, window) => {
+      const counter = getCounter(key) || {
+        expires: Date.now() + window,
+        count: 0,
+      };
+
+      counters.set(key, {
+        ...counter,
+        count: counter.count + 1,
+      });
+
       return Promise.resolve();
     },
   };

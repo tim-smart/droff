@@ -82,11 +82,14 @@ export const fromWatchNonGuild =
     return [{ get: store.get }, effects$] as const;
   };
 
-type CacheResult<M extends { [key: string]: CacheStore<any> }> = {
-  [K in keyof M]: M[K] extends CacheStore<infer V> ? Map<string, V> : never;
+type GuildCacheStore<T> = Pick<CacheStore<T>, "getForGuild">;
+type CacheResult<M extends { [key: string]: GuildCacheStore<any> }> = {
+  [K in keyof M]: M[K] extends GuildCacheStore<infer V>
+    ? Map<string, V>
+    : never;
 };
 
-export const withCaches = <M extends { [key: string]: CacheStore<any> }>(
+export const withCaches = <M extends { [key: string]: GuildCacheStore<any> }>(
   stores: M,
 ) => {
   const storeEntries = Object.entries(stores);

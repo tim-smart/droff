@@ -9,7 +9,9 @@ export type BucketDetails = {
 };
 
 export interface Counter {
-  remaining: number;
+  /** How many times this counter has been triggered */
+  count: number;
+  /** When this counter expires */
   expires: number;
 }
 
@@ -21,7 +23,7 @@ export interface Store {
   putBucketRoute: (route: string, bucketKey: string) => Promise<void>;
 
   getCounter: (key: string) => Promise<Counter | undefined>;
-  putCounter: (key: string, counter: Counter) => Promise<void>;
+  incrementCounter: (key: string, window: number) => Promise<void>;
 }
 
 export const maybeWait =
@@ -34,23 +36,18 @@ export const maybeWait =
       TO.getOrElse(() =>
         T.of({
           expires: Date.now() + window,
-          remaining: limit,
+          count: 0,
         }),
       ),
-      T.chain(({ remaining, expires }) =>
-        remaining <= 0
+      T.chain(({ count, expires }) =>
+        count >= limit
           ? F.pipe(
               T.of(null),
               T.delay(expires - Date.now()),
               T.chain(() => maybeWait(store)(key, window, limit)),
             )
           : F.pipe(
-              TO.tryCatch(() =>
-                store.putCounter(key, {
-                  expires,
-                  remaining: remaining - 1,
-                }),
-              ),
+              TO.tryCatch(() => store.incrementCounter(key, window)),
               TO.getOrElse(() => () => Promise.resolve()),
             ),
       ),

@@ -10,19 +10,20 @@ export interface CreateStoreOpts {
 export const createCacheStore =
   ({ client, prefix = "droff" }: CreateStoreOpts) =>
   <T>(storePrefix: string): CacheStore<T> => {
-    const key = (key: string) => `${prefix}:${storePrefix}:${key}`;
-    const keyForGuild = (guildId: Snowflake) => key(`guild:${guildId}`);
+    const key = `${prefix}:${storePrefix}`;
+    const keyForGuild = (guildId: Snowflake) => `${key}:guild:${guildId}`;
 
     return {
+      size: async () => client.hLen(key),
+
       get: async (resourceId) => {
-        const json = await client.get(key(resourceId));
+        const json = await client.hGet(key, resourceId);
         return json ? JSON.parse(json) : undefined;
       },
 
       getForGuild: async (guildId) => {
         const ids = await client.sMembers(keyForGuild(guildId));
-        const keys = ids.map(key);
-        const results = await client.mGet(keys);
+        const results = await client.hmGet(key, ids);
 
         return results.reduce((acc, result, index) => {
           if (!result) return acc;
@@ -34,30 +35,29 @@ export const createCacheStore =
 
       set: async (guildId, resourceId, resource) => {
         const guildKey = keyForGuild(guildId);
-        const resourceKey = key(resourceId);
 
         await client
           .multi()
-          .set(resourceKey, JSON.stringify(resource))
+          .hSet(key, resourceId, JSON.stringify(resource))
           .sAdd(guildKey, resourceId)
           .exec();
       },
 
       delete: async (guildId, resourceId) => {
         const guildKey = keyForGuild(guildId);
-        const resourceKey = key(resourceId);
-
-        await client.multi().del(resourceKey).sRem(guildKey, resourceId).exec();
+        await client
+          .multi()
+          .hDel(key, resourceId)
+          .sRem(guildKey, resourceId)
+          .exec();
       },
 
       guildDelete: async (guildId) => {
         const guildKey = keyForGuild(guildId);
         const ids = await client.sMembers(guildKey);
-        const keys = ids.map(key);
 
-        keys.push(guildKey);
-
-        await client.del(keys);
+        await client.hDel(key, ids);
+        await client.del(guildKey);
       },
     };
   };

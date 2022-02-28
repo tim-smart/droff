@@ -2,6 +2,7 @@ import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import * as RL from "../rate-limits/rxjs";
 import * as Store from "../rate-limits/store";
+import { createMemoryStore } from "../rate-limits/stores/memory";
 import { Routes } from "../rest/client";
 import {
   GatewayEvent,
@@ -16,7 +17,16 @@ import * as Sharder from "./sharder";
 
 export interface Options {
   token: string;
-  rateLimitStore: Store.Store;
+
+  rateLimits?: {
+    store: Store.Store;
+
+    sessionLimit?: number;
+    sessionWindow?: number;
+
+    sendLimit?: number;
+    sendWindow?: number;
+  };
 
   /**
    * Bitfield of the gateway intents you want to subscribe to.
@@ -49,7 +59,12 @@ export const create =
   ({
     token,
     intents = GatewayIntents.GUILDS,
-    rateLimitStore,
+    rateLimits: {
+      store: rateLimitStore,
+      sessionLimit,
+      sessionWindow,
+      ...shardRateLimits
+    } = { store: createMemoryStore() },
     shardIDs = "auto",
     shardCount = 1,
   }: Options) => {
@@ -63,9 +78,14 @@ export const create =
             baseURL,
             intents: intents | GatewayIntents.GUILDS,
             shard: id,
-            rateLimit,
+            rateLimits: {
+              ...shardRateLimits,
+              op: rateLimit,
+            },
           }),
         rateLimit,
+        rateLimitWindow: sessionWindow,
+        rateLimitLimit: sessionLimit,
         routes,
         shardIDs,
         shardCount,

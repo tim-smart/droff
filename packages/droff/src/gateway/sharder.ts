@@ -16,6 +16,7 @@ export interface Options {
   shardCount: number;
   rateLimit: RL.RateLimitOp;
   rateLimitWindow?: number;
+  rateLimitLimit?: number;
 }
 
 export const spawn = ({
@@ -25,6 +26,7 @@ export const spawn = ({
   shardCount,
   rateLimit,
   rateLimitWindow = 5000,
+  rateLimitLimit = 1,
 }: Options) => {
   // If we only need one shard, then short circuit.
   if (shardCount === 1 && shardIDs !== "auto") {
@@ -48,7 +50,11 @@ export const spawn = ({
     RxO.groupBy(({ id, concurrency }) => id % concurrency),
     RxO.flatMap((id$) =>
       id$.pipe(
-        rateLimit(`gateway.sessions.${id$.key}`, rateLimitWindow, 1),
+        rateLimit(
+          `gateway.sessions.${id$.key}`,
+          rateLimitWindow,
+          rateLimitLimit,
+        ),
         RxO.map(({ id, count, url }) => createShard([id, count], url)),
       ),
     ),

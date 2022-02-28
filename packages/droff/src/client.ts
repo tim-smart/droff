@@ -115,8 +115,11 @@ export function create({
     ? GatewayClient.createFromPayloads(gatewayPayloads$)
     : GatewayClient.create(rest)({
         token,
-        rateLimitStore,
         ...gatewayOptions,
+        rateLimits: {
+          store: rateLimitStore,
+          ...(gatewayOptions.rateLimits || {}),
+        },
       });
 
   // Cached resources

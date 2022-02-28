@@ -10,9 +10,15 @@ import * as Internal from "./internal";
 export interface Options {
   token: string;
   intents: number;
-  rateLimit: RateLimitOp;
   shard?: [number, number];
   baseURL?: string;
+
+  rateLimits: {
+    op: RateLimitOp;
+
+    sendLimit?: number;
+    sendWindow?: number;
+  };
 }
 
 export function create({
@@ -20,7 +26,7 @@ export function create({
   baseURL,
   intents,
   shard = [0, 1],
-  rateLimit,
+  rateLimits: { op: rateLimitOp, sendLimit = 120, sendWindow = 60000 },
 }: Options) {
   const conn = Conn.create(baseURL);
 
@@ -28,7 +34,9 @@ export function create({
   function send(payload: GatewayPayload) {
     sendSubject.next(payload);
   }
-  sendSubject.pipe(rateLimit("gateway.send", 60500, 120)).subscribe(conn.send);
+  sendSubject
+    .pipe(rateLimitOp("gateway.send", sendWindow, sendLimit))
+    .subscribe(conn.send);
 
   const fromDispatch = Dispatch.listen(conn.dispatch$);
   const sequenceNumber$ = Internal.latestSequenceNumber(conn.dispatch$);

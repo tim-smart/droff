@@ -1,0 +1,40 @@
+{
+  "name": "droff-redis",
+  "version": "0.0.1",
+  "description": "Redis streaming & store implementations for the droff discord client",
+  "keywords": [
+    "droff",
+    "discord",
+    "redis"
+  ],
+  "author": "Tim Smart <tim.smart@arisechurch.com>",
+  "homepage": "https://github.com/tim-smart/droff#readme",
+  "license": "MIT",
+  "main": "dist/mod.js",
+  "directories": {
+    "dist": "dist"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tim-smart/droff.git"
+  },
+  "scripts": {
+    "prepare": "rm -rf dist && tsc"
+  },
+  "bugs": {
+    "url": "https://github.com/tim-smart/droff/issues"
+  },
+  "dependencies": {
+    "droff": "^0.19.2",
+    "fp-ts": "^2.10.5",
+    "redis": "^4.0.4",
+    "rxjs": "^7.1.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.2"
+  }
+}

@@ -11,6 +11,7 @@ export interface CrudObserables<T> {
   create$?: Rx.Observable<readonly [Snowflake, T]>;
   update$?: Rx.Observable<readonly [Snowflake, T]>;
   delete$?: Rx.Observable<readonly [Snowflake, string]>;
+  effects$?: Rx.Observable<never>;
 }
 
 export type CreateOp<T> = {
@@ -43,6 +44,7 @@ export const watch$ = <T>(
     create$ = Rx.EMPTY,
     update$ = Rx.EMPTY,
     delete$ = Rx.EMPTY,
+    effects$ = Rx.NEVER,
   }: CrudObserables<T>,
 ): Rx.Observable<WatchOp<T>> =>
   Rx.merge(
@@ -106,4 +108,5 @@ export const watch$ = <T>(
         }),
       ),
     ),
+    effects$,
   );

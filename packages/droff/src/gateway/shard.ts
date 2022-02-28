@@ -32,6 +32,7 @@ export function create({
 
   const sendSubject = new Rx.Subject<GatewayPayload>();
   function send(payload: GatewayPayload) {
+    console.error(payload);
     sendSubject.next(payload);
   }
   sendSubject

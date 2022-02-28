@@ -61,7 +61,7 @@ const roles$ = childClient.fromDispatch("MESSAGE_CREATE").pipe(
   RxO.filter((msg) => msg.content === "!roles"),
 
   childClient.withCaches({
-    roles: rolesCache,
+    roles: rolesCache.getForGuild,
   })((msg) => msg.guild_id),
   childClient.onlyWithCacheResults(),
 

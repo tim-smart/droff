@@ -14,7 +14,7 @@ export const createCacheStore =
     const keyForGuild = (guildId: Snowflake) => `${key}:guild:${guildId}`;
 
     return {
-      size: async () => client.hLen(key),
+      size: () => client.hLen(key),
 
       get: async (resourceId) => {
         const json = await client.hGet(key, resourceId);
@@ -56,8 +56,7 @@ export const createCacheStore =
         const guildKey = keyForGuild(guildId);
         const ids = await client.sMembers(guildKey);
 
-        await client.hDel(key, ids);
-        await client.del(guildKey);
+        await client.multi().hDel(key, ids).del(guildKey).exec();
       },
     };
   };

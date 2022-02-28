@@ -36,10 +36,6 @@ export const pushPayloads =
         }),
       ),
       RxO.ignoreElements(),
-
-      RxO.finalize(() => {
-        client.disconnect();
-      }),
     );
   };
 
@@ -57,7 +53,7 @@ export const pullPayloads =
       TE.chainOptionK(() => "")(O.fromNullable),
       TE.chain(
         TE.tryCatchK(
-          async (data) => JSON.parse(data.element),
+          (data) => Promise.resolve(JSON.parse(data.element)),
           (err) => `Parsing JSON: ${err}`,
         ),
       ),

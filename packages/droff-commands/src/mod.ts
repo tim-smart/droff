@@ -1,15 +1,25 @@
 import { Client } from "droff";
+import { ReadOnlyNonParentCacheStore } from "droff/dist/caches/stores";
 import { CreateMessageParams, Guild, Message } from "droff/dist/types";
+import { Args, Lexer, longShortStrategy, Parser, Token } from "lexure";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import { Args, Lexer, longShortStrategy, Parser, Token } from "lexure";
-import { NonGuildCacheStore } from "droff/dist/caches/stores";
 
 export type CommandPrefix =
   | string
   | ((guild: Guild | undefined) => Promise<string>);
 
 export interface CreateOptions {
+  /**
+   * The droff client
+   */
+  client: Client;
+
+  /**
+   * The guilds cache is required
+   */
+  guildsCache: ReadOnlyNonParentCacheStore<Guild>;
+
   /**
    * Set the prefix. Defaults to "!"
    */
@@ -31,31 +41,33 @@ export interface CreateOptions {
    * Create a custom `lexure.Parser` for parsing commands.
    */
   createParser?: (tokens: Token[]) => Parser;
-
-  /**
-   * The guilds cache is required
-   */
-  guildCache: NonGuildCacheStore<Guild>;
 }
 
 export interface CommandOptions {
   /** The name for the command, excluding the prefix */
   name: string;
-
-  /** Optionally respond to help <command> */
-  help?: (ctx: CommandContext) => Promise<any>;
 }
 
-export interface CommandContext {
+export interface CommandContext<M> {
   /**
    * The guild the channel was in. Is `undefined` if the message was a DM.
    */
   guild: Guild | undefined;
 
   /**
+   * The prefix for the current guild
+   */
+  prefix: string;
+
+  /**
    * The `Message` object
    */
   message: Message;
+
+  /**
+   * A map of all the available commands
+   */
+  commands: ReadonlyMap<string, CommandOptions & M>;
 
   /**
    * The name of the command that was received.
@@ -72,9 +84,9 @@ export interface CommandContext {
    */
   reply: (message: Partial<CreateMessageParams>) => Promise<Message>;
 }
-export type CreateCommandFn = (
-  config: CommandOptions,
-) => Rx.Observable<CommandContext>;
+export type CreateCommandFn<M> = (
+  config: CommandOptions & M,
+) => Rx.Observable<CommandContext<M> & M>;
 
 const parseCommand =
   (
@@ -109,17 +121,17 @@ const parseCommand =
  * );
  * ```
  */
-export const create = (
-  client: Client,
-  {
-    prefix = "!",
-    filterBotMessages = true,
-    createLexer,
-    createParser,
-    guildCache,
-  }: CreateOptions,
-): CreateCommandFn => {
+export const create = <M>({
+  client,
+  guildsCache: guildCache,
+  prefix = "!",
+  filterBotMessages = true,
+  createLexer,
+  createParser,
+}: CreateOptions): CreateCommandFn<M> => {
+  const commands = new Map<string, CommandOptions & M>();
   const parse = parseCommand(createLexer, createParser);
+  const replyFn = reply(client);
 
   const messages$ = client.fromDispatch("MESSAGE_CREATE").pipe(
     filterBotMessages
@@ -138,29 +150,31 @@ export const create = (
     ),
 
     RxO.filter(([prefix, message]) => message.content.startsWith(prefix)),
-    RxO.map(([prefix, message, guild]): CommandContext => {
-      const [command, args] = parse(prefix, message);
-      return { command, args, guild, message, reply: reply(client)(message) };
-    }),
+    RxO.flatMap(
+      ([prefix, message, guild]): Rx.Observable<CommandContext<M> & M> => {
+        const [command, args] = parse(prefix, message);
+        const opts = commands.get(command);
+        if (!opts) return Rx.EMPTY;
+
+        return Rx.of({
+          ...opts,
+          commands,
+          command,
+          guild,
+          prefix,
+          message,
+          reply: replyFn(message),
+          args,
+        });
+      },
+    ),
 
     RxO.share(),
   );
 
-  const help$ = messages$.pipe(RxO.filter(({ command }) => command === "help"));
-
-  return ({ name, help }) => {
-    const createHelp = () =>
-      help$.pipe(
-        RxO.filter(({ args }) => args.single() === name),
-        RxO.flatMap(help!),
-        RxO.ignoreElements(),
-      );
-
-    const command$ = messages$.pipe(
-      RxO.filter(({ command }) => command === name),
-    );
-
-    return help ? Rx.merge(createHelp(), command$) : command$;
+  return (opts) => {
+    commands.set(opts.name, opts);
+    return messages$.pipe(RxO.filter(({ command }) => command === opts.name));
   };
 };
 

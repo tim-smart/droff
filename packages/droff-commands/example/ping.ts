@@ -12,13 +12,18 @@ const client = createClient({
   },
 });
 
-const [guildCache, guildCache$] = client.guildsCache();
+const [guildsCache, guildsCache$] = client.guildsCache();
 
-const command$ = Commands.create(client, { guildsCache: guildCache });
+interface Metadata {
+  description: string;
+}
 
-const ping$ = command$({ name: "ping" }).pipe(
-  RxO.flatMap(({ reply }) => reply({ content: "Pong!" })),
-);
+const command$ = Commands.create<Metadata>({ client, guildsCache });
+
+const ping$ = command$({
+  name: "ping",
+  description: "A simple ping command",
+}).pipe(RxO.flatMap(({ reply }) => reply({ content: "Pong!" })));
 
 // Subscribe
-Rx.merge(client.effects$, guildCache$, ping$).subscribe();
+Rx.merge(client.effects$, guildsCache$, ping$).subscribe();

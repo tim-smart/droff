@@ -11,16 +11,35 @@ const client = createClient({
     intents: Intents.GUILD_MESSAGES,
   },
 });
-const [guildCache, guildCache$] = client.guildsCache();
-const [roleCache, roleCache$] = client.rolesCache();
+const [guildsCache, guildsCache$] = client.guildsCache();
+const [rolesCache, rolesCache$] = client.rolesCache();
 
-const command$ = Commands.create(client, { guildCache: guildCache });
+interface CommandMeta {
+  description: string;
+}
 
-const roleCheck$ = command$({
-  name: "role-check",
-  help: ({ reply }) => reply({ content: "Help message" }),
+const command = Commands.create<CommandMeta>({ client, guildsCache });
+
+const help$ = command({
+  name: "help",
+  description: "You are looking at it",
 }).pipe(
-  client.withCaches({ roles: roleCache })(({ guild }) => guild?.id),
+  RxO.flatMap(({ commands, reply, prefix }) =>
+    reply({
+      content: [...commands.values()]
+        .map(({ name, description }) => `**${prefix}${name}**: ${description}`)
+        .join("\n"),
+    }),
+  ),
+);
+
+const roleCheck$ = command({
+  name: "role-check",
+  description: "Checks if you are an admin",
+}).pipe(
+  client.withCaches({ roles: rolesCache.getForParent })(
+    ({ guild }) => guild?.id,
+  ),
   client.onlyWithCacheResults(),
 
   RxO.flatMap(([{ message, reply, guild }, { roles }]) => {
@@ -35,4 +54,10 @@ const roleCheck$ = command$({
 );
 
 // Subscribe
-Rx.merge(client.effects$, guildCache$, roleCache$, roleCheck$).subscribe();
+Rx.merge(
+  client.effects$,
+  guildsCache$,
+  rolesCache$,
+  help$,
+  roleCheck$,
+).subscribe();

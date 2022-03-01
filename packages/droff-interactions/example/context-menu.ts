@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-import { createClient, Intents } from "droff";
+import { createClient } from "droff";
 import { ApplicationCommandType, MessageFlag } from "droff/dist/types";
 import { pipe } from "fp-ts/lib/function";
 import * as Rx from "rxjs";
@@ -9,9 +9,6 @@ import * as Interactions from "../src/mod";
 
 const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
-  gateway: {
-    intents: Intents.GUILDS,
-  },
 });
 
 const I = Interactions.create(client);

@@ -123,7 +123,7 @@ const [roleCache, roleCacheEffects$] = client.rolesCache();
 Rx.merge(client.effects$, roleCacheEffects$).subscribe();
 
 // You can then use the cache:
-roleCache.getForGuild("guild id xxx").then((map) => map.get("role id xxx"));
+roleCache.getForParent("guild id xxx").then((map) => map.get("role id xxx"));
 ```
 
 ## What's missing

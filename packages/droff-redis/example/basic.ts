@@ -28,7 +28,7 @@ const push$ = redis.pushPayloads(sourceClient);
 
 // Cache some resources in redis
 const [, guildsCache$] = sourceClient.guildsCache(
-  redis.nonGuildCache("guilds"),
+  redis.nonParentCache("guilds"),
 );
 const [, rolesCache$] = sourceClient.rolesCache(redis.cache("roles"));
 const [, channelsCache$] = sourceClient.channelsCache(redis.cache("channels"));
@@ -61,7 +61,7 @@ const roles$ = childClient.fromDispatch("MESSAGE_CREATE").pipe(
   RxO.filter((msg) => msg.content === "!roles"),
 
   childClient.withCaches({
-    roles: rolesCache.getForGuild,
+    roles: rolesCache.getForParent,
   })((msg) => msg.guild_id),
   childClient.onlyWithCacheResults(),
 

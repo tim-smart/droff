@@ -1,51 +1,53 @@
 import { Snowflake } from "../../types";
-import { CacheStore, NonGuildCacheStore } from ".";
+import { CacheStore, NonParentCacheStore } from ".";
 
 export const create = <T>(): CacheStore<T> => {
   const map = new Map<string, T>();
-  const guildMap = new Map<Snowflake, Map<string, T>>();
+  const parentMap = new Map<Snowflake, Map<string, T>>();
 
   return {
     size: () => Promise.resolve(map.size),
+    sizeForParent: (parentId) =>
+      Promise.resolve(parentMap.get(parentId)?.size ?? 0),
 
     get: (resourceId) => Promise.resolve(map.get(resourceId)),
 
-    getForGuild: (guildId) => {
-      const map = guildMap.get(guildId) || new Map<string, T>();
+    getForParent: (parentId) => {
+      const map = parentMap.get(parentId) || new Map<string, T>();
       return Promise.resolve(map);
     },
 
-    set: (guildId, resourceId, resource) => {
+    set: (parentId, resourceId, resource) => {
       map.set(resourceId, resource);
-      if (!guildMap.has(guildId)) {
-        guildMap.set(guildId, new Map());
+      if (!parentMap.has(parentId)) {
+        parentMap.set(parentId, new Map());
       }
-      guildMap.get(guildId)!.set(resourceId, resource);
+      parentMap.get(parentId)!.set(resourceId, resource);
       return Promise.resolve();
     },
 
-    delete: (guildId, resourceId) => {
+    delete: (parentId, resourceId) => {
       map.delete(resourceId);
-      guildMap.get(guildId)?.delete(resourceId);
+      parentMap.get(parentId)?.delete(resourceId);
       return Promise.resolve();
     },
 
-    guildDelete: (guildId) => {
-      const ids = guildMap.get(guildId)?.keys();
+    parentDelete: (parentId) => {
+      const ids = parentMap.get(parentId)?.keys();
       if (ids) {
         for (const id in ids) {
           map.delete(id);
         }
       }
 
-      guildMap.delete(guildId);
+      parentMap.delete(parentId);
 
       return Promise.resolve();
     },
   };
 };
 
-export const createNonGuild = <T>(): NonGuildCacheStore<T> => {
+export const createNonParent = <T>(): NonParentCacheStore<T> => {
   const map = new Map<string, T>();
 
   return {

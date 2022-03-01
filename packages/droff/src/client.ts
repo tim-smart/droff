@@ -11,7 +11,7 @@ import * as Messages from "./caches/messages";
 import * as Roles from "./caches/roles";
 import * as StageInstances from "./caches/stage-instances";
 import * as CacheStore from "./caches/stores";
-import { CacheStoreFactory, NonGuildCacheStoreFactory } from "./caches/stores";
+import { CacheStoreFactory, NonParentCacheStoreFactory } from "./caches/stores";
 import * as GatewayClient from "./gateway/client";
 import * as RL from "./rate-limits/rxjs";
 import * as Store from "./rate-limits/store";
@@ -123,10 +123,10 @@ export function create({
       });
 
   // Cached resources
-  const applicationCache = CacheStore.fromWatchNonGuild(
+  const applicationCache = CacheStore.fromWatchNonParent(
     Apps.watch$(gateway.fromDispatch),
   );
-  const guildsCache = CacheStore.fromWatchNonGuild(
+  const guildsCache = CacheStore.fromWatchNonParent(
     Guilds.watch$(gateway.fromDispatch),
   );
   const channelsCache = CacheStore.fromWatch(
@@ -192,9 +192,9 @@ export interface ClientExtras {
   fromDispatchWithShard: GatewayClient.Client["fromDispatchWithShard"];
 
   /** Cache of the latest application */
-  applicationCache: NonGuildCacheStoreFactory<Application>;
+  applicationCache: NonParentCacheStoreFactory<Application>;
   /** Cache of the latest guilds */
-  guildsCache: NonGuildCacheStoreFactory<Guild>;
+  guildsCache: NonParentCacheStoreFactory<Guild>;
   /** Cache of the latest roles for each guild */
   rolesCache: CacheStoreFactory<Role>;
   /** Cache of the latest channels for each guild */

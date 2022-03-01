@@ -5,19 +5,17 @@ import { Snowflake } from "../../types";
 import { WatchOp } from "../resources";
 import * as Memory from "./memory";
 
-export type SnowflakeMap<T> = Map<string, T>;
-export type GuildSnowflakeMap<T> = Map<Snowflake, SnowflakeMap<T>>;
-
 export interface CacheStore<T> {
   size: () => Promise<number>;
+  sizeForParent: (parentId: Snowflake) => Promise<number>;
   get: (resourceId: string) => Promise<T | undefined>;
-  getForGuild: (guildId: Snowflake) => Promise<Map<string, T>>;
-  set: (guildId: Snowflake, resourceId: string, resource: T) => Promise<void>;
-  delete: (guildId: Snowflake, resourceId: string) => Promise<void>;
-  guildDelete: (guildId: Snowflake) => Promise<void>;
+  getForParent: (parentId: Snowflake) => Promise<ReadonlyMap<string, T>>;
+  set: (parentId: Snowflake, resourceId: string, resource: T) => Promise<void>;
+  delete: (parentId: Snowflake, resourceId: string) => Promise<void>;
+  parentDelete: (parentId: Snowflake) => Promise<void>;
 }
 
-export interface NonGuildCacheStore<T> {
+export interface NonParentCacheStore<T> {
   size: () => Promise<number>;
   get: (resourceId: string) => Promise<T | undefined>;
   set: (resourceId: string, resource: T) => Promise<void>;
@@ -25,12 +23,15 @@ export interface NonGuildCacheStore<T> {
 }
 
 export interface ReadOnlyCacheStore<T>
-  extends Pick<CacheStore<T>, "get" | "getForGuild" | "size"> {
+  extends Pick<
+    CacheStore<T>,
+    "get" | "getForParent" | "size" | "sizeForParent"
+  > {
   watch$: Rx.Observable<WatchOp<T>>;
 }
 
-export interface ReadOnlyNonGuildCacheStore<T>
-  extends Pick<NonGuildCacheStore<T>, "get" | "size"> {
+export interface ReadOnlyNonParentCacheStore<T>
+  extends Pick<NonParentCacheStore<T>, "get" | "size"> {
   watch$: Rx.Observable<WatchOp<T>>;
 }
 
@@ -38,9 +39,9 @@ export type CacheStoreFactory<T> = (
   store?: CacheStore<T>,
 ) => readonly [ReadOnlyCacheStore<T>, Rx.Observable<void>];
 
-export type NonGuildCacheStoreFactory<T> = (
-  store?: NonGuildCacheStore<T>,
-) => readonly [ReadOnlyNonGuildCacheStore<T>, Rx.Observable<void>];
+export type NonParentCacheStoreFactory<T> = (
+  store?: NonParentCacheStore<T>,
+) => readonly [ReadOnlyNonParentCacheStore<T>, Rx.Observable<void>];
 
 export const fromWatch =
   <T>(watch$: Rx.Observable<WatchOp<T>>): CacheStoreFactory<T> =>
@@ -57,7 +58,7 @@ export const fromWatch =
             return store.delete(op.guildId, op.resourceId);
 
           case "guild_delete":
-            return store.guildDelete(op.guildId);
+            return store.parentDelete(op.guildId);
         }
       }),
     );
@@ -66,16 +67,17 @@ export const fromWatch =
       {
         watch$,
         get: store.get,
-        getForGuild: store.getForGuild,
+        getForParent: store.getForParent,
         size: store.size,
+        sizeForParent: store.sizeForParent,
       },
       effects$,
     ] as const;
   };
 
-export const fromWatchNonGuild =
-  <T>(watch$: Rx.Observable<WatchOp<T>>): NonGuildCacheStoreFactory<T> =>
-  (store = Memory.createNonGuild<T>()) => {
+export const fromWatchNonParent =
+  <T>(watch$: Rx.Observable<WatchOp<T>>): NonParentCacheStoreFactory<T> =>
+  (store = Memory.createNonParent<T>()) => {
     const effects$ = pipe(
       watch$,
       RxO.flatMap((op) => {

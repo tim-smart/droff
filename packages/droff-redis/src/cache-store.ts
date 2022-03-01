@@ -1,5 +1,5 @@
-import { createClient } from "@node-redis/client";
-import { CacheStore, NonGuildCacheStore } from "droff/dist/caches/stores";
+import { createClient } from "redis";
+import { CacheStore, NonParentCacheStore } from "droff/dist/caches/stores";
 import { Snowflake } from "droff/dist/types";
 
 export interface CreateStoreOpts {
@@ -11,18 +11,19 @@ export const createCacheStore =
   ({ client, prefix = "droff" }: CreateStoreOpts) =>
   <T>(storePrefix: string): CacheStore<T> => {
     const key = `${prefix}:${storePrefix}`;
-    const keyForGuild = (guildId: Snowflake) => `${key}:guild:${guildId}`;
+    const keyForParent = (parentId: Snowflake) => `${key}:parent:${parentId}`;
 
     return {
       size: () => client.hLen(key),
+      sizeForParent: (parentId) => client.SCARD(keyForParent(parentId)),
 
       get: async (resourceId) => {
         const json = await client.hGet(key, resourceId);
         return json ? JSON.parse(json) : undefined;
       },
 
-      getForGuild: async (guildId) => {
-        const ids = await client.sMembers(keyForGuild(guildId));
+      getForParent: async (parentId) => {
+        const ids = await client.sMembers(keyForParent(parentId));
         const results = await client.hmGet(key, ids);
 
         return results.reduce((acc, result, index) => {
@@ -33,37 +34,37 @@ export const createCacheStore =
         }, new Map<string, T>());
       },
 
-      set: async (guildId, resourceId, resource) => {
-        const guildKey = keyForGuild(guildId);
+      set: async (parentId, resourceId, resource) => {
+        const parentKey = keyForParent(parentId);
 
         await client
           .multi()
           .hSet(key, resourceId, JSON.stringify(resource))
-          .sAdd(guildKey, resourceId)
+          .sAdd(parentKey, resourceId)
           .exec();
       },
 
-      delete: async (guildId, resourceId) => {
-        const guildKey = keyForGuild(guildId);
+      delete: async (parentId, resourceId) => {
+        const parentKey = keyForParent(parentId);
         await client
           .multi()
           .hDel(key, resourceId)
-          .sRem(guildKey, resourceId)
+          .sRem(parentKey, resourceId)
           .exec();
       },
 
-      guildDelete: async (guildId) => {
-        const guildKey = keyForGuild(guildId);
-        const ids = await client.sMembers(guildKey);
+      parentDelete: async (parentId) => {
+        const parentKey = keyForParent(parentId);
+        const ids = await client.sMembers(parentKey);
 
-        await client.multi().hDel(key, ids).del(guildKey).exec();
+        await client.multi().hDel(key, ids).del(parentKey).exec();
       },
     };
   };
 
-export const createNonGuildCacheStore =
+export const createNonParentCacheStore =
   ({ client, prefix = "droff" }: CreateStoreOpts) =>
-  <T>(storePrefix: string): NonGuildCacheStore<T> => {
+  <T>(storePrefix: string): NonParentCacheStore<T> => {
     const key = `${prefix}:${storePrefix}`;
 
     return {

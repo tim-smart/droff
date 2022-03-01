@@ -53,7 +53,7 @@ export const pullPayloads =
       TE.chainOptionK(() => "")(O.fromNullable),
       TE.chain(
         TE.tryCatchK(
-          (data) => Promise.resolve(JSON.parse(data.element)),
+          async (data) => JSON.parse(data.element),
           (err) => `Parsing JSON: ${err}`,
         ),
       ),

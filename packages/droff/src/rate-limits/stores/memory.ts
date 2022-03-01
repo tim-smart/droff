@@ -3,7 +3,7 @@ import { BucketDetails, Counter, Store } from "../store";
 /**
  * Default rate limit store, that uses `Map`'s to store everything.
  */
-export const createMemoryStore = (): Store => {
+export const create = (): Store => {
   const buckets = new Map<string, BucketDetails>();
   const routes = new Map<string, string>();
   const counters = new Map<string, Counter>();

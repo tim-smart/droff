@@ -10,7 +10,7 @@ import { createRoutes } from "../types";
 import * as RateLimits from "./rate-limits";
 import * as Store from "../rate-limits/store";
 import { EMPTY } from "rxjs";
-import { createMemoryStore } from "../rate-limits/stores/memory";
+import * as MemoryStore from "../rate-limits/stores/memory";
 
 const VERSION = 9;
 
@@ -31,7 +31,7 @@ export interface Options {
 
 export function create({
   token,
-  rateLimitStore = createMemoryStore(),
+  rateLimitStore = MemoryStore.create(),
   rateLimit = 50,
   debug = false,
   baseURL = `https://discord.com/api/v${VERSION}`,

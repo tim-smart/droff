@@ -2,7 +2,7 @@ import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import * as RL from "../rate-limits/rxjs";
 import * as Store from "../rate-limits/store";
-import { createMemoryStore } from "../rate-limits/stores/memory";
+import * as MemoryStore from "../rate-limits/stores/memory";
 import { Routes } from "../rest/client";
 import {
   GatewayEvent,
@@ -64,7 +64,7 @@ export const create =
       sessionLimit,
       sessionWindow,
       ...shardRateLimits
-    } = { store: createMemoryStore() },
+    } = { store: MemoryStore.create() },
     shardIDs = "auto",
     shardCount = 1,
   }: Options) => {

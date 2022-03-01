@@ -15,7 +15,7 @@ import { CacheStoreFactory, NonGuildCacheStoreFactory } from "./caches/stores";
 import * as GatewayClient from "./gateway/client";
 import * as RL from "./rate-limits/rxjs";
 import * as Store from "./rate-limits/store";
-import { createMemoryStore } from "./rate-limits/stores/memory";
+import * as MemoryStore from "./rate-limits/stores/memory";
 import * as RestClient from "./rest/client";
 import {
   Application,
@@ -78,7 +78,7 @@ export interface Options {
    * You can supply a custom `RateLimitStore.Store` interface here to change how
    * rate limit counters and bucket information are stored.
    *
-   * Defaults to `RateLimitStore.createMemoryStore()`.
+   * Defaults to a memory store implementation.
    */
   rateLimitStore?: Store.Store;
 
@@ -99,7 +99,7 @@ export interface Options {
 
 export function create({
   token,
-  rateLimitStore = createMemoryStore(),
+  rateLimitStore = MemoryStore.create(),
   debug = false,
   rest: restOptions = {},
   gateway: gatewayOptions = {},

@@ -1,7 +1,7 @@
 import { Snowflake } from "../../types";
 import { CacheStore, NonGuildCacheStore } from ".";
 
-export const createMemoryStore = <T>(): CacheStore<T> => {
+export const create = <T>(): CacheStore<T> => {
   const map = new Map<string, T>();
   const guildMap = new Map<Snowflake, Map<string, T>>();
 
@@ -45,7 +45,7 @@ export const createMemoryStore = <T>(): CacheStore<T> => {
   };
 };
 
-export const createNonGuildMemoryStore = <T>(): NonGuildCacheStore<T> => {
+export const createNonGuild = <T>(): NonGuildCacheStore<T> => {
   const map = new Map<string, T>();
 
   return {

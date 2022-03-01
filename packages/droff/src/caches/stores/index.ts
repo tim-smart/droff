@@ -3,7 +3,7 @@ import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { Snowflake } from "../../types";
 import { WatchOp } from "../resources";
-import { createMemoryStore, createNonGuildMemoryStore } from "./memory";
+import * as Memory from "./memory";
 
 export type SnowflakeMap<T> = Map<string, T>;
 export type GuildSnowflakeMap<T> = Map<Snowflake, SnowflakeMap<T>>;
@@ -44,7 +44,7 @@ export type NonGuildCacheStoreFactory<T> = (
 
 export const fromWatch =
   <T>(watch$: Rx.Observable<WatchOp<T>>): CacheStoreFactory<T> =>
-  (store = createMemoryStore<T>()) => {
+  (store = Memory.create<T>()) => {
     const effects$ = pipe(
       watch$,
       RxO.flatMap((op) => {
@@ -75,7 +75,7 @@ export const fromWatch =
 
 export const fromWatchNonGuild =
   <T>(watch$: Rx.Observable<WatchOp<T>>): NonGuildCacheStoreFactory<T> =>
-  (store = createNonGuildMemoryStore<T>()) => {
+  (store = Memory.createNonGuild<T>()) => {
     const effects$ = pipe(
       watch$,
       RxO.flatMap((op) => {

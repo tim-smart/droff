@@ -1,5 +1,5 @@
 import { Client } from "droff";
-import { ReadOnlyNonParentCacheStore } from "droff/dist/caches/stores";
+import { NonParentCacheStore } from "droff/dist/caches/stores";
 import { CreateMessageParams, Guild, Message } from "droff/dist/types";
 import { Args, Lexer, longShortStrategy, Parser, Token } from "lexure";
 import * as Rx from "rxjs";
@@ -18,7 +18,7 @@ export interface CreateOptions {
   /**
    * The guilds cache is required
    */
-  guildsCache: ReadOnlyNonParentCacheStore<Guild>;
+  guildsCache: NonParentCacheStore<Guild>;
 
   /**
    * Set the prefix. Defaults to "!"

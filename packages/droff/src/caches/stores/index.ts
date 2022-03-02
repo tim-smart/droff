@@ -24,26 +24,22 @@ export interface NonParentCacheStore<T> {
   effects$?: Rx.Observable<never>;
 }
 
-export interface ReadOnlyCacheStore<T>
-  extends Pick<
-    CacheStore<T>,
-    "get" | "getForParent" | "size" | "sizeForParent"
-  > {
+export interface CacheStoreWithWatch<T> extends CacheStore<T> {
   watch$: Rx.Observable<WatchOp<T>>;
 }
 
-export interface ReadOnlyNonParentCacheStore<T>
-  extends Pick<NonParentCacheStore<T>, "get" | "size"> {
+export interface NonParentCacheStoreWithWatch<T>
+  extends NonParentCacheStore<T> {
   watch$: Rx.Observable<WatchOp<T>>;
 }
 
 export type CacheStoreFactory<T> = (
   store?: CacheStore<T>,
-) => readonly [ReadOnlyCacheStore<T>, Rx.Observable<void>];
+) => readonly [CacheStoreWithWatch<T>, Rx.Observable<void>];
 
 export type NonParentCacheStoreFactory<T> = (
   store?: NonParentCacheStore<T>,
-) => readonly [ReadOnlyNonParentCacheStore<T>, Rx.Observable<void>];
+) => readonly [NonParentCacheStoreWithWatch<T>, Rx.Observable<void>];
 
 export const fromWatch =
   <T>(watch$: Rx.Observable<WatchOp<T>>): CacheStoreFactory<T> =>
@@ -66,13 +62,7 @@ export const fromWatch =
     );
 
     return [
-      {
-        watch$,
-        get: store.get,
-        getForParent: store.getForParent,
-        size: store.size,
-        sizeForParent: store.sizeForParent,
-      },
+      { ...store, watch$ },
       store.effects$ ? Rx.merge(effects$, store.effects$) : effects$,
     ] as const;
   };
@@ -98,7 +88,7 @@ export const fromWatchNonParent =
     );
 
     return [
-      { watch$, get: store.get, size: store.size },
+      { watch$, ...store },
       store.effects$ ? Rx.merge(effects$, store.effects$) : effects$,
     ] as const;
   };

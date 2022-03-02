@@ -13,6 +13,7 @@ export interface CacheStore<T> {
   set: (parentId: Snowflake, resourceId: string, resource: T) => Promise<void>;
   delete: (parentId: Snowflake, resourceId: string) => Promise<void>;
   parentDelete: (parentId: Snowflake) => Promise<void>;
+  effects$?: Rx.Observable<never>;
 }
 
 export interface NonParentCacheStore<T> {
@@ -20,6 +21,7 @@ export interface NonParentCacheStore<T> {
   get: (resourceId: string) => Promise<T | undefined>;
   set: (resourceId: string, resource: T) => Promise<void>;
   delete: (resourceId: string) => Promise<void>;
+  effects$?: Rx.Observable<never>;
 }
 
 export interface ReadOnlyCacheStore<T>
@@ -71,7 +73,7 @@ export const fromWatch =
         size: store.size,
         sizeForParent: store.sizeForParent,
       },
-      effects$,
+      store.effects$ ? Rx.merge(effects$, store.effects$) : effects$,
     ] as const;
   };
 
@@ -95,7 +97,10 @@ export const fromWatchNonParent =
       }),
     );
 
-    return [{ watch$, get: store.get, size: store.size }, effects$] as const;
+    return [
+      { watch$, get: store.get, size: store.size },
+      store.effects$ ? Rx.merge(effects$, store.effects$) : effects$,
+    ] as const;
   };
 
 type WithCachesResult<M extends { [key: string]: WithCachesFn<any> }> = {

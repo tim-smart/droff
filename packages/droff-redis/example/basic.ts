@@ -75,5 +75,27 @@ const roles$ = childClient.fromDispatch("MESSAGE_CREATE").pipe(
   ),
 );
 
+const roleCount$ = childClient.fromDispatch("MESSAGE_CREATE").pipe(
+  RxO.filter((msg) => msg.author.bot !== true),
+  RxO.filter((msg) => msg.content === "!rolecount"),
+
+  childClient.withCaches({
+    roleCount: rolesCache.sizeForParent,
+  })((msg) => msg.guild_id),
+  childClient.onlyWithCacheResults(),
+
+  RxO.flatMap(([msg, { roleCount }]) =>
+    childClient.createMessage(msg.channel_id, {
+      message_reference: { message_id: msg.id },
+      content: `There are ${roleCount} roles in the cache`,
+    }),
+  ),
+);
+
 // Subscribe
-Rx.merge(childClient.effects$, childRolesCache$, roles$).subscribe();
+Rx.merge(
+  childClient.effects$,
+  childRolesCache$,
+  roles$,
+  roleCount$,
+).subscribe();

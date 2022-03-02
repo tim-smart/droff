@@ -10,12 +10,19 @@ export const createSharderStore =
   (deployment: string, nodeId: string, ttl = 90000): SharderStore => {
     const key = `${prefix}:sharder:${deployment}`;
 
-    const shardersKey = `${key}:members`;
-    const shardKey = (id: number) => `${key}:${id}`;
+    const membersKey = `${key}:members`;
+    const shardKey = (id: number) => `${key}:shard:${id}`;
+    const nodeKey = (id: string) => `${key}:node:${id}`;
 
-    const sharderCount = TE.tryCatch(
-      () => client.SCARD(shardersKey),
-      (err) => `sharderCount: ${err}`,
+    const nodeCount = TE.tryCatch(
+      async () => {
+        const nodes = await client.SMEMBERS(membersKey);
+        if (nodes.length === 0) return 0;
+
+        const results = await client.MGET(nodes.map(nodeKey));
+        return results.filter((r) => r !== null).length;
+      },
+      (err) => `nodeCount: ${err}`,
     );
 
     const firstAvailableId = (totalShards: number) =>
@@ -35,12 +42,10 @@ export const createSharderStore =
           () =>
             client
               .multi()
-              .SET(shardKey(shardId), nodeId, {
-                NX: true,
-                PX: ttl,
-              })
-              .SADD(shardersKey, nodeId)
-              .PEXPIRE(shardersKey, ttl)
+              .SET(shardKey(shardId), nodeId, { NX: true, PX: ttl })
+              .SET(nodeKey(nodeId), "1", { PX: ttl })
+              .SADD(membersKey, nodeId)
+              .PEXPIRE(membersKey, ttl)
               .exec(),
           (err) => `claimId multi: ${err}`,
         ),
@@ -62,10 +67,10 @@ export const createSharderStore =
         ),
       );
 
-    const countPerSharder = (totalShards: number) =>
+    const countPerNode = (totalShards: number) =>
       pipe(
-        sharderCount,
-        TE.map((sharderCount) => Math.ceil(totalShards / sharderCount)),
+        nodeCount,
+        TE.map((nodeCount) => Math.ceil(totalShards / nodeCount)),
       );
 
     const heartbeat = (id: number) =>
@@ -73,8 +78,9 @@ export const createSharderStore =
         () =>
           client
             .multi()
-            .PEXPIRE(shardersKey, ttl)
+            .PEXPIRE(membersKey, ttl)
             .SET(shardKey(id), nodeId, { PX: ttl })
+            .SET(nodeKey(nodeId), "1", { PX: ttl })
             .exec(),
         (err) => `heartbeat: ${err}`,
       );
@@ -82,11 +88,11 @@ export const createSharderStore =
     return {
       claimId: (ctx) =>
         pipe(
-          countPerSharder(ctx.totalCount),
+          countPerNode(ctx.totalCount),
           TE.filterOrElse(
-            (perSharder) => perSharder > ctx.sharderCount,
-            (perSharder) =>
-              `Sharder has enough shards. Spawned: ${ctx.sharderCount}. Per sharder: ${perSharder}`,
+            (perNode) => perNode > ctx.sharderCount,
+            (perNode) =>
+              `Sharder has enough shards. Spawned: ${ctx.sharderCount}. Per node: ${perNode}`,
           ),
           TE.chain(() => claimAvailableId(ctx)),
 

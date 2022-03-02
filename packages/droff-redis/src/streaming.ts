@@ -60,6 +60,11 @@ export const pullPayloads =
       TE.getOrElse((err) => {
         if (err) {
           console.error(`Error in pull: ${err}`);
+          return pipe(
+            T.of(null),
+            T.delay(1000),
+            T.chain(() => pull),
+          );
         }
         return pull;
       }),

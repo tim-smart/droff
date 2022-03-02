@@ -1,6 +1,8 @@
 import { createClient } from "redis";
 import { CacheStore, NonParentCacheStore } from "droff/dist/caches/stores";
 import { Snowflake } from "droff/dist/types";
+import * as Rx from "rxjs";
+import * as RxO from "rxjs/operators";
 
 export interface CreateStoreOpts {
   client: ReturnType<typeof createClient>;
@@ -9,27 +11,37 @@ export interface CreateStoreOpts {
 
 export const createCacheStore =
   ({ client, prefix = "droff" }: CreateStoreOpts) =>
-  <T>(storePrefix: string): CacheStore<T> => {
+  <T>(storePrefix: string, ttl?: number): CacheStore<T> => {
     const key = `${prefix}:${storePrefix}`;
+    const keyForIds = `${key}:ids`;
     const keyForParent = (parentId: Snowflake) => `${key}:parent:${parentId}`;
+    const keyForResource = (resourceId: string) => `${key}:r:${resourceId}`;
 
     return {
-      size: () => client.hLen(key),
-      sizeForParent: (parentId) => client.SCARD(keyForParent(parentId)),
+      size: () => client.SCARD(keyForIds),
+      sizeForParent: (parentId) =>
+        client
+          .SINTER([keyForIds, keyForParent(parentId)])
+          .then((results) => results.length),
 
       get: async (resourceId) => {
-        const json = await client.hGet(key, resourceId);
+        const json = await client.GET(keyForResource(resourceId));
         return json ? JSON.parse(json) : undefined;
       },
 
       getForParent: async (parentId) => {
-        const ids = await client.sMembers(keyForParent(parentId));
-        const results = await client.hmGet(key, ids);
+        const ids = await client.SINTER([keyForIds, keyForParent(parentId)]);
+        const keys = ids.map(keyForResource);
+        const results = await client.MGET(keys);
 
         return results.reduce((acc, result, index) => {
-          if (!result) return acc;
+          if (!result) {
+            return acc;
+          }
+
+          const id = ids[index];
           const parsed = JSON.parse(result) as T;
-          acc.set(ids[index], parsed);
+          acc.set(id, parsed);
           return acc;
         }, new Map<string, T>());
       },
@@ -39,8 +51,11 @@ export const createCacheStore =
 
         await client
           .multi()
-          .hSet(key, resourceId, JSON.stringify(resource))
-          .sAdd(parentKey, resourceId)
+          .SET(keyForResource(resourceId), JSON.stringify(resource), {
+            PX: ttl,
+          })
+          .SADD(keyForIds, resourceId)
+          .SADD(parentKey, resourceId)
           .exec();
       },
 
@@ -48,39 +63,92 @@ export const createCacheStore =
         const parentKey = keyForParent(parentId);
         await client
           .multi()
-          .hDel(key, resourceId)
-          .sRem(parentKey, resourceId)
+          .DEL(keyForResource(resourceId))
+          .SREM(keyForIds, resourceId)
+          .SREM(parentKey, resourceId)
           .exec();
       },
 
       parentDelete: async (parentId) => {
         const parentKey = keyForParent(parentId);
-        const ids = await client.sMembers(parentKey);
+        const ids = await client.SMEMBERS(parentKey);
+        const keys = ids.map(keyForResource);
 
-        await client.multi().hDel(key, ids).del(parentKey).exec();
+        await client
+          .multi()
+          .SREM(keyForIds, ids)
+          .DEL(keys)
+          .DEL(parentKey)
+          .exec();
       },
+
+      effects$: ttl
+        ? Rx.interval(ttl * 2).pipe(
+            RxO.exhaustMap(async () => {
+              const ids = await client.SMEMBERS(keyForIds);
+              if (ids.length === 0) return;
+              const keys = ids.map(keyForResource);
+
+              const results = await client.MGET(keys);
+              const missing = results
+                .filter((result) => result === null)
+                .map((_, index) => ids[index]);
+              if (missing.length === 0) return;
+
+              await client.SREM(keyForIds, missing);
+            }),
+            RxO.ignoreElements(),
+          )
+        : undefined,
     };
   };
 
 export const createNonParentCacheStore =
   ({ client, prefix = "droff" }: CreateStoreOpts) =>
-  <T>(storePrefix: string): NonParentCacheStore<T> => {
+  <T>(storePrefix: string, ttl?: number): NonParentCacheStore<T> => {
     const key = `${prefix}:${storePrefix}`;
+    const keyForIds = `${key}:ids`;
+    const keyForResource = (id: string) => `${key}:r:${id}`;
 
     return {
-      size: () => client.hLen(key),
+      size: () => client.SCARD(keyForIds),
 
       get: async (resourceId) => {
-        const json = await client.hGet(key, resourceId);
+        const json = await client.GET(keyForResource(resourceId));
         return json ? JSON.parse(json) : undefined;
       },
 
       set: async (resourceId, resource) => {
-        await client.HSET(key, resourceId, JSON.stringify(resource));
+        await client.SET(keyForResource(resourceId), JSON.stringify(resource), {
+          PX: ttl,
+        });
       },
 
       delete: async (resourceId) => {
-        await client.HDEL(key, resourceId);
+        await client
+          .multi()
+          .DEL(keyForResource(resourceId))
+          .SREM(keyForIds, resourceId)
+          .exec();
       },
+
+      effects$: ttl
+        ? Rx.interval(ttl * 2).pipe(
+            RxO.exhaustMap(async () => {
+              const ids = await client.SMEMBERS(keyForIds);
+              if (ids.length === 0) return;
+              const keys = ids.map(keyForResource);
+
+              const results = await client.MGET(keys);
+              const missing = results
+                .filter((result) => result === null)
+                .map((_, index) => ids[index]);
+              if (missing.length === 0) return;
+
+              await client.SREM(keyForIds, missing);
+            }),
+            RxO.ignoreElements(),
+          )
+        : undefined,
     };
   };

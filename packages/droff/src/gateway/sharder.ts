@@ -63,19 +63,16 @@ export const spawn = ({
 
 export const withEffects = (sharder: () => Rx.Observable<Shard.Shard>) =>
   new Rx.Observable<Shard.Shard>((s) => {
-    const shards = new Set<Shard.Shard>();
     const sub = sharder()
       .pipe(
         RxO.tap((shard) => {
           s.next(shard);
-          shards.add(shard);
         }),
         RxO.flatMap((shard) => shard.effects$),
       )
       .subscribe();
 
     return () => {
-      shards.clear();
       sub.unsubscribe();
     };
   });

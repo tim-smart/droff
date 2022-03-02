@@ -6,6 +6,7 @@ import {
 } from "axios";
 import * as F from "fp-ts/function";
 import * as O from "fp-ts/Option";
+import { QueueingSubject } from "queueing-subject";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import * as RL from "../rate-limits/rxjs";
@@ -50,7 +51,7 @@ export const interceptors = ({
   const whenDebug = debugTap(debug);
 
   // Interceptor handlers
-  const requests$ = new Rx.Subject<Request>();
+  const requests$ = new QueueingSubject<Request>();
   function request(config: AxiosRequestConfig): Promise<AxiosRequestConfig> {
     return new Promise((resolve) => {
       requests$.next({
@@ -61,7 +62,7 @@ export const interceptors = ({
     });
   }
 
-  const responses$ = new Rx.Subject<Response>();
+  const responses$ = new QueueingSubject<Response>();
   function response(response: AxiosResponse) {
     responses$.next({
       response,
@@ -72,7 +73,7 @@ export const interceptors = ({
     return response;
   }
 
-  const errors$ = new Rx.Subject<AxiosError>();
+  const errors$ = new QueueingSubject<AxiosError>();
   function error(err: AxiosError) {
     if (!err.response) return Promise.reject(err);
 

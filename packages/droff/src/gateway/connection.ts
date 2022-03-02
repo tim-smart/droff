@@ -20,7 +20,10 @@ export const opCode = <T = any>(code: GatewayOpcode) =>
     RxO.share(),
   );
 
-export function create(baseURL = "wss://gateway.discord.gg/") {
+export function create(
+  input$: Rx.Observable<GatewayPayload>,
+  baseURL = "wss://gateway.discord.gg/",
+) {
   const { encode, decode, encoding } = Codec.create();
   const url = `${baseURL}?v=${VERSION}&encoding=${encoding}`;
   let ws: WebSocket;
@@ -29,7 +32,14 @@ export function create(baseURL = "wss://gateway.discord.gg/") {
     let closed = false;
 
     const createWS = () => {
-      const ws = new WebSocket(url, { perMessageDeflate: false });
+      const ws = new WebSocket(url);
+      let sub: Rx.Subscription;
+
+      ws.on("open", () => {
+        sub = input$.subscribe((payload) => {
+          ws.send(encode(payload));
+        });
+      });
 
       ws.on("message", (data) => {
         s.next(decode(data as Buffer) as GatewayPayload);
@@ -41,6 +51,7 @@ export function create(baseURL = "wss://gateway.discord.gg/") {
 
       ws.on("close", () => {
         ws.removeAllListeners();
+        sub?.unsubscribe();
         if (closed) return;
         replaceWS();
       });
@@ -61,14 +72,8 @@ export function create(baseURL = "wss://gateway.discord.gg/") {
     };
   }).pipe(RxO.share());
 
-  function send(data: GatewayPayload) {
-    if (!ws) return;
-    ws.send(encode(data));
-  }
-
   function reconnect() {
-    if (!ws) return;
-    ws.close(1012, "reconnecting");
+    ws?.close(1012, "reconnecting");
   }
 
   const dispatch$ = raw$.pipe(opCode<GatewayEvent>(GatewayOpcode.DISPATCH));
@@ -90,7 +95,6 @@ export function create(baseURL = "wss://gateway.discord.gg/") {
     invalidSession$,
     hello$,
     heartbeatAck$,
-    send,
     reconnect,
   };
 }

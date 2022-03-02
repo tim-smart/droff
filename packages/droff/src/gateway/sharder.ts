@@ -82,7 +82,6 @@ export const spawn = ({
       }
 
       sharderCount++;
-      console.error("opts", opts, id);
       yield { ...opts, id };
     }
   }

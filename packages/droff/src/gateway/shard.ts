@@ -30,24 +30,16 @@ export function create({
   shard = [0, 1],
   rateLimits: { op: rateLimitOp, sendLimit = 120, sendWindow = 60000 },
 }: Options) {
-  const conn = Conn.create(baseURL);
+  const sendSubject = new Rx.Subject<GatewayPayload>();
+  const input$ = sendSubject.pipe(
+    rateLimitOp("gateway.send", sendWindow, sendLimit),
+  );
 
-  let sendSubject: Rx.Subject<GatewayPayload> | undefined;
   function send(payload: GatewayPayload) {
-    if (!sendSubject) return;
     sendSubject.next(payload);
   }
-  const sendEffects$ = new Rx.Observable<void>(() => {
-    sendSubject = new Rx.Subject();
 
-    sendSubject
-      .pipe(rateLimitOp("gateway.send", sendWindow, sendLimit))
-      .subscribe(conn.send);
-
-    return () => {
-      sendSubject!.complete();
-    };
-  });
+  const conn = Conn.create(input$, baseURL);
 
   const fromDispatch = Dispatch.listen(conn.dispatch$);
   const sequenceNumber$ = Internal.latestSequenceNumber(conn.dispatch$);
@@ -89,7 +81,6 @@ export function create({
   );
 
   const effects$ = Rx.merge(
-    sendEffects$,
     identifyEffects$,
     heartbeatEffects$,
     reconnectEffects$,

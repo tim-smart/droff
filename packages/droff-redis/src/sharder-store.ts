@@ -5,7 +5,7 @@ import * as T from "fp-ts/lib/Task";
 import * as TE from "fp-ts/lib/TaskEither";
 import { CreateStoreOpts } from "./cache-store";
 
-const shardTTL = 45000;
+const shardTTL = 90000;
 
 export const createSharderStore =
   ({ client, prefix = "droff" }: CreateStoreOpts) =>
@@ -23,10 +23,7 @@ export const createSharderStore =
     const firstAvailableId = (totalShards: number) =>
       pipe(
         TE.tryCatch(
-          () =>
-            client.MGET(
-              [...Array(totalShards).keys()].map((id) => shardKey(id)),
-            ),
+          () => client.MGET([...Array(totalShards).keys()].map(shardKey)),
           (err) => `firstAvailableId MGET: ${err}`,
         ),
         TE.chainOptionK(() => "firstAvailableId: No more available shard ids")(
@@ -101,11 +98,12 @@ export const createSharderStore =
             return T.of(undefined);
           }),
         ),
+
       heartbeat: flow(
         heartbeat,
         TE.fold(
           (err) => {
-            console.error(`[droff-redis] [sharder store] ${err}`);
+            console.error(`[droff-redis] [sharder] [heartbeat] ${err}`);
             return T.of(undefined);
           },
           () => T.of(undefined),

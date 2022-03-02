@@ -1,9 +1,9 @@
 {
   "extends": "../../tsconfig.json",
-  "exclude": ["discord-api-docs"],
+  "include": ["src"],
 
   "compilerOptions": {
-    "outDir": "./dist"
+    "outDir": "dist"
   },
 
   "typedocOptions": {

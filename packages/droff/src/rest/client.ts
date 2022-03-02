@@ -60,7 +60,7 @@ export function create({
     request,
     response,
     error,
-    sideEffects$: rateLimiting$,
+    effects$: rateLimiting$,
   } = RateLimits.interceptors({
     rateLimitStore,
     globalLimit: rateLimit,

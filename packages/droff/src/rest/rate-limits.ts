@@ -50,7 +50,7 @@ export const interceptors = ({
   const whenDebug = debugTap(debug);
 
   // Interceptor handlers
-  let requests$: Rx.Subject<Request>;
+  const requests$ = new Rx.Subject<Request>();
   function request(config: AxiosRequestConfig): Promise<AxiosRequestConfig> {
     return new Promise((resolve) => {
       requests$.next({
@@ -61,7 +61,7 @@ export const interceptors = ({
     });
   }
 
-  let responses$: Rx.Subject<Response>;
+  const responses$ = new Rx.Subject<Response>();
   function response(response: AxiosResponse) {
     responses$.next({
       response,
@@ -72,7 +72,7 @@ export const interceptors = ({
     return response;
   }
 
-  let errors$: Rx.Subject<AxiosError>;
+  const errors$ = new Rx.Subject<AxiosError>();
   function error(err: AxiosError) {
     if (!err.response) return Promise.reject(err);
 
@@ -103,61 +103,42 @@ export const interceptors = ({
     );
   }
 
-  const sideEffects$ = new Rx.Observable<never>((s) => {
-    requests$ = new Rx.Subject();
-    responses$ = new Rx.Subject();
-    errors$ = new Rx.Subject();
-
-    s.add(() => {
-      requests$.complete();
-      responses$.complete();
-      errors$.complete();
-    });
-
-    const { effects$: bucketEffects$, bucketLimiter } = Buckets.createLimiter({
-      rateLimitStore: store,
-      responses$,
-      whenDebug,
-    });
-    const bucketEffects = bucketEffects$.subscribe();
-
-    s.add(() => {
-      bucketEffects.unsubscribe();
-    });
-
-    // Trigger requests
-    const triggerRequests = requests$
-      .pipe(
-        bucketLimiter(),
-
-        // Global rate limit
-        RL.rateLimit(store)("rest.global", globalWindow, globalLimit),
-
-        whenDebug(({ config }) =>
-          console.error(
-            "[rate-limits.ts]",
-            "triggerRequests$",
-            config.method,
-            config.url,
-            config.params,
-            config.data,
-          ),
-        ),
-
-        // Trigger the request
-        RxO.tap(({ resolve }) => resolve()),
-      )
-      .subscribe();
-
-    s.add(() => {
-      triggerRequests.unsubscribe();
-    });
+  const { effects$: bucketEffects$, bucketLimiter } = Buckets.createLimiter({
+    rateLimitStore: store,
+    responses$,
+    whenDebug,
   });
+
+  // Trigger requests
+  const triggerRequests$ = requests$.pipe(
+    bucketLimiter(),
+
+    // Global rate limit
+    RL.rateLimit(store)("rest.global", globalWindow, globalLimit),
+
+    whenDebug(({ config }) =>
+      console.error(
+        "[rate-limits.ts]",
+        "triggerRequests$",
+        config.method,
+        config.url,
+        config.params,
+        config.data,
+      ),
+    ),
+
+    // Trigger the request
+    RxO.tap(({ resolve }) => resolve()),
+  );
+
+  const effects$ = Rx.merge(bucketEffects$, triggerRequests$).pipe(
+    RxO.ignoreElements(),
+  );
 
   return {
     request,
     response,
     error,
-    sideEffects$,
+    effects$,
   };
 };

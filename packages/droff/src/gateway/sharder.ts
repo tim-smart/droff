@@ -43,48 +43,62 @@ export const spawn = ({
   rateLimitWindow = 5000,
   rateLimitLimit = 1,
 }: Options) => {
-  let cancelled = false;
-
-  async function* generateOpts() {
-    const {
-      url,
-      shards,
-      session_start_limit: limit,
-    } = await routes.getGatewayBot();
-
-    const count = shardConfig?.count ?? shards;
-    const opts = {
-      url,
-      count,
-      concurrency: limit.max_concurrency,
+  function generateOpts() {
+    let cancelled = false;
+    let timeout: NodeJS.Timeout;
+    const cancel = () => {
+      cancelled = true;
+      if (timeout) {
+        clearTimeout(timeout);
+      }
     };
 
-    if (shardConfig?.ids) {
-      for (const id of shardConfig.ids) {
+    async function* iterator() {
+      const {
+        url,
+        shards,
+        session_start_limit: limit,
+      } = await routes.getGatewayBot();
+
+      const count = shardConfig?.count ?? shards;
+      const opts = {
+        url,
+        count,
+        concurrency: limit.max_concurrency,
+      };
+
+      if (shardConfig?.ids) {
+        for (const id of shardConfig.ids) {
+          yield { ...opts, id };
+        }
+        return;
+      }
+
+      let sharderCount = 0;
+      while (!cancelled) {
+        const id = await store.claimId({
+          sharderCount,
+          totalCount: count,
+        })();
+
+        // If there is no id, then check again in 3 minutes
+        if (id === undefined) {
+          await new Promise((r) => {
+            timeout = setTimeout(r, 3 * 60 * 1000);
+          });
+          continue;
+        }
+
+        sharderCount++;
         yield { ...opts, id };
       }
-      return;
     }
 
-    let sharderCount = 0;
-    while (!cancelled) {
-      const id = await store.claimId({
-        sharderCount,
-        totalCount: count,
-      })();
-
-      // If there is no id, then check again in 3 minutes
-      if (id === undefined) {
-        await new Promise((r) => setTimeout(r, 3 * 60 * 1000));
-        continue;
-      }
-
-      sharderCount++;
-      yield { ...opts, id };
-    }
+    return [iterator(), cancel!] as const;
   }
 
-  const [opts$, pull] = RxI.from(generateOpts());
+  const [optsIterator, cancel] = generateOpts();
+  const [opts$, pull] = RxI.from(optsIterator);
 
   return opts$.pipe(
     RxO.groupBy((opts) => opts.id % opts.concurrency),
@@ -101,9 +115,7 @@ export const spawn = ({
         RxO.tap(pull),
       ),
     ),
-    RxO.finalize(() => {
-      cancelled = true;
-    }),
+    RxO.finalize(cancel),
   );
 };
 

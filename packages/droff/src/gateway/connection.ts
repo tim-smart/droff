@@ -22,51 +22,52 @@ export const opCode = <T = any>(code: GatewayOpcode) =>
 
 export function create(baseURL = "wss://gateway.discord.gg/") {
   const { encode, decode, encoding } = Codec.create();
-
   const url = `${baseURL}?v=${VERSION}&encoding=${encoding}`;
-  const messageSubject = new Rx.Subject<GatewayPayload>();
-  const raw$: Rx.Observable<GatewayPayload> = messageSubject;
+  let ws: WebSocket;
 
-  const createWS = () => {
-    const ws = new WebSocket(url, { perMessageDeflate: false });
+  const raw$ = new Rx.Observable<GatewayPayload>((s) => {
+    let closed = false;
 
-    ws.on("message", (data) => {
-      messageSubject.next(decode(data as Buffer) as GatewayPayload);
-    });
+    const createWS = () => {
+      const ws = new WebSocket(url, { perMessageDeflate: false });
 
-    ws.on("error", () => {
-      ws.close(1012, "reconnecting");
-    });
+      ws.on("message", (data) => {
+        s.next(decode(data as Buffer) as GatewayPayload);
+      });
 
-    ws.on("close", () => {
-      if (!manuallyClosed) {
-        return replaceWS();
-      }
+      ws.on("error", () => {
+        ws.close(1012, "reconnecting");
+      });
 
-      messageSubject.complete();
-    });
+      ws.on("close", () => {
+        ws.removeAllListeners();
+        if (closed) return;
+        replaceWS();
+      });
 
-    return ws;
-  };
+      return ws;
+    };
 
-  let ws = createWS();
+    const replaceWS = () => {
+      ws = createWS();
+    };
 
-  const replaceWS = () => {
-    ws.removeAllListeners();
-    ws = createWS();
-  };
+    // Start the websocket
+    replaceWS();
+
+    return () => {
+      closed = true;
+      ws.close();
+    };
+  }).pipe(RxO.share());
 
   function send(data: GatewayPayload) {
+    if (!ws) return;
     ws.send(encode(data));
   }
 
-  let manuallyClosed = false;
-  function close() {
-    ws.close();
-    manuallyClosed = true;
-  }
-
   function reconnect() {
+    if (!ws) return;
     ws.close(1012, "reconnecting");
   }
 
@@ -90,7 +91,6 @@ export function create(baseURL = "wss://gateway.discord.gg/") {
     hello$,
     heartbeatAck$,
     send,
-    close,
     reconnect,
   };
 }

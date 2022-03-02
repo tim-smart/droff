@@ -39,5 +39,5 @@ export const latestDispatch =
     event: E,
   ): Rx.Observable<O.Option<GatewayEvents[E]>> =>
     Rx.merge(Rx.of(O.none), fromDispatch(event).pipe(RxO.map(O.some))).pipe(
-      RxO.shareReplay(1),
+      RxO.shareReplay({ bufferSize: 1, refCount: true }),
     );

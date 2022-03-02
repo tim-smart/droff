@@ -30,13 +30,22 @@ export function create({
 }: Options) {
   const conn = Conn.create(baseURL);
 
-  const sendSubject = new Rx.Subject<GatewayPayload>();
+  let sendSubject: Rx.Subject<GatewayPayload> | undefined;
   function send(payload: GatewayPayload) {
+    if (!sendSubject) return;
     sendSubject.next(payload);
   }
-  sendSubject
-    .pipe(rateLimitOp("gateway.send", sendWindow, sendLimit))
-    .subscribe(conn.send);
+  const sendEffects$ = new Rx.Observable<void>(() => {
+    sendSubject = new Rx.Subject();
+
+    sendSubject
+      .pipe(rateLimitOp("gateway.send", sendWindow, sendLimit))
+      .subscribe(conn.send);
+
+    return () => {
+      sendSubject!.complete();
+    };
+  });
 
   const fromDispatch = Dispatch.listen(conn.dispatch$);
   const sequenceNumber$ = Internal.latestSequenceNumber(conn.dispatch$);
@@ -52,7 +61,7 @@ export function create({
       latestReady: latestReady$,
       latestSequence: sequenceNumber$,
     }),
-    RxO.map(send),
+    RxO.tap(send),
   );
 
   // Heartbeats
@@ -61,7 +70,7 @@ export function create({
     sequenceNumber$,
   );
 
-  const heartbeatEffects$ = F.pipe(heartbeats$, RxO.map(send));
+  const heartbeatEffects$ = F.pipe(heartbeats$, RxO.tap(send));
 
   // Reconnect when:
   // * heartbeats get out of sync
@@ -71,32 +80,24 @@ export function create({
     heartbeatDiff$.pipe(RxO.filter((diff) => diff > 1)),
     conn.reconnect$,
     conn.invalidSession$,
-  ).pipe(
-    RxO.map(() => {
-      conn.reconnect();
-    }),
-  );
+  ).pipe(RxO.tap(conn.reconnect));
 
   const effects$ = Rx.merge(
+    sendEffects$,
     identifyEffects$,
     heartbeatEffects$,
     reconnectEffects$,
-  ).pipe(
-    RxO.finalize(() => {
-      sendSubject.complete();
-    }),
-    RxO.share(),
-  );
+  ).pipe(RxO.ignoreElements(), RxO.share());
 
   return {
     id: shard,
     conn,
     send,
+    reconnect: conn.reconnect,
     raw$: conn.raw$,
     dispatch$: conn.dispatch$,
     ready$: latestReady$,
     effects$,
-    reconnect: () => conn.reconnect(),
   };
 }
 

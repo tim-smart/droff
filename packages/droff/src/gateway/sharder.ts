@@ -74,9 +74,8 @@ export const withEffects = (sharder: () => Rx.Observable<Shard.Shard>) =>
       )
       .subscribe();
 
-    s.add(() => {
-      shards.forEach((s) => s.conn.close());
+    return () => {
       shards.clear();
       sub.unsubscribe();
-    });
+    };
   });

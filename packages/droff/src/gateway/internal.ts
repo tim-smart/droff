@@ -85,7 +85,7 @@ const latest = <T, V>(
   initialValue: V,
 ) =>
   Rx.merge(Rx.of(initialValue), dispatch$.pipe(RxO.map(selector))).pipe(
-    RxO.shareReplay(1),
+    RxO.shareReplay({ bufferSize: 1, refCount: true }),
   );
 
 export const latestSequenceNumber = (
@@ -101,7 +101,7 @@ export const latestReady = (
     invalidSession$.pipe(
       RxO.flatMap((data) => (data.d ? Rx.EMPTY : Rx.of(O.none))),
     ),
-  ).pipe(RxO.shareReplay(1));
+  ).pipe(RxO.shareReplay({ bufferSize: 1, refCount: true }));
 
 export const heartbeatsFromHello = (
   hello$: Rx.Observable<GatewayPayload<HelloEvent>>,

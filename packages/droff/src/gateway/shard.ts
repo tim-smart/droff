@@ -1,4 +1,5 @@
 import * as F from "fp-ts/function";
+import { QueueingSubject } from "queueing-subject";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { RateLimitOp } from "../rate-limits/rxjs";
@@ -30,7 +31,7 @@ export function create({
   shard = [0, 1],
   rateLimits: { op: rateLimitOp, sendLimit = 120, sendWindow = 60000 },
 }: Options) {
-  const sendSubject = new Rx.Subject<GatewayPayload | typeof Conn.RECONNECT>();
+  const sendSubject = new QueueingSubject<Conn.ConnectionPayload>();
   const input$ = sendSubject.pipe(
     rateLimitOp("gateway.send", sendWindow, sendLimit),
   );

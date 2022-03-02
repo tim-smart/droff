@@ -21,9 +21,10 @@ export const opCode = <T = any>(code: GatewayOpcode) =>
   );
 
 export const RECONNECT = Symbol();
+export type ConnectionPayload = GatewayPayload | typeof RECONNECT;
 
 export function create(
-  input$: Rx.Observable<GatewayPayload | typeof RECONNECT>,
+  input$: Rx.Observable<ConnectionPayload>,
   baseURL = "wss://gateway.discord.gg/",
 ) {
   const { encode, decode, encoding } = Codec.create();

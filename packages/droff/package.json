@@ -28,6 +28,7 @@
     "axios": "^0.26.0",
     "fp-ts": "^2.10.5",
     "immutable": "^4.0.0",
+    "queueing-subject": "^1.0.0",
     "rxjs": "^7.1.0",
     "rxjs-iterable": "^0.1.1",
     "tslib": "^2.3.0",

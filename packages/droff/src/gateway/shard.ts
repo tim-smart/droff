@@ -7,6 +7,7 @@ import { GatewayPayload } from "../types";
 import * as Conn from "./connection";
 import * as Dispatch from "./dispatch";
 import * as Internal from "./internal";
+import { RECONNECT } from "./websocket";
 
 export interface Options {
   token: string;
@@ -40,7 +41,7 @@ export function create({
     sendSubject.next(payload);
   }
   function reconnect() {
-    sendSubject.next(Conn.RECONNECT);
+    sendSubject.next(RECONNECT);
   }
 
   const conn = Conn.create(input$, baseURL);

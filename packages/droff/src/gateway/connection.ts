@@ -1,5 +1,5 @@
 import * as F from "fp-ts/function";
-import WebSocket from "ws";
+import * as WS from "./websocket";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import {
@@ -20,8 +20,7 @@ export const opCode = <T = any>(code: GatewayOpcode) =>
     RxO.share(),
   );
 
-export const RECONNECT = Symbol();
-export type ConnectionPayload = GatewayPayload | typeof RECONNECT;
+export type ConnectionPayload = WS.Payload<GatewayPayload>;
 
 export function create(
   input$: Rx.Observable<ConnectionPayload>,
@@ -30,55 +29,10 @@ export function create(
   const { encode, decode, encoding } = Codec.create();
   const url = `${baseURL}?v=${VERSION}&encoding=${encoding}`;
 
-  const raw$ = new Rx.Observable<GatewayPayload>((s) => {
-    let closed = false;
-
-    const createWS = () => {
-      const ws = new WebSocket(url);
-      let sub: Rx.Subscription;
-
-      ws.on("open", () => {
-        sub = input$.subscribe((payload) => {
-          if (payload === RECONNECT) {
-            ws.close(1012, "reconnecting");
-            return;
-          }
-
-          ws.send(encode(payload));
-        });
-      });
-
-      ws.on("message", (data) => {
-        s.next(decode(data as Buffer) as GatewayPayload);
-      });
-
-      ws.on("error", () => {
-        ws.close(1012, "reconnecting");
-      });
-
-      ws.on("close", () => {
-        ws.removeAllListeners();
-        sub?.unsubscribe();
-        if (closed) return;
-        replaceWS();
-      });
-
-      return ws;
-    };
-
-    const replaceWS = () => {
-      ws = createWS();
-    };
-
-    // Start the websocket
-    let ws = createWS();
-
-    return () => {
-      closed = true;
-      ws.close();
-    };
-  }).pipe(RxO.share());
-
+  const raw$ = WS.create<GatewayPayload, GatewayPayload>(url, input$, {
+    encode,
+    decode: decode as any,
+  });
   const dispatch$ = raw$.pipe(opCode<GatewayEvent>(GatewayOpcode.DISPATCH));
   const heartbeat$ = raw$.pipe(opCode<Heartbeat>(GatewayOpcode.HEARTBEAT));
   const reconnect$ = raw$.pipe(opCode(GatewayOpcode.RECONNECT));

@@ -1,5 +1,7 @@
-type Encode = (payload: unknown) => string | Buffer;
-type Decode = (bloc: Buffer) => unknown;
+import { RawData } from "ws";
+
+type Encode = (payload: unknown) => RawData;
+type Decode = (bloc: RawData) => unknown;
 
 export interface Codec {
   encode: Encode;
@@ -18,7 +20,7 @@ export const create = (): Codec => {
   } catch (_) {}
 
   return {
-    encode: JSON.stringify,
+    encode: JSON.stringify as any,
     decode: (blob) => JSON.parse(blob.toString("utf8")),
     encoding: "json",
   };

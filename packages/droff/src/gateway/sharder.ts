@@ -5,7 +5,6 @@ import { Routes } from "../rest/client";
 import * as Shard from "./shard";
 import { SharderStore } from "./sharder/store";
 import * as Store from "./sharder/store";
-import * as Uuid from "uuid";
 import * as RxI from "rxjs-iterable";
 
 export type CreateShard = (
@@ -44,7 +43,6 @@ export const spawn = ({
   rateLimitWindow = 5000,
   rateLimitLimit = 1,
 }: Options) => {
-  const sharderId = Uuid.v4();
   let cancelled = false;
 
   async function* generateOpts() {
@@ -71,7 +69,6 @@ export const spawn = ({
     let sharderCount = 0;
     while (!cancelled) {
       const id = await store.claimId({
-        sharderId,
         sharderCount,
         totalCount: count,
       })();

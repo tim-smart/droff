@@ -5,11 +5,9 @@ import * as T from "fp-ts/lib/Task";
 import * as TE from "fp-ts/lib/TaskEither";
 import { CreateStoreOpts } from "./cache-store";
 
-const shardTTL = 90000;
-
 export const createSharderStore =
   ({ client, prefix = "droff" }: CreateStoreOpts) =>
-  (deployment: string): SharderStore => {
+  (deployment: string, nodeId: string, ttl = 90000): SharderStore => {
     const key = `${prefix}:sharder:${deployment}`;
 
     const shardersKey = `${key}:members`;
@@ -31,21 +29,22 @@ export const createSharderStore =
         ),
       );
 
-    const claimId = (sharderId: string, shardId: number) =>
+    const claimId = (shardId: number) =>
       pipe(
         TE.tryCatch(
           () =>
             client
               .multi()
-              .SADD(shardersKey, sharderId)
-              .SET(shardKey(shardId), "1", {
+              .SET(shardKey(shardId), nodeId, {
                 NX: true,
-                PX: shardTTL,
+                PX: ttl,
               })
+              .SADD(shardersKey, nodeId)
+              .PEXPIRE(shardersKey, ttl)
               .exec(),
           (err) => `claimId multi: ${err}`,
         ),
-        TE.map(([, result]) => result !== null),
+        TE.map(([result]) => result !== null),
       );
 
     const claimAvailableId = (
@@ -55,7 +54,7 @@ export const createSharderStore =
         firstAvailableId(ctx.totalCount),
         TE.chain((id) =>
           pipe(
-            claimId(ctx.sharderId, id),
+            claimId(id),
             TE.chain((success) =>
               success ? TE.right(id) : claimAvailableId(ctx),
             ),
@@ -74,10 +73,8 @@ export const createSharderStore =
         () =>
           client
             .multi()
-            .PEXPIRE(shardersKey, shardTTL)
-            .SET(shardKey(id), "1", {
-              PX: shardTTL,
-            })
+            .PEXPIRE(shardersKey, ttl)
+            .SET(shardKey(id), nodeId, { PX: ttl })
             .exec(),
         (err) => `heartbeat: ${err}`,
       );

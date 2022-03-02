@@ -1,7 +1,6 @@
 import { Task } from "fp-ts/lib/Task";
 
 export interface ClaimIdContext {
-  sharderId: string;
   sharderCount: number;
   totalCount: number;
 }

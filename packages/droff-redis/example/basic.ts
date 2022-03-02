@@ -17,11 +17,11 @@ const redis = createStores({ client: redisClient });
 const sourceClient = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
   // Use the redis backed rate limit store
-  rateLimitStore: redis.rateLimit,
+  rateLimitStore: redis.rateLimit(),
   gateway: {
     intents: Intents.GUILD_MESSAGES,
     shardConfig: { count: 10 },
-    sharderStore: redis.sharder("test-deploy"),
+    sharderStore: redis.sharder("test-deploy", `${Date.now()}`),
   },
 });
 
@@ -49,7 +49,7 @@ Rx.merge(
 // Setup the client, using redis as the gateway payloads source
 const childClient = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
-  rateLimitStore: redis.rateLimit,
+  rateLimitStore: redis.rateLimit(),
   gatewayPayloads$: redis.pullPayloads(),
 });
 

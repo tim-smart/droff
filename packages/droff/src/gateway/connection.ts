@@ -20,13 +20,14 @@ export const opCode = <T = any>(code: GatewayOpcode) =>
     RxO.share(),
   );
 
+export const RECONNECT = Symbol();
+
 export function create(
-  input$: Rx.Observable<GatewayPayload>,
+  input$: Rx.Observable<GatewayPayload | typeof RECONNECT>,
   baseURL = "wss://gateway.discord.gg/",
 ) {
   const { encode, decode, encoding } = Codec.create();
   const url = `${baseURL}?v=${VERSION}&encoding=${encoding}`;
-  let ws: WebSocket;
 
   const raw$ = new Rx.Observable<GatewayPayload>((s) => {
     let closed = false;
@@ -37,6 +38,11 @@ export function create(
 
       ws.on("open", () => {
         sub = input$.subscribe((payload) => {
+          if (payload === RECONNECT) {
+            ws.close(1012, "reconnecting");
+            return;
+          }
+
           ws.send(encode(payload));
         });
       });
@@ -64,17 +70,13 @@ export function create(
     };
 
     // Start the websocket
-    replaceWS();
+    let ws = createWS();
 
     return () => {
       closed = true;
       ws.close();
     };
   }).pipe(RxO.share());
-
-  function reconnect() {
-    ws?.close(1012, "reconnecting");
-  }
 
   const dispatch$ = raw$.pipe(opCode<GatewayEvent>(GatewayOpcode.DISPATCH));
   const heartbeat$ = raw$.pipe(opCode<Heartbeat>(GatewayOpcode.HEARTBEAT));
@@ -95,7 +97,6 @@ export function create(
     invalidSession$,
     hello$,
     heartbeatAck$,
-    reconnect,
   };
 }
 

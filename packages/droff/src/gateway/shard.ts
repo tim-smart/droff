@@ -30,13 +30,16 @@ export function create({
   shard = [0, 1],
   rateLimits: { op: rateLimitOp, sendLimit = 120, sendWindow = 60000 },
 }: Options) {
-  const sendSubject = new Rx.Subject<GatewayPayload>();
+  const sendSubject = new Rx.Subject<GatewayPayload | typeof Conn.RECONNECT>();
   const input$ = sendSubject.pipe(
     rateLimitOp("gateway.send", sendWindow, sendLimit),
   );
 
   function send(payload: GatewayPayload) {
     sendSubject.next(payload);
+  }
+  function reconnect() {
+    sendSubject.next(Conn.RECONNECT);
   }
 
   const conn = Conn.create(input$, baseURL);
@@ -74,7 +77,7 @@ export function create({
     heartbeatDiff$.pipe(RxO.filter((diff) => diff > 1)),
     conn.reconnect$,
     conn.invalidSession$,
-  ).pipe(RxO.tap(conn.reconnect));
+  ).pipe(RxO.tap(reconnect));
 
   const sharderHeartbeat$ = Rx.interval(30000).pipe(
     RxO.tap(() => sharderHeartbeat?.()),
@@ -91,7 +94,7 @@ export function create({
     id: shard,
     conn,
     send,
-    reconnect: conn.reconnect,
+    reconnect,
     raw$: conn.raw$,
     dispatch$: conn.dispatch$,
     ready$: latestReady$,

@@ -3,17 +3,33 @@ import * as RxO from "rxjs/operators";
 import * as RL from "../rate-limits/rxjs";
 import { Routes } from "../rest/client";
 import * as Shard from "./shard";
+import { SharderStore } from "./sharder/store";
+import * as Store from "./sharder/store";
+import * as Uuid from "uuid";
+import * as RxI from "rxjs-iterable";
 
 export type CreateShard = (
   id: [number, number],
-  baseURL?: string,
+  baseURL: string,
+  heartbeat: () => void,
 ) => Shard.Shard;
 
 export interface Options {
   createShard: CreateShard;
   routes: Routes;
-  shardIDs: number[] | "auto";
-  shardCount: number;
+  shardConfig?: {
+    /**
+     * Array of shard IDs you want to start.
+     */
+    ids?: number[];
+    /**
+     * The total amount of shards across your entire system.
+     *
+     * Defaults to a number provider by Discord
+     */
+    count?: number;
+  };
+  store?: SharderStore;
   rateLimit: RL.RateLimitOp;
   rateLimitWindow?: number;
   rateLimitLimit?: number;
@@ -22,40 +38,70 @@ export interface Options {
 export const spawn = ({
   createShard,
   routes,
-  shardIDs,
-  shardCount,
+  shardConfig,
+  store = Store.memoryStore(),
   rateLimit,
   rateLimitWindow = 5000,
   rateLimitLimit = 1,
 }: Options) => {
-  // If we only need one shard, then short circuit.
-  if (shardCount === 1 && shardIDs !== "auto") {
-    return Rx.of(createShard([0, 1]));
+  const sharderId = Uuid.v4();
+
+  async function* generateOpts() {
+    const {
+      url,
+      shards,
+      session_start_limit: limit,
+    } = await routes.getGatewayBot();
+
+    const count = shardConfig?.count ?? shards;
+    const opts = {
+      url,
+      count,
+      concurrency: limit.max_concurrency,
+    };
+
+    if (shardConfig?.ids) {
+      for (const id of shardConfig.ids) {
+        yield { ...opts, id };
+      }
+      return;
+    }
+
+    let sharderCount = 0;
+    while (true) {
+      const id = await store.claimId({
+        sharderId,
+        sharderCount,
+        totalCount: count,
+      })();
+
+      // If there is no id, then check again in 5 minutes
+      if (id === undefined) {
+        await new Promise((r) => setTimeout(r, 5 * 60 * 1000));
+        continue;
+      }
+
+      sharderCount++;
+      console.error("opts", opts, id);
+      yield { ...opts, id };
+    }
   }
 
-  // Start shards with rate limits
-  return Rx.from(routes.getGatewayBot()).pipe(
-    RxO.flatMap(({ url, shards, session_start_limit: limit }) => {
-      const ids = shardIDs === "auto" ? [...Array(shards).keys()] : shardIDs;
-      const count = shardIDs === "auto" ? shards : shardCount;
+  const [opts$, pull] = RxI.from(generateOpts());
 
-      return ids.map((id) => ({
-        id,
-        count,
-        url,
-        concurrency: limit.max_concurrency,
-      }));
-    }),
-
-    RxO.groupBy(({ id, concurrency }) => id % concurrency),
-    RxO.flatMap((id$) =>
+  return opts$.pipe(
+    RxO.groupBy((opts) => opts.id % opts.concurrency),
+    RxO.mergeMap((id$) =>
       id$.pipe(
         rateLimit(
           `gateway.sessions.${id$.key}`,
           rateLimitWindow,
           rateLimitLimit,
         ),
-        RxO.map(({ id, count, url }) => createShard([id, count], url)),
+        RxO.map(({ id, count, url }) =>
+          createShard([id, count], url, store.heartbeat(id)),
+        ),
+        RxO.tap(pull),
       ),
     ),
   );

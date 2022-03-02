@@ -1,6 +1,7 @@
 import type { CreateStoreOpts } from "./cache-store";
 import { createCacheStore, createNonParentCacheStore } from "./cache-store";
 import { createRateLimitStore } from "./rate-limit-store";
+import { createSharderStore } from "./sharder-store";
 import { pullPayloads, pushPayloads } from "./streaming";
 
 export * from "./cache-store";
@@ -14,4 +15,6 @@ export const createStores = (opts: CreateStoreOpts) => ({
 
   pushPayloads: pushPayloads(opts),
   pullPayloads: pullPayloads(opts),
+
+  sharder: createSharderStore(opts),
 });

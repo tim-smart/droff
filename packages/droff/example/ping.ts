@@ -8,6 +8,9 @@ const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
   gateway: {
     intents: Intents.GUILD_MESSAGES,
+    shardConfig: {
+      count: 5,
+    },
   },
 });
 

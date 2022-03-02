@@ -16,9 +16,13 @@
   "devDependencies": {
     "@tim-smart/discord-api-docs-parser": "^0.1.28",
     "@types/node": "^15.0.2",
+    "@types/uuid": "^8.3.4",
     "@types/ws": "^8.5.1",
     "dotenv": "^16.0.0",
+    "husky": "^7.0.0",
+    "lint-staged": ">=10",
     "nodemon": "^2.0.7",
+    "prettier": "^2.3.0",
     "ts-node": "^10.0.0",
     "typedoc": "^0.21.0-beta.2",
     "typescript": "^4.2.4"
@@ -26,12 +30,11 @@
   "dependencies": {
     "axios": "^0.26.0",
     "fp-ts": "^2.10.5",
-    "husky": "^7.0.0",
     "immutable": "^4.0.0",
-    "lint-staged": ">=10",
-    "prettier": "^2.3.0",
     "rxjs": "^7.1.0",
+    "rxjs-iterable": "^0.1.1",
     "tslib": "^2.3.0",
+    "uuid": "^8.3.2",
     "ws": "^8.2.2"
   },
   "optionalDependencies": {

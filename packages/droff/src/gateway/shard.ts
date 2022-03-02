@@ -12,6 +12,7 @@ export interface Options {
   intents: number;
   shard?: [number, number];
   baseURL?: string;
+  sharderHeartbeat?: () => void;
 
   rateLimits: {
     op: RateLimitOp;
@@ -25,6 +26,7 @@ export function create({
   token,
   baseURL,
   intents,
+  sharderHeartbeat,
   shard = [0, 1],
   rateLimits: { op: rateLimitOp, sendLimit = 120, sendWindow = 60000 },
 }: Options) {
@@ -82,11 +84,16 @@ export function create({
     conn.invalidSession$,
   ).pipe(RxO.tap(conn.reconnect));
 
+  const sharderHeartbeat$ = Rx.interval(30000).pipe(
+    RxO.tap(() => sharderHeartbeat?.()),
+  );
+
   const effects$ = Rx.merge(
     sendEffects$,
     identifyEffects$,
     heartbeatEffects$,
     reconnectEffects$,
+    sharderHeartbeat$,
   ).pipe(RxO.ignoreElements(), RxO.share());
 
   return {

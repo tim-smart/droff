@@ -34,23 +34,9 @@ export interface Options {
    */
   intents?: number;
 
-  /**
-   * Array of shard IDs you want to start.
-   *
-   * Can also supply 'auto' to have droff automatically start the correct amount
-   * of shards for you.
-   *
-   * Defaults to `[0]`
-   */
-  shardIDs?: number[] | "auto";
+  shardConfig?: Sharder.Options["shardConfig"];
 
-  /**
-   * The total amount of shards across you entire system.
-   * Ignored if `shardIDs` is set to 'auto'
-   *
-   * Defaults to `1`
-   */
-  shardCount?: number;
+  sharderStore?: Sharder.Options["store"];
 }
 
 /** A client is one or more shards */
@@ -65,19 +51,20 @@ export const create =
       sessionWindow,
       ...shardRateLimits
     } = { store: MemoryStore.create() },
-    shardIDs = "auto",
-    shardCount = 1,
+    shardConfig,
+    sharderStore,
   }: Options) => {
     const rateLimit = RL.rateLimit(rateLimitStore);
 
     const shards$ = Sharder.withEffects(() =>
       Sharder.spawn({
-        createShard: (id, baseURL) =>
+        createShard: (id, baseURL, sharderHeartbeat) =>
           Shard.create({
             token,
             baseURL,
             intents: intents | GatewayIntents.GUILDS,
             shard: id,
+            sharderHeartbeat,
             rateLimits: {
               ...shardRateLimits,
               op: rateLimit,
@@ -87,8 +74,8 @@ export const create =
         rateLimitWindow: sessionWindow,
         rateLimitLimit: sessionLimit,
         routes,
-        shardIDs,
-        shardCount,
+        shardConfig,
+        store: sharderStore,
       }),
     ).pipe(RxO.shareReplay({ refCount: true }));
 

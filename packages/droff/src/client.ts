@@ -111,6 +111,7 @@ export function create({
     debug,
     ...restOptions,
   });
+
   const gateway = gatewayPayloads$
     ? GatewayClient.createFromPayloads(gatewayPayloads$)
     : GatewayClient.create(rest)({

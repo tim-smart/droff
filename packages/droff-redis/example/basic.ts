@@ -20,6 +20,8 @@ const sourceClient = createClient({
   rateLimitStore: redis.rateLimit,
   gateway: {
     intents: Intents.GUILD_MESSAGES,
+    shardConfig: { count: 10 },
+    sharderStore: redis.sharder("test-deploy"),
   },
 });
 

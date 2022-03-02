@@ -45,6 +45,7 @@ export const spawn = ({
   rateLimitLimit = 1,
 }: Options) => {
   const sharderId = Uuid.v4();
+  let cancelled = false;
 
   async function* generateOpts() {
     const {
@@ -68,16 +69,16 @@ export const spawn = ({
     }
 
     let sharderCount = 0;
-    while (true) {
+    while (!cancelled) {
       const id = await store.claimId({
         sharderId,
         sharderCount,
         totalCount: count,
       })();
 
-      // If there is no id, then check again in 5 minutes
+      // If there is no id, then check again in 3 minutes
       if (id === undefined) {
-        await new Promise((r) => setTimeout(r, 5 * 60 * 1000));
+        await new Promise((r) => setTimeout(r, 3 * 60 * 1000));
         continue;
       }
 
@@ -103,6 +104,9 @@ export const spawn = ({
         RxO.tap(pull),
       ),
     ),
+    RxO.finalize(() => {
+      cancelled = true;
+    }),
   );
 };
 

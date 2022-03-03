@@ -176,6 +176,9 @@ export const withCaches = <M extends { [key: string]: WithCachesFn<any> }>(
           if (!Array.isArray(item)) return [item, undefined] as const;
 
           const [resource, ...results] = item;
+          if (results.includes(undefined)) {
+            return [resource, undefined] as const;
+          }
 
           const resultMap = storeKeys.reduce(
             (map, key, index) => ({

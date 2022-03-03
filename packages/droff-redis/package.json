@@ -1,6 +1,6 @@
 {
   "name": "droff-redis",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Redis streaming & store implementations for the droff discord client",
   "keywords": [
     "droff",
@@ -28,7 +28,7 @@
     "url": "https://github.com/tim-smart/droff/issues"
   },
   "dependencies": {
-    "droff": "^0.21.1",
+    "droff": "^0.21.2",
     "fp-ts": "^2.10.5",
     "redis": "^4.0.4",
     "rxjs": "^7.1.0"

@@ -20,7 +20,7 @@ const sourceClient = createClient({
   rateLimitStore: redis.rateLimit(),
   gateway: {
     intents: Intents.GUILD_MESSAGES,
-    shardConfig: { count: 10 },
+    // shardConfig: { count: 10 },
     sharderStore: redis.sharder("test-deploy", `${Date.now()}`),
   },
 });
@@ -32,7 +32,9 @@ const push$ = redis.pushPayloads(sourceClient);
 const [, guildsCache$] = sourceClient.guildsCache(
   redis.nonParentCache("guilds"),
 );
-const [, rolesCache$] = sourceClient.rolesCache(redis.cache("roles"));
+const [, rolesCache$] = sourceClient.rolesCache(
+  redis.cacheWithTTL("roles", 20000),
+);
 const [, channelsCache$] = sourceClient.channelsCache(redis.cache("channels"));
 
 // Start the source client
@@ -55,7 +57,7 @@ const childClient = createClient({
 
 // Use a shared cache
 const [rolesCache, childRolesCache$] = childClient.rolesCache(
-  redis.cache("roles"),
+  redis.cacheWithTTL("roles", 20000),
 );
 
 const roles$ = childClient.fromDispatch("MESSAGE_CREATE").pipe(

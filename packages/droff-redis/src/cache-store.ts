@@ -32,8 +32,7 @@ export const createCacheStore =
           }
 
           const id = ids[index];
-          const parsed = JSON.parse(result) as T;
-          acc.set(id, parsed);
+          acc.set(id, JSON.parse(result));
           return acc;
         }, new Map<string, T>());
       },
@@ -84,6 +83,144 @@ export const createNonParentCacheStore =
 
       delete: async (resourceId) => {
         await client.HDEL(key, resourceId);
+      },
+    };
+  };
+
+// == TTL versions
+export const createCacheStoreWithTTL =
+  ({ client, prefix = "droff" }: CreateStoreOpts) =>
+  <T>(storePrefix: string, ttl: number): CacheStore<T> => {
+    const key = `${prefix}:cache:${storePrefix}`;
+    const keyForIds = `${key}:ids`;
+    const keyForResource = (id: string) => `${key}:r:${id}`;
+    const keyForParent = (id: Snowflake) => `${key}:parent:${id}`;
+
+    return {
+      /** WARNING: Will be inaccurate, for performance reasons */
+      size: () => client.SCARD(keyForIds),
+      /** WARNING: Will be inaccurate, for performance reasons */
+      sizeForParent: (parentId) => client.SCARD(keyForParent(parentId)),
+
+      get: async (resourceId) => {
+        const key = keyForResource(resourceId);
+        const json = await client.GETEX(key, { PX: ttl });
+
+        // On misses, clear up the ids set
+        if (!json) {
+          client.SREM(keyForIds, key);
+        }
+
+        return json ? JSON.parse(json) : undefined;
+      },
+
+      /** Un-efficient for large parents */
+      getForParent: async (parentId) => {
+        const parentKey = keyForParent(parentId);
+        const ids = await client.SMEMBERS(parentKey);
+        const keys = ids.map(keyForResource);
+
+        // Better way to expire multiple keys?
+        const results = await client.multiExecutor(
+          keys.map((key) => ({ args: ["GETEX", key, "PX", `${ttl}`] })),
+        );
+
+        const map = new Map<string, T>();
+        const misses: string[] = [];
+
+        (results as (string | null)[]).forEach((result, index) => {
+          const id = ids[index];
+
+          if (!result) {
+            misses.push(id);
+            return;
+          }
+
+          map.set(id, JSON.parse(result));
+        });
+
+        // Clean up misses
+        if (misses.length > 0) {
+          client.SREM(keyForIds, misses);
+          client.SREM(parentKey, misses);
+        }
+
+        return map;
+      },
+
+      set: async (parentId, resourceId, resource) => {
+        const key = keyForResource(resourceId);
+        const parentKey = keyForParent(parentId);
+
+        await client
+          .multi()
+          .SET(key, JSON.stringify(resource), { PX: ttl })
+          .SADD(keyForIds, resourceId)
+          .SADD(parentKey, resourceId)
+          .exec();
+      },
+
+      delete: async (parentId, resourceId) => {
+        const key = keyForResource(resourceId);
+        const parentKey = keyForParent(parentId);
+        await client
+          .multi()
+          .DEL(key)
+          .SREM(keyForIds, resourceId)
+          .SREM(parentKey, resourceId)
+          .exec();
+      },
+
+      parentDelete: async (parentId) => {
+        const parentKey = keyForParent(parentId);
+        const ids = await client.SMEMBERS(parentKey);
+        const keys = ids.map(keyForResource);
+        await client
+          .multi()
+          .DEL(keys)
+          .DEL(parentKey)
+          .SREM(keyForIds, ids)
+          .exec();
+      },
+    };
+  };
+
+export const createNonParentCacheStoreWithTTL =
+  ({ client, prefix = "droff" }: CreateStoreOpts) =>
+  <T>(storePrefix: string, ttl: number): NonParentCacheStore<T> => {
+    const key = `${prefix}:cache:${storePrefix}`;
+    const keyForIds = `${key}:ids`;
+    const keyForResource = (id: string) => `${key}:r:${id}`;
+
+    return {
+      /** WARNING: Will be inaccurate, for performance reasons */
+      size: () => client.SCARD(keyForIds),
+
+      get: async (resourceId) => {
+        const key = keyForResource(resourceId);
+        const json = await client.GETEX(key, { PX: ttl });
+
+        // On misses, clear up the ids set
+        if (!json) {
+          client.SREM(keyForIds, key);
+        }
+
+        return json ? JSON.parse(json) : undefined;
+      },
+
+      set: async (resourceId, resource) => {
+        const key = keyForResource(resourceId);
+
+        await client
+          .multi()
+          .SET(key, JSON.stringify(resource), { PX: ttl })
+          .SADD(keyForIds, resourceId)
+          .exec();
+      },
+
+      delete: async (resourceId) => {
+        const key = keyForResource(resourceId);
+        await client.multi().DEL(key).SREM(keyForIds, resourceId).exec();
       },
     };
   };

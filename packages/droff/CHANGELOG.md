@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.22.0](https://github.com/tim-smart/droff/compare/droff@0.21.2...droff@0.22.0) (2022-03-03)
+
+### Features
+
+- Allow rest params to be optional ([b795d01](https://github.com/tim-smart/droff/commit/b795d013a17f15888368e673f593f4c5e6849e44))
+
 ## [0.21.2](https://github.com/tim-smart/droff/compare/droff@0.21.1...droff@0.21.2) (2022-03-03)
 
 **Note:** Version bump only for package droff

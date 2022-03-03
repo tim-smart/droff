@@ -125,8 +125,15 @@ export const spawn = ({
             heartbeat: store.heartbeat(id),
           }),
         ),
+        RxO.mergeMap((s) =>
+          Rx.merge(
+            Rx.of(s).pipe(
+              RxO.delayWhen(({ conn }) => conn.hello$.pipe(RxO.first())),
+            ),
+            s.effects$,
+          ),
+        ),
         RxO.tap(pull),
-        RxO.mergeMap((s) => Rx.merge(Rx.of(s), s.effects$)),
       ),
     ),
 

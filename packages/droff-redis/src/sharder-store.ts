@@ -28,7 +28,8 @@ export const createSharderStore =
     const firstAvailableId = (totalShards: number) =>
       pipe(
         TE.tryCatch(
-          () => client.MGET([...Array(totalShards).keys()].map(shardKey)),
+          () =>
+            client.MGET(Array.from(Array(totalShards).keys()).map(shardKey)),
           (err) => `firstAvailableId MGET: ${err}`,
         ),
         TE.chainOptionK(() => "firstAvailableId: No more available shard ids")(

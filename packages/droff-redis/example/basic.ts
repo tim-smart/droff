@@ -21,6 +21,8 @@ const sourceClient = createClient({
   gateway: {
     intents: Intents.GUILD_MESSAGES,
     // shardConfig: { count: 10 },
+    // Set the sharder store, for horizontal scaling shard processes
+    // It takes a deployment name and a node id.
     sharderStore: redis.sharder("test-deploy", `${Date.now()}`),
   },
 });
@@ -52,7 +54,7 @@ Rx.merge(
 const childClient = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
   rateLimitStore: redis.rateLimit(),
-  gatewayPayloads$: redis.pullPayloads(),
+  gateway: { payloads$: redis.pullPayloads() },
 });
 
 // Use a shared cache
@@ -72,7 +74,7 @@ const roles$ = childClient.fromDispatch("MESSAGE_CREATE").pipe(
   RxO.flatMap(([msg, { roles }]) =>
     childClient.createMessage(msg.channel_id, {
       message_reference: { message_id: msg.id },
-      content: JSON.stringify([...roles.values()], null, 2),
+      content: JSON.stringify(Array.from(roles.values()), null, 2),
     }),
   ),
 );

@@ -7,11 +7,11 @@ import { SharderStore } from "./sharder/store";
 import * as Store from "./sharder/store";
 import * as RxI from "rxjs-iterable";
 
-export type CreateShard = (
-  id: [number, number],
-  baseURL: string,
-  heartbeat: () => void,
-) => Shard.Shard;
+export type CreateShard = (opts: {
+  id: [number, number];
+  baseURL: string;
+  heartbeat: () => void;
+}) => Shard.Shard;
 
 export interface Options {
   createShard: CreateShard;
@@ -30,8 +30,8 @@ export interface Options {
   };
   store?: SharderStore;
   rateLimit: RL.RateLimitOp;
-  rateLimitWindow?: number;
-  rateLimitLimit?: number;
+  identifyLimit?: number;
+  identifyWindow?: number;
 }
 
 export const spawn = ({
@@ -40,8 +40,8 @@ export const spawn = ({
   shardConfig,
   store = Store.memoryStore(),
   rateLimit,
-  rateLimitWindow = 5000,
-  rateLimitLimit = 1,
+  identifyLimit = 1,
+  identifyWindow = 5000,
 }: Options) => {
   function generateOpts() {
     let cancelled = false;
@@ -101,36 +101,35 @@ export const spawn = ({
   const [opts$, pull] = RxI.from(optsIterator);
 
   return opts$.pipe(
-    RxO.groupBy((opts) => opts.id % opts.concurrency),
-    RxO.mergeMap((id$) =>
-      id$.pipe(
+    RxO.map((opts, index) => {
+      if (index === 0 && opts.concurrency > 1) {
+        for (let i = 1; i < opts.concurrency; i++) {
+          pull();
+        }
+      }
+      return opts;
+    }),
+
+    RxO.groupBy(({ id, concurrency }) => id % concurrency),
+    RxO.mergeMap((group$) =>
+      group$.pipe(
         rateLimit(
-          `gateway.sessions.${id$.key}`,
-          rateLimitWindow,
-          rateLimitLimit,
+          `gateway.sharder.${group$.key}`,
+          identifyWindow,
+          identifyLimit,
         ),
         RxO.map(({ id, count, url }) =>
-          createShard([id, count], url, store.heartbeat(id)),
+          createShard({
+            id: [id, count],
+            baseURL: url,
+            heartbeat: store.heartbeat(id),
+          }),
         ),
         RxO.tap(pull),
+        RxO.mergeMap((s) => Rx.merge(Rx.of(s), s.effects$)),
       ),
     ),
+
     RxO.finalize(cancel),
   );
 };
-
-export const withEffects = (sharder: () => Rx.Observable<Shard.Shard>) =>
-  new Rx.Observable<Shard.Shard>((s) => {
-    const sub = sharder()
-      .pipe(
-        RxO.tap((shard) => {
-          s.next(shard);
-        }),
-        RxO.flatMap((shard) => shard.effects$),
-      )
-      .subscribe();
-
-    return () => {
-      sub.unsubscribe();
-    };
-  });

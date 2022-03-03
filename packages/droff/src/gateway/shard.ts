@@ -18,7 +18,6 @@ export interface Options {
 
   rateLimits: {
     op: RateLimitOp;
-
     sendLimit?: number;
     sendWindow?: number;
   };
@@ -33,6 +32,7 @@ export function create({
   rateLimits: { op: rateLimitOp, sendLimit = 120, sendWindow = 60000 },
 }: Options) {
   const sendSubject = new QueueingSubject<Conn.ConnectionPayload>();
+
   const input$ = sendSubject.pipe(
     rateLimitOp("gateway.send", sendWindow, sendLimit),
   );

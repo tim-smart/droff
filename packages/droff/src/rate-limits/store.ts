@@ -22,33 +22,31 @@ export interface Store {
   getBucketForRoute: (route: string) => Promise<BucketDetails | undefined>;
   putBucketRoute: (route: string, bucketKey: string) => Promise<void>;
 
-  getCounter: (key: string) => Promise<Counter | undefined>;
-  incrementCounter: (key: string, window: number) => Promise<void>;
+  /**
+   * Returns the amount of time needed to wait
+   */
+  incrementCounter: (
+    key: string,
+    window: number,
+    limit: number,
+  ) => Promise<number>;
 }
 
 export const maybeWait =
   (store: Store) =>
-  (key: string, window: number, limit: number): T.Task<void> =>
-    F.pipe(
-      TO.tryCatch(() => store.getCounter(key)),
-      TO.chainNullableK(F.identity),
-      TO.filter(({ expires }) => expires > Date.now()),
-      TO.getOrElse(() =>
-        T.of({
-          expires: Date.now() + window,
-          count: 0,
-        }),
-      ),
-      T.chain(({ count, expires }) =>
-        count >= limit
-          ? F.pipe(
-              T.of(null),
-              T.delay(expires - Date.now()),
-              T.chain(() => maybeWait(store)(key, window, limit)),
-            )
-          : F.pipe(
-              TO.tryCatch(() => store.incrementCounter(key, window)),
-              TO.getOrElse(() => () => Promise.resolve()),
-            ),
+  (key: string, window: number, limit: number): T.Task<void> => {
+    const retry = (delay: number) =>
+      F.pipe(
+        T.of(undefined),
+        T.delay(delay),
+        T.chain(() => maybeWait(store)(key, window, limit)),
+      );
+
+    return F.pipe(
+      TO.tryCatch(() => store.incrementCounter(key, window, limit)),
+      TO.fold(
+        () => T.of(undefined),
+        (delay) => (delay > 0 ? retry(delay) : T.of(undefined)),
       ),
     );
+  };

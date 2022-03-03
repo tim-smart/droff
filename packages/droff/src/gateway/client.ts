@@ -21,8 +21,8 @@ export interface Options {
   rateLimits?: {
     store: Store.Store;
 
-    sessionLimit?: number;
-    sessionWindow?: number;
+    identifyLimit?: number;
+    identifyWindow?: number;
 
     sendLimit?: number;
     sendWindow?: number;
@@ -47,35 +47,37 @@ export const create =
     intents = GatewayIntents.GUILDS,
     rateLimits: {
       store: rateLimitStore,
-      sessionLimit,
-      sessionWindow,
+      identifyLimit,
+      identifyWindow,
       ...shardRateLimits
-    } = { store: MemoryStore.create() },
+    } = {
+      store: MemoryStore.create(),
+    },
     shardConfig,
     sharderStore,
   }: Options) => {
     const rateLimit = RL.rateLimit(rateLimitStore);
 
-    const shards$ = Sharder.withEffects(() =>
+    const shards$ = Rx.defer(() =>
       Sharder.spawn({
-        createShard: (id, baseURL, sharderHeartbeat) =>
+        createShard: ({ id, baseURL, heartbeat }) =>
           Shard.create({
             token,
             baseURL,
             intents: intents | GatewayIntents.GUILDS,
             shard: id,
-            sharderHeartbeat,
+            sharderHeartbeat: heartbeat,
             rateLimits: {
               ...shardRateLimits,
               op: rateLimit,
             },
           }),
-        rateLimit,
-        rateLimitWindow: sessionWindow,
-        rateLimitLimit: sessionLimit,
         routes,
         shardConfig,
         store: sharderStore,
+        rateLimit,
+        identifyLimit,
+        identifyWindow,
       }),
     ).pipe(RxO.shareReplay({ refCount: true }));
 

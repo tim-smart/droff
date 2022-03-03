@@ -37,29 +37,24 @@ export const createRateLimitStore =
         await client.set(key, bucketId);
       },
 
-      getCounter: async (bucketKey) => {
+      incrementCounter: async (bucketKey, window, limit) => {
         const key = keyForCounter(bucketKey);
 
-        const [count, expires] = await client.multi().get(key).pTTL(key).exec();
-        if (!count) return undefined;
-
-        return {
-          count: +count,
-          expires: Date.now() + (expires as number),
-        };
-      },
-
-      incrementCounter: async (bucketKey, window) => {
-        const key = keyForCounter(bucketKey);
-
-        await client
+        const [, reply, delayReply] = await client
           .multi()
           .set(key, 0, {
             NX: true,
             PX: window,
           })
           .incr(key)
+          .PTTL(key)
           .exec();
+
+        const count = +reply!;
+        const delay = +delayReply!;
+        const actualDelay = delay < 0 ? window : delay;
+
+        return count > limit ? actualDelay : 0;
       },
     };
   };

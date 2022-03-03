@@ -35,12 +35,6 @@ Simple Discord client powered by RxJS and Axios
 yarn add droff
 ```
 
-If you want more performance (erlpack not supported on Node 16):
-
-```
-yarn add bufferutil erlpack
-```
-
 ## Usage
 
 Basic ping example. Look at `droff-interactions` and `droff-commands` for

@@ -18,6 +18,9 @@ import * as Sharder from "./sharder";
 export interface Options {
   token: string;
 
+  /** Override gateway handling with custom payload source */
+  payloads$?: Rx.Observable<GatewayPayload>;
+
   rateLimits?: {
     store: Store.Store;
 

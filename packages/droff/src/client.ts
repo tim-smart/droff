@@ -91,11 +91,6 @@ export interface Options {
 
   /** REST API configuration */
   rest?: Omit<RestClient.Options, "token" | "rateLimitStore">;
-
-  /**
-   * Override gateway with custom payload stream
-   */
-  gatewayPayloads$?: Rx.Observable<GatewayPayload>;
 }
 
 export function create({
@@ -104,7 +99,6 @@ export function create({
   debug = false,
   rest: restOptions = {},
   gateway: gatewayOptions = {},
-  gatewayPayloads$,
 }: Options): Client {
   const rest = createRestClient({
     token,
@@ -113,8 +107,8 @@ export function create({
     ...restOptions,
   });
 
-  const gateway = gatewayPayloads$
-    ? GatewayClient.createFromPayloads(gatewayPayloads$)
+  const gateway = gatewayOptions.payloads$
+    ? GatewayClient.createFromPayloads(gatewayOptions.payloads$)
     : GatewayClient.create(rest)({
         token,
         ...gatewayOptions,

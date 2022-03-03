@@ -24,7 +24,7 @@ sourceClient.effects$.subscribe();
 const childClient = createClient({
   // The token will only be used for the REST API here.
   token: process.env.DISCORD_BOT_TOKEN!,
-  gatewayPayloads$: stream,
+  gateway: { payloads$: stream },
 });
 
 // You can then use the client like normal.

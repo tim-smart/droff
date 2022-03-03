@@ -1,6 +1,6 @@
 {
   "name": "droff-redis",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Redis streaming & store implementations for the droff discord client",
   "keywords": [
     "droff",

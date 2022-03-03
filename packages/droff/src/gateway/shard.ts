@@ -81,7 +81,7 @@ export function create({
     conn.invalidSession$,
   ).pipe(RxO.tap(reconnect));
 
-  const sharderHeartbeat$ = Rx.interval(30000).pipe(
+  const sharderHeartbeat$ = Rx.interval(60000).pipe(
     RxO.tap(() => sharderHeartbeat?.()),
   );
 

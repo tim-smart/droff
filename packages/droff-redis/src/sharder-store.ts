@@ -7,7 +7,7 @@ import { CreateStoreOpts } from "./cache-store";
 
 export const createSharderStore =
   ({ client, prefix = "droff" }: CreateStoreOpts) =>
-  (deployment: string, nodeId: string, ttl = 90000): SharderStore => {
+  (deployment: string, nodeId: string, ttl = 120000): SharderStore => {
     const key = `${prefix}:sharder:${deployment}`;
 
     const membersKey = `${key}:members`;

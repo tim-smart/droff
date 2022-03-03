@@ -41,7 +41,7 @@ export const spawn = ({
   store = Store.memoryStore(),
   rateLimit,
   identifyLimit = 1,
-  identifyWindow = 5000,
+  identifyWindow = 5200,
 }: Options) => {
   function generateOpts() {
     let cancelled = false;
@@ -125,14 +125,7 @@ export const spawn = ({
             heartbeat: store.heartbeat(id),
           }),
         ),
-        RxO.mergeMap((s) =>
-          Rx.merge(
-            Rx.of(s).pipe(
-              RxO.delayWhen(({ conn }) => conn.hello$.pipe(RxO.first())),
-            ),
-            s.effects$,
-          ),
-        ),
+        RxO.mergeMap((s) => Rx.merge(Rx.of(s), s.effects$)),
         RxO.tap(pull),
       ),
     ),

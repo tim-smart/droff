@@ -13,7 +13,6 @@ export interface CacheStore<T> {
   set: (parentId: Snowflake, resourceId: string, resource: T) => Promise<void>;
   delete: (parentId: Snowflake, resourceId: string) => Promise<void>;
   parentDelete: (parentId: Snowflake) => Promise<void>;
-  effects$?: Rx.Observable<never>;
 }
 
 export interface NonParentCacheStore<T> {
@@ -21,7 +20,6 @@ export interface NonParentCacheStore<T> {
   get: (resourceId: string) => Promise<T | undefined>;
   set: (resourceId: string, resource: T) => Promise<void>;
   delete: (resourceId: string) => Promise<void>;
-  effects$?: Rx.Observable<never>;
 }
 
 type FallbackFn<T> = (id: Snowflake) => Promise<T>;
@@ -59,6 +57,53 @@ export type NonParentCacheStoreFactory<T> = (
   store?: NonParentCacheStore<T>,
 ) => readonly [NonParentCacheStoreWithHelpers<T>, Rx.Observable<void>];
 
+export const addHelpers = <T>(
+  store: CacheStore<T>,
+): CacheStoreWithHelpers<T> => ({
+  ...store,
+  watch$: Rx.NEVER,
+  getOr: (fallback, parentId) => async (id) => {
+    const result = await store.get(id);
+    if (result) return result;
+
+    const fallbackResult = await fallback(id);
+    if (fallbackResult) {
+      store.set(parentId(fallbackResult), id, fallbackResult);
+    }
+
+    return fallbackResult;
+  },
+  getForParentOr: (fallback, id) => async (parentId) => {
+    const result = await store.getForParent(parentId);
+    if (result.size > 0) return result;
+
+    const arr = await fallback(parentId);
+    return arr.reduce((map, item) => {
+      store.set(parentId, id(item), item);
+      map.set(id(item), item);
+      return map;
+    }, new Map<string, T>());
+  },
+});
+
+export const addNonParentHelpers = <T>(
+  store: NonParentCacheStore<T>,
+): NonParentCacheStoreWithHelpers<T> => ({
+  ...store,
+  watch$: Rx.NEVER,
+  getOr: (fallback) => async (id) => {
+    const result = await store.get(id);
+    if (result) return result;
+
+    const fallbackResult = await fallback(id);
+    if (fallbackResult) {
+      store.set(id, fallbackResult);
+    }
+
+    return fallbackResult;
+  },
+});
+
 export const fromWatch =
   <T>(watch$: Rx.Observable<WatchOp<T>>): CacheStoreFactory<T> =>
   (store = Memory.create<T>()) => {
@@ -79,35 +124,7 @@ export const fromWatch =
       }),
     );
 
-    const getOr: GetOrFn<T> = (fallback, parentId) => async (id) => {
-      const result = await store.get(id);
-      if (result) return result;
-
-      const fallbackResult = await fallback(id);
-      if (fallbackResult) {
-        store.set(parentId(fallbackResult), id, fallbackResult);
-      }
-
-      return fallbackResult;
-    };
-
-    const getForParentOr: GetForParentOrFn<T> =
-      (fallback, id) => async (parentId) => {
-        const result = await store.getForParent(parentId);
-        if (result.size > 0) return result;
-
-        const arr = await fallback(parentId);
-        return arr.reduce((map, item) => {
-          store.set(parentId, id(item), item);
-          map.set(id(item), item);
-          return map;
-        }, new Map<string, T>());
-      };
-
-    return [
-      { ...store, watch$, getOr, getForParentOr },
-      store.effects$ ? Rx.merge(effects$, store.effects$) : effects$,
-    ] as const;
+    return [{ ...addHelpers(store), watch$ }, effects$] as const;
   };
 
 export const fromWatchNonParent =
@@ -130,22 +147,7 @@ export const fromWatchNonParent =
       }),
     );
 
-    const getOr: NonParentGetOrFn<T> = (fallback) => async (id) => {
-      const result = await store.get(id);
-      if (result) return result;
-
-      const fallbackResult = await fallback(id);
-      if (fallbackResult) {
-        store.set(id, fallbackResult);
-      }
-
-      return fallbackResult;
-    };
-
-    return [
-      { ...store, watch$, getOr },
-      store.effects$ ? Rx.merge(effects$, store.effects$) : effects$,
-    ] as const;
+    return [{ ...addNonParentHelpers(store), watch$ }, effects$] as const;
   };
 
 type WithCachesResult<M extends { [key: string]: WithCachesFn<any> }> = {

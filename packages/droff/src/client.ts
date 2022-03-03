@@ -172,6 +172,11 @@ export function create({
     invitesCache,
     stageInstancesCache,
 
+    cacheFromWatch: CacheStore.fromWatch,
+    nonParentCacheFromWatch: CacheStore.fromWatchNonParent,
+    addCacheHelpers: CacheStore.addHelpers,
+    addNonParentCacheHelpers: CacheStore.addNonParentHelpers,
+
     withCaches: CacheStore.withCaches,
     onlyWithCacheResults: CacheStore.onlyWithCacheResults,
 
@@ -217,6 +222,18 @@ export interface ClientExtras {
   invitesCache: CacheStoreFactory<PartialInvite>;
   /** Cache of the latest stageInstances for each guild */
   stageInstancesCache: CacheStoreFactory<StageInstance>;
+
+  /** Create your own cache store from a watcher observable */
+  cacheFromWatch: typeof CacheStore.fromWatch;
+
+  /** Create your own cache store with parent ids from a watcher observable */
+  nonParentCacheFromWatch: typeof CacheStore.fromWatchNonParent;
+
+  /** Add cache helpers to a cache store */
+  addCacheHelpers: typeof CacheStore.addHelpers;
+
+  /** Add cache helpers to a non parent cache store */
+  addNonParentCacheHelpers: typeof CacheStore.addNonParentHelpers;
 
   /**
    * RxJS operator that appends cached data to the stream. E.g.

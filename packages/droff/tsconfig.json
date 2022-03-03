@@ -8,7 +8,6 @@
 
   "typedocOptions": {
     "out": "docs",
-    "gitRevision": "main",
-    "theme": "minimal"
+    "gitRevision": "main"
   }
 }

@@ -1,5 +1,6 @@
 import { AxiosInstance } from "axios";
 import * as Rx from "rxjs";
+import * as RxO from "rxjs/operators";
 import * as Apps from "./caches/applications";
 import * as Channels from "./caches/channels";
 import * as Emojis from "./caches/emojis";
@@ -36,7 +37,7 @@ export interface RESTClient extends RestClient.Routes {
    * Observable of side effects. It is required that you subscribe to this for
    * the client to function.
    */
-  effects$: Rx.Observable<void>;
+  effects$: Rx.Observable<never>;
   request: AxiosInstance["request"];
   get: AxiosInstance["get"];
   post: AxiosInstance["post"];
@@ -149,7 +150,13 @@ export function create({
   );
 
   if (debug) {
-    gateway.raw$.subscribe((p) => console.error("[GATEWAY]", p));
+    rest.effects$ = Rx.merge(
+      rest.effects$,
+      gateway.raw$.pipe(
+        RxO.tap((p) => console.error("[GATEWAY]", p)),
+        RxO.ignoreElements(),
+      ),
+    );
   }
 
   return {

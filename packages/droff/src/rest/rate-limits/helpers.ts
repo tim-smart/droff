@@ -3,11 +3,18 @@ import * as F from "fp-ts/function";
 import { sequenceT } from "fp-ts/lib/Apply";
 import * as O from "fp-ts/Option";
 
+const majorResources = ["channels", "guilds", "webhooks"] as const;
+
 export const routeFromConfig = ({ url, method }: AxiosRequestConfig) => {
   if (!url) return "";
 
   // Only keep major ID's
-  const routeURL = url.replace(/(?<!^)(\/[A-Za-z]+\/)\d{16,19}/g, "$1");
+  const routeURL = url
+    .replace(/\/([A-Za-z]+)\/(\d{16,19}|@me)/g, (match, resource) =>
+      majorResources.includes(resource) ? match : `/${resource}`,
+    )
+    // Strip reactions
+    .replace(/\/reactions\/(.*)/, "/reactions");
 
   return `${method}-${routeURL}`;
 };

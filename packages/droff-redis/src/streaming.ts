@@ -47,7 +47,7 @@ export const pullPayloads =
 
     const pull: T.Task<GatewayPayload> = pipe(
       TE.tryCatch(
-        () => client.blPop(key, 30),
+        () => client.BLPOP(key, 0),
         (err) => `BLPOP: ${err}`,
       ),
       TE.chainOptionK(() => "")(O.fromNullable),

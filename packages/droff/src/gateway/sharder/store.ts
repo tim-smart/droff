@@ -8,6 +8,8 @@ export interface ClaimIdContext {
 export interface SharderStore {
   claimId: (ctx: ClaimIdContext) => Task<number | undefined>;
 
+  allClaimed: (totalCount: number) => Task<boolean>;
+
   /** droff calls this function every 30s for each shard */
   heartbeat: (shardId: number) => Task<void>;
 }
@@ -25,6 +27,8 @@ export const memoryStore = (): SharderStore => {
         currentId++;
         return id;
       },
+
+    allClaimed: (totalCount) => async () => currentId >= totalCount,
 
     heartbeat: (_id) => async () => {},
   };

@@ -1,6 +1,7 @@
 import { ClaimIdContext, SharderStore } from "droff/dist/gateway/sharder/store";
 import * as Arr from "fp-ts/lib/Array";
-import { flow, pipe } from "fp-ts/lib/function";
+import { flow, identity, pipe } from "fp-ts/lib/function";
+import * as O from "fp-ts/lib/Option";
 import * as T from "fp-ts/lib/Task";
 import * as TE from "fp-ts/lib/TaskEither";
 import { CreateStoreOpts } from "./cache-store";
@@ -32,9 +33,7 @@ export const createSharderStore =
             client.MGET(Array.from(Array(totalShards).keys()).map(shardKey)),
           (err) => `firstAvailableId MGET: ${err}`,
         ),
-        TE.chainOptionK(() => "firstAvailableId: No more available shard ids")(
-          Arr.findIndex((taken) => !taken),
-        ),
+        TE.map(Arr.findIndex((nodeId) => !nodeId)),
       );
 
     const claimId = (shardId: number) =>
@@ -58,6 +57,9 @@ export const createSharderStore =
     ): TE.TaskEither<string, number> =>
       pipe(
         firstAvailableId(ctx.totalCount),
+        TE.chainOptionK(() => "claimAvailableId: no more available shard ids")(
+          identity,
+        ),
         TE.chain((id) =>
           pipe(
             claimId(id),
@@ -102,6 +104,11 @@ export const createSharderStore =
             return T.of(undefined);
           }),
         ),
+
+      allClaimed: flow(
+        firstAvailableId,
+        TE.fold(() => T.of(false), flow(O.isNone, T.of)),
+      ),
 
       heartbeat: flow(
         heartbeat,

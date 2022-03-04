@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.22.1](https://github.com/tim-smart/droff/compare/droff@0.22.0...droff@0.22.1) (2022-03-04)
+
+### Bug Fixes
+
+- memory leak with unused error queue ([29cfc39](https://github.com/tim-smart/droff/commit/29cfc39fcd3b0bde4c28bbe77e035b2c65d086a9))
+
 # [0.22.0](https://github.com/tim-smart/droff/compare/droff@0.21.2...droff@0.22.0) (2022-03-03)
 
 ### Features

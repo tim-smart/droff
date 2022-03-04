@@ -4,7 +4,12 @@ import * as Redis from "redis";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { createClient, Intents } from "../../droff";
-import { createStores } from "../src/mod";
+import { Guild, Role, Channel } from "../../droff/dist/types";
+import { createStores } from "../";
+
+// some constants
+const second = 1000;
+const minute = 60 * second;
 
 // Redis client
 const redisClient = Redis.createClient();
@@ -12,6 +17,12 @@ redisClient.connect();
 
 // Create the redis store factories
 const redis = createStores({ client: redisClient });
+
+const caches = {
+  guilds: () => redis.nonParentCache<Guild>("guilds"),
+  roles: () => redis.cacheWithTTL<Role>("roles", 10 * minute),
+  channels: () => redis.cacheWithTTL<Channel>("channels", 10 * minute),
+};
 
 // Parent client
 const sourceClient = createClient({
@@ -31,13 +42,9 @@ const sourceClient = createClient({
 const push$ = redis.pushPayloads(sourceClient);
 
 // Cache some resources in redis
-const [, guildsCache$] = sourceClient.guildsCache(
-  redis.nonParentCache("guilds"),
-);
-const [, rolesCache$] = sourceClient.rolesCache(
-  redis.cacheWithTTL("roles", 20000),
-);
-const [, channelsCache$] = sourceClient.channelsCache(redis.cache("channels"));
+const [, guildsCache$] = sourceClient.guildsCache(caches.guilds());
+const [, rolesCache$] = sourceClient.rolesCache(caches.roles());
+const [, channelsCache$] = sourceClient.channelsCache(caches.channels());
 
 // Start the source client
 Rx.merge(
@@ -58,9 +65,7 @@ const childClient = createClient({
 });
 
 // Use a shared cache
-const [rolesCache, childRolesCache$] = childClient.rolesCache(
-  redis.cacheWithTTL("roles", 20000),
-);
+const [rolesCache, childRolesCache$] = childClient.rolesCache(caches.roles());
 
 const roles$ = childClient.fromDispatch("MESSAGE_CREATE").pipe(
   RxO.filter((msg) => msg.author.bot !== true),

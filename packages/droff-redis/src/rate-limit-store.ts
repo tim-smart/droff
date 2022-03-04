@@ -12,6 +12,38 @@ export const createRateLimitStore =
     const keyForRoute = (route: string) => key(`route:${route}`);
     const keyForCounter = (bucket: string) => key(`counter:${bucket}`);
 
+    const incrementCounter = async (
+      bucketKey: string,
+      window: number,
+      limit: number,
+    ): Promise<[number, number]> => {
+      const key = keyForCounter(bucketKey);
+      const perRequest = Math.ceil(window / limit);
+
+      try {
+        return await client.executeIsolated(async (c) => {
+          c.WATCH(key);
+          const pttl = await c.PTTL(key);
+          const newPttl = pttl < 0 ? perRequest : pttl + perRequest;
+
+          const [count, , ttl] = await c
+            .multi()
+            .INCR(key)
+            .PEXPIRE(key, newPttl)
+            .PTTL(key)
+            .exec();
+
+          return [+count!, +ttl!];
+        });
+      } catch (err) {
+        if (err instanceof WatchError) {
+          return incrementCounter(bucketKey, window, limit);
+        }
+
+        throw err;
+      }
+    };
+
     return {
       hasBucket: async (key) => {
         const result = await client.exists(keyForBucket(key));
@@ -40,36 +72,6 @@ export const createRateLimitStore =
         await client.set(key, bucketId);
       },
 
-      incrementCounter: async (bucketKey, window, limit) => {
-        const key = keyForCounter(bucketKey);
-        const perRequest = Math.ceil(window / limit);
-
-        const tryIncr = async (): Promise<[number, number]> => {
-          try {
-            return await client.executeIsolated(async (c) => {
-              c.WATCH(key);
-              const pttl = await c.PTTL(key);
-              const newPttl = pttl < 0 ? perRequest : pttl + perRequest;
-
-              const [count, , ttl] = await c
-                .multi()
-                .INCR(key)
-                .PEXPIRE(key, newPttl)
-                .PTTL(key)
-                .exec();
-
-              return [+count!, +ttl!];
-            });
-          } catch (err) {
-            if (err instanceof WatchError) {
-              return tryIncr();
-            }
-
-            throw err;
-          }
-        };
-
-        return tryIncr();
-      },
+      incrementCounter,
     };
   };

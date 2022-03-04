@@ -3950,7 +3950,7 @@ export interface InteractionDatum {
   component_type?: ComponentType;
   /** the values the user selected */
   values?: SelectOption[];
-  /** id the of user or message targetted by a user or message command */
+  /** id the of user or message targeted by a user or message command */
   target_id?: Snowflake;
   /** the values submitted by the user */
   components?: Component[];

@@ -8,13 +8,6 @@ export type BucketDetails = {
   limit: number;
 };
 
-export interface Counter {
-  /** How many times this counter has been triggered */
-  count: number;
-  /** When this counter expires */
-  expires: number;
-}
-
 export interface Store {
   hasBucket: (bucketKey: string) => Promise<boolean>;
   putBucket: (bucket: BucketDetails) => Promise<void>;
@@ -31,18 +24,13 @@ export interface Store {
 export const maybeWait =
   (store: Store) =>
   (key: string, window: number, limit: number): T.Task<void> => {
-    const retry = (delay: number) =>
-      F.pipe(
-        T.of(undefined),
-        T.delay(delay),
-        T.chain(() => maybeWait(store)(key, window, limit)),
-      );
+    const wait = (delay: number) => F.pipe(T.of(undefined), T.delay(delay));
 
     return F.pipe(
       TO.tryCatch(() => store.getDelay(key, window, limit)),
       TO.fold(
         () => T.of(undefined),
-        (delay) => (delay > 0 ? retry(delay) : T.of(undefined)),
+        (delay) => (delay > 0 ? wait(delay) : T.of(undefined)),
       ),
     );
   };

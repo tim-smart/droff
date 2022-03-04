@@ -1,4 +1,11 @@
-import { BucketDetails, Counter, Store } from "../store";
+import { number } from "fp-ts";
+import { BucketDetails, Store } from "../store";
+import { delayFrom } from "./utils";
+
+interface Counter {
+  count: number;
+  expires: number;
+}
 
 /**
  * Default rate limit store, that uses `Map`'s to store everything.
@@ -30,21 +37,22 @@ export const create = (): Store => {
     },
 
     getDelay: (key, window, limit) => {
+      const now = Date.now();
+      const perRequest = Math.ceil(window / limit);
       const counter = getCounter(key) || {
-        expires: Date.now() + window,
+        expires: now,
         count: 0,
       };
 
       const count = counter.count + 1;
-      counters.set(key, { ...counter, count });
+      const expires = counter.expires + perRequest;
+      counters.set(key, { ...counter, count, expires });
 
-      if (count > limit) {
-        const diff = count - limit - 1;
-        const extraDelay = diff * 2;
-        return Promise.resolve(counter.expires - Date.now() + extraDelay);
+      if (count <= limit) {
+        return Promise.resolve(0);
       }
 
-      return Promise.resolve(0);
+      return Promise.resolve(delayFrom(window, limit, count, expires - now));
     },
   };
 };

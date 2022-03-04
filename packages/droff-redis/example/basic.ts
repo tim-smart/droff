@@ -5,7 +5,7 @@ import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { createClient, Intents } from "../../droff";
 import { Guild, Role, Channel } from "../../droff/dist/types";
-import { createStores } from "../";
+import { createStores } from "../src/mod";
 
 // some constants
 const second = 1000;
@@ -31,7 +31,7 @@ const sourceClient = createClient({
   rateLimitStore: redis.rateLimit(),
   gateway: {
     intents: Intents.GUILD_MESSAGES,
-    // shardConfig: { count: 10 },
+    shardConfig: { count: 10 },
     // Set the sharder store, for horizontal scaling shard processes
     // It takes a deployment name and a node id.
     sharderStore: redis.sharder("test-deploy", `${Date.now()}`),

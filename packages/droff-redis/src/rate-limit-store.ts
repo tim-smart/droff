@@ -1,4 +1,7 @@
 import { Store } from "droff/dist/rate-limits/store";
+import { delayFrom } from "droff/dist/rate-limits/stores/utils";
+import { number } from "fp-ts";
+import { WatchError } from "redis";
 import { CreateStoreOpts } from "./cache-store";
 
 export const createRateLimitStore =
@@ -39,27 +42,40 @@ export const createRateLimitStore =
 
       getDelay: async (bucketKey, window, limit) => {
         const key = keyForCounter(bucketKey);
+        const perRequest = Math.ceil(window / limit);
 
-        const [, reply, delayReply] = await client
-          .multi()
-          .set(key, 0, {
-            NX: true,
-            PX: window,
-          })
-          .incr(key)
-          .PTTL(key)
-          .exec();
+        const tryIncr = async (): Promise<[number, number]> => {
+          try {
+            return await client.executeIsolated(async (c) => {
+              c.WATCH(key);
+              const pttl = await c.PTTL(key);
+              const newPttl = pttl < 0 ? perRequest : pttl + perRequest;
 
-        const count = +reply!;
+              const [count, , ttl] = await c
+                .multi()
+                .INCR(key)
+                .PEXPIRE(key, newPttl)
+                .PTTL(key)
+                .exec();
+
+              return [+count!, +ttl!];
+            });
+          } catch (err) {
+            if (err instanceof WatchError) {
+              return tryIncr();
+            }
+
+            throw err;
+          }
+        };
+
+        const [count, ttl] = await tryIncr();
+
         if (count <= limit) {
           return 0;
         }
 
-        const delay = +delayReply!;
-        const actualDelay = delay < 0 ? window : delay;
-        const diff = count - limit - 1;
-        const extra = diff * 5;
-        return actualDelay + extra;
+        return delayFrom(window, limit, count, ttl);
       },
     };
   };

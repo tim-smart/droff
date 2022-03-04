@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.23.0](https://github.com/tim-smart/droff/compare/droff@0.22.1...droff@0.23.0) (2022-03-04)
+
+### Bug Fixes
+
+- shardsReady$ waits for ready events ([19ce920](https://github.com/tim-smart/droff/commit/19ce920bdbd743d51365a2b7d29c44e58456d5a1))
+
+### Features
+
+- Add allClaimed to shard store ([c44a3ed](https://github.com/tim-smart/droff/commit/c44a3ed3091e8de620a0b23a15e596b2040993d4))
+- Add shardsReady$ to gateway client ([2ae6c95](https://github.com/tim-smart/droff/commit/2ae6c95165ecbfbcccfa5af102b861fe0cb7edff))
+
 ## [0.22.1](https://github.com/tim-smart/droff/compare/droff@0.22.0...droff@0.22.1) (2022-03-04)
 
 ### Bug Fixes

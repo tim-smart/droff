@@ -37,7 +37,7 @@ export const createRateLimitStore =
         await client.set(key, bucketId);
       },
 
-      incrementCounter: async (bucketKey, window, limit) => {
+      getDelay: async (bucketKey, window, limit) => {
         const key = keyForCounter(bucketKey);
 
         const [, reply, delayReply] = await client
@@ -51,10 +51,15 @@ export const createRateLimitStore =
           .exec();
 
         const count = +reply!;
+        if (count <= limit) {
+          return 0;
+        }
+
         const delay = +delayReply!;
         const actualDelay = delay < 0 ? window : delay;
-
-        return count > limit ? actualDelay : 0;
+        const diff = count - limit - 1;
+        const extra = diff * 5;
+        return actualDelay + extra;
       },
     };
   };

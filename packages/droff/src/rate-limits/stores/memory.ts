@@ -29,19 +29,21 @@ export const create = (): Store => {
       routes.set(route, bucket);
     },
 
-    incrementCounter: (key, window, limit) => {
+    getDelay: (key, window, limit) => {
       const counter = getCounter(key) || {
         expires: Date.now() + window,
         count: 0,
       };
 
       const count = counter.count + 1;
+      counters.set(key, { ...counter, count });
 
       if (count > limit) {
-        return Promise.resolve(counter.expires - Date.now());
+        const diff = count - limit - 1;
+        const extraDelay = diff * 2;
+        return Promise.resolve(counter.expires - Date.now() + extraDelay);
       }
 
-      counters.set(key, { ...counter, count });
       return Promise.resolve(0);
     },
   };

@@ -25,11 +25,7 @@ export interface Store {
   /**
    * Returns the amount of time needed to wait
    */
-  incrementCounter: (
-    key: string,
-    window: number,
-    limit: number,
-  ) => Promise<number>;
+  getDelay: (key: string, window: number, limit: number) => Promise<number>;
 }
 
 export const maybeWait =
@@ -43,7 +39,7 @@ export const maybeWait =
       );
 
     return F.pipe(
-      TO.tryCatch(() => store.incrementCounter(key, window, limit)),
+      TO.tryCatch(() => store.getDelay(key, window, limit)),
       TO.fold(
         () => T.of(undefined),
         (delay) => (delay > 0 ? retry(delay) : T.of(undefined)),

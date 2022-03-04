@@ -1,11 +1,10 @@
 import * as Rx from "rxjs";
+import * as RxI from "rxjs-iterable";
 import * as RxO from "rxjs/operators";
 import * as RL from "../rate-limits/rxjs";
 import { Routes } from "../rest/client";
 import * as Shard from "./shard";
 import { SharderStore } from "./sharder/store";
-import * as Store from "./sharder/store";
-import * as RxI from "rxjs-iterable";
 
 export type CreateShard = (opts: {
   id: [number, number];
@@ -28,7 +27,7 @@ export interface Options {
      */
     count?: number;
   };
-  store?: SharderStore;
+  store: SharderStore;
   rateLimit: RL.RateLimitOp;
   identifyLimit?: number;
   identifyWindow?: number;
@@ -38,7 +37,7 @@ export const spawn = ({
   createShard,
   routes,
   shardConfig,
-  store = Store.memoryStore(),
+  store,
   rateLimit,
   identifyLimit = 1,
   identifyWindow = 5200,

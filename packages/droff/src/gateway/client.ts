@@ -1,3 +1,4 @@
+import { identity } from "fp-ts/lib/function";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import * as RL from "../rate-limits/rxjs";
@@ -14,6 +15,7 @@ import { opCode } from "./connection";
 import * as Dispatch from "./dispatch";
 import * as Shard from "./shard";
 import * as Sharder from "./sharder";
+import * as SharderStore from "./sharder/store";
 
 export interface Options {
   token: string;
@@ -57,7 +59,7 @@ export const create =
       store: MemoryStore.create(),
     },
     shardConfig,
-    sharderStore,
+    sharderStore = SharderStore.memoryStore(),
   }: Options) => {
     const rateLimit = RL.rateLimit(rateLimitStore);
 
@@ -84,6 +86,17 @@ export const create =
       }),
     ).pipe(RxO.shareReplay({ refCount: true }));
 
+    const shardsReady$ = shards$.pipe(
+      RxO.switchMap(({ id: [, totalCount] }) =>
+        Rx.defer(sharderStore.allClaimed(totalCount)).pipe(
+          RxO.repeatWhen((o) => o.pipe(RxO.delay(5500))),
+          RxO.first((ready): ready is true => ready === true),
+        ),
+      ),
+      RxO.map(() => {}),
+      RxO.shareReplay({ bufferSize: 1, refCount: true }),
+    );
+
     const raw$ = shards$.pipe(
       RxO.flatMap((s) => s.raw$),
       RxO.share(),
@@ -108,6 +121,7 @@ export const create =
       fromDispatchWithShard,
       latestDispatch,
       shards$,
+      shardsReady$,
     };
   };
 
@@ -120,6 +134,7 @@ export const createFromPayloads = (
   const dispatch$ = raw$.pipe(opCode<GatewayEvent>(GatewayOpcode.DISPATCH));
   const dispatchWithShard$ = Rx.EMPTY;
   const shards$ = Rx.EMPTY;
+  const shardsReady$ = Rx.of(undefined);
 
   const fromDispatch = Dispatch.listen(dispatch$);
   const fromDispatchWithShard = Dispatch.listenWithShard(dispatchWithShard$);
@@ -132,5 +147,6 @@ export const createFromPayloads = (
     fromDispatchWithShard,
     latestDispatch,
     shards$,
+    shardsReady$,
   };
 };

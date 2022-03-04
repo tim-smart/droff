@@ -1,4 +1,4 @@
-import { identity } from "fp-ts/lib/function";
+import * as O from "fp-ts/lib/Option";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import * as RL from "../rate-limits/rxjs";
@@ -87,12 +87,17 @@ export const create =
     ).pipe(RxO.shareReplay({ refCount: true }));
 
     const shardsReady$ = shards$.pipe(
-      RxO.switchMap(({ id: [, totalCount] }) =>
-        Rx.defer(sharderStore.allClaimed(totalCount)).pipe(
+      RxO.switchMap(({ id: [, totalCount], ready$ }) => {
+        const allClaimed$ = Rx.defer(sharderStore.allClaimed(totalCount)).pipe(
           RxO.repeatWhen((o) => o.pipe(RxO.delay(5500))),
           RxO.first((ready): ready is true => ready === true),
-        ),
-      ),
+        );
+
+        return ready$.pipe(
+          RxO.first(O.isSome),
+          RxO.switchMap(() => allClaimed$),
+        );
+      }),
       RxO.map(() => {}),
       RxO.shareReplay({ bufferSize: 1, refCount: true }),
     );

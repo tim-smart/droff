@@ -1,3 +1,4 @@
+import { identity } from "fp-ts/lib/function";
 import * as O from "fp-ts/lib/Option";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
@@ -52,8 +53,8 @@ export const create =
     intents = GatewayIntents.GUILDS,
     rateLimits: {
       store: rateLimitStore,
-      identifyLimit,
-      identifyWindow,
+      identifyLimit = 1,
+      identifyWindow = 5200,
       ...shardRateLimits
     } = {
       store: MemoryStore.create(),
@@ -88,17 +89,19 @@ export const create =
 
     const shardsReady$ = shards$.pipe(
       RxO.switchMap(({ id: [, totalCount], ready$ }) => {
-        const allClaimed$ = Rx.defer(sharderStore.allClaimed(totalCount)).pipe(
-          RxO.repeatWhen((o) => o.pipe(RxO.delay(5500))),
-          RxO.first((ready): ready is true => ready === true),
-        );
+        const delay = identifyWindow / identifyLimit;
 
-        return ready$.pipe(
-          RxO.first(O.isSome),
-          RxO.switchMap(() => allClaimed$),
+        const allClaimed$ = Rx.defer(sharderStore.allClaimed(totalCount)).pipe(
+          RxO.repeatWhen((o) => o.pipe(RxO.delay(delay))),
+          RxO.first(identity),
+          RxO.delay(delay),
         );
+        const isReady$ = ready$.pipe(RxO.first(O.isSome));
+
+        return isReady$.pipe(RxO.mergeMap(() => allClaimed$));
       }),
       RxO.map(() => {}),
+      RxO.first(),
       RxO.shareReplay({ bufferSize: 1, refCount: true }),
     );
 

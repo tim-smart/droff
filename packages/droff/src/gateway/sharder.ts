@@ -29,8 +29,8 @@ export interface Options {
   };
   store: SharderStore;
   rateLimit: RL.RateLimitOp;
-  identifyLimit?: number;
-  identifyWindow?: number;
+  identifyLimit: number;
+  identifyWindow: number;
 }
 
 export const spawn = ({
@@ -39,96 +39,102 @@ export const spawn = ({
   shardConfig,
   store,
   rateLimit,
-  identifyLimit = 1,
-  identifyWindow = 5200,
-}: Options) => {
-  function generateOpts() {
-    let cancelled = false;
-    let timeout: NodeJS.Timeout;
-    const cancel = () => {
-      cancelled = true;
-      if (timeout) {
-        clearTimeout(timeout);
-      }
-    };
+  identifyLimit,
+  identifyWindow,
+}: Options) =>
+  Rx.defer(() => routes.getGatewayBot()).pipe(
+    RxO.mergeMap(({ url, shards, session_start_limit: limit }) => {
+      const totalCount = shardConfig?.count ?? shards;
+      const concurrency = limit.max_concurrency;
 
-    async function* iterator() {
-      const {
+      const [iterator, cancel] = generateOpts({
         url,
-        shards,
-        session_start_limit: limit,
-      } = await routes.getGatewayBot();
+        totalCount,
+        store,
+        shardConfig,
+      });
 
-      const count = shardConfig?.count ?? shards;
-      const opts = {
-        url,
-        count,
-        concurrency: limit.max_concurrency,
-      };
+      const [opts$, pull] = RxI.from(iterator, {
+        initialCount: concurrency,
+      });
 
-      if (shardConfig?.ids) {
-        for (const id of shardConfig.ids) {
-          yield { ...opts, id };
-        }
-        return;
-      }
+      return opts$.pipe(
+        RxO.groupBy(({ id }) => id % concurrency),
+        RxO.mergeMap((group$) =>
+          group$.pipe(
+            rateLimit(
+              `gateway.sharder.${group$.key}`,
+              identifyWindow,
+              identifyLimit,
+            ),
+            RxO.map(({ id, count, url }) =>
+              createShard({
+                id: [id, count],
+                baseURL: url,
+                heartbeat: store.heartbeat(id),
+              }),
+            ),
+            RxO.mergeMap((s) => Rx.merge(Rx.of(s), s.effects$)),
+            RxO.tap(pull),
+          ),
+        ),
 
-      let sharderCount = 0;
-      while (!cancelled) {
-        const id = await store.claimId({
-          sharderCount,
-          totalCount: count,
-        })();
+        RxO.finalize(cancel),
+      );
+    }),
+  );
 
-        // If there is no id, then check again in 3 minutes
-        if (id === undefined) {
-          await new Promise((r) => {
-            timeout = setTimeout(r, 3 * 60 * 1000);
-          });
-          continue;
-        }
+interface GeneratorOptsOpts {
+  url: string;
+  totalCount: number;
+  shardConfig: Options["shardConfig"];
+  store: SharderStore;
+}
 
-        sharderCount++;
+function generateOpts({
+  url,
+  totalCount: count,
+  shardConfig,
+  store,
+}: GeneratorOptsOpts) {
+  let cancelled = false;
+  let timeout: NodeJS.Timeout;
+  const cancel = () => {
+    cancelled = true;
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+  };
+
+  async function* iterator() {
+    const opts = { url, count };
+
+    if (shardConfig?.ids) {
+      for (const id of shardConfig.ids) {
         yield { ...opts, id };
       }
+      return;
     }
 
-    return [iterator(), cancel!] as const;
+    let sharderCount = 0;
+    while (!cancelled) {
+      const id = await store.claimId({
+        sharderCount,
+        totalCount: count,
+      })();
+
+      // If there is no id, then check again in 3 minutes
+      if (id === undefined) {
+        await new Promise((r) => {
+          timeout = setTimeout(r, 3 * 60 * 1000);
+        });
+        continue;
+      }
+
+      sharderCount++;
+      yield { ...opts, id };
+    }
   }
 
-  const [optsIterator, cancel] = generateOpts();
-  const [opts$, pull] = RxI.from(optsIterator);
-
-  return opts$.pipe(
-    RxO.map((opts, index) => {
-      if (index === 0 && opts.concurrency > 1) {
-        for (let i = 1; i < opts.concurrency; i++) {
-          pull();
-        }
-      }
-      return opts;
-    }),
-
-    RxO.groupBy(({ id, concurrency }) => id % concurrency),
-    RxO.mergeMap((group$) =>
-      group$.pipe(
-        rateLimit(
-          `gateway.sharder.${group$.key}`,
-          identifyWindow,
-          identifyLimit,
-        ),
-        RxO.map(({ id, count, url }) =>
-          createShard({
-            id: [id, count],
-            baseURL: url,
-            heartbeat: store.heartbeat(id),
-          }),
-        ),
-        RxO.mergeMap((s) => Rx.merge(Rx.of(s), s.effects$)),
-        RxO.tap(pull),
-      ),
-    ),
-
-    RxO.finalize(cancel),
-  );
-};
+  return [iterator(), cancel!] as const;
+}

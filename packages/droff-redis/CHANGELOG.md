@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.3.0](https://github.com/tim-smart/droff/compare/droff-redis@0.2.1...droff-redis@0.3.0) (2022-03-04)
+
+### Features
+
+- stagger rate limot store delays ([e4c396e](https://github.com/tim-smart/droff/commit/e4c396e58a63c9a86d3ea20a3e33d2e3eb8daac8))
+- tidy up rate limit store interface ([1775497](https://github.com/tim-smart/droff/commit/17754973b6404a4f0a6e47d584f3341d4f68db53))
+
 ## [0.2.1](https://github.com/tim-smart/droff/compare/droff-redis@0.2.0...droff-redis@0.2.1) (2022-03-04)
 
 **Note:** Version bump only for package droff-redis

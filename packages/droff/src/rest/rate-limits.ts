@@ -73,7 +73,6 @@ export const interceptors = ({
     return response;
   }
 
-  const errors$ = new QueueingSubject<AxiosError>();
   function error(err: AxiosError) {
     if (!err.response) return Promise.reject(err);
 
@@ -88,7 +87,6 @@ export const interceptors = ({
     }
 
     response(err.response);
-    errors$.next(err);
 
     // Maybe attempt retry
     if (err.response.status !== 429) return Promise.reject(err);

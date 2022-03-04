@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "droff": "^0.22.1",
-    "immutable": "^4.0.0-rc.12",
+    "immutable": "^4.0.0",
     "lexure": "^0.17.0",
     "rxjs": "^7.1.0",
     "tslib": "^2.3.0"

@@ -1,4 +1,3 @@
-import { number } from "fp-ts";
 import { BucketDetails, Store } from "../store";
 import { delayFrom } from "./utils";
 
@@ -36,7 +35,7 @@ export const create = (): Store => {
       routes.set(route, bucket);
     },
 
-    getDelay: (key, window, limit) => {
+    incrementCounter: (key, window, limit) => {
       const now = Date.now();
       const perRequest = Math.ceil(window / limit);
       const counter = getCounter(key) || {
@@ -48,11 +47,7 @@ export const create = (): Store => {
       const expires = counter.expires + perRequest;
       counters.set(key, { ...counter, count, expires });
 
-      if (count <= limit) {
-        return Promise.resolve(0);
-      }
-
-      return Promise.resolve(delayFrom(window, limit, count, expires - now));
+      return Promise.resolve([count, expires - now]);
     },
   };
 };

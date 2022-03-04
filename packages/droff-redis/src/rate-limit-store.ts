@@ -40,7 +40,7 @@ export const createRateLimitStore =
         await client.set(key, bucketId);
       },
 
-      getDelay: async (bucketKey, window, limit) => {
+      incrementCounter: async (bucketKey, window, limit) => {
         const key = keyForCounter(bucketKey);
         const perRequest = Math.ceil(window / limit);
 
@@ -69,13 +69,7 @@ export const createRateLimitStore =
           }
         };
 
-        const [count, ttl] = await tryIncr();
-
-        if (count <= limit) {
-          return 0;
-        }
-
-        return delayFrom(window, limit, count, ttl);
+        return tryIncr();
       },
     };
   };

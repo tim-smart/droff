@@ -54,7 +54,7 @@ export const create =
     rateLimits: {
       store: rateLimitStore,
       identifyLimit = 1,
-      identifyWindow = 5200,
+      identifyWindow = 5300,
       ...shardRateLimits
     } = {
       store: MemoryStore.create(),
@@ -88,17 +88,14 @@ export const create =
     ).pipe(RxO.shareReplay({ refCount: true }));
 
     const shardsReady$ = shards$.pipe(
-      RxO.switchMap(({ id: [, totalCount], ready$ }) => {
+      RxO.switchMap(({ id: [, totalCount] }) => {
         const delay = identifyWindow / identifyLimit;
 
-        const allClaimed$ = Rx.defer(sharderStore.allClaimed(totalCount)).pipe(
+        return Rx.defer(sharderStore.allClaimed(totalCount)).pipe(
           RxO.repeatWhen((o) => o.pipe(RxO.delay(delay))),
           RxO.first(identity),
           RxO.delay(delay),
         );
-        const isReady$ = ready$.pipe(RxO.first(O.isSome));
-
-        return isReady$.pipe(RxO.mergeMap(() => allClaimed$));
       }),
       RxO.map(() => {}),
       RxO.first(),

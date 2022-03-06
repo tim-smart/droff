@@ -8,7 +8,6 @@ export const watch$ = (fromDispatch: Dispatch) =>
     RxO.map(
       (ready): WatchOp<Application> => ({
         event: "create",
-        guildId: "0",
         resourceId: ready.application.id,
         resource: ready.application,
       }),

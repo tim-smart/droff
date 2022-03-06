@@ -31,7 +31,6 @@ export const watch$ = (fromDispatch: Dispatch) =>
 
           return {
             event: op[0],
-            guildId: guild.id,
             resourceId: guild.id,
             resource: guild,
           };
@@ -39,7 +38,6 @@ export const watch$ = (fromDispatch: Dispatch) =>
         case "delete":
           return {
             event: "delete",
-            guildId: op[1].id,
             resourceId: op[1].id,
           };
       }

@@ -117,13 +117,13 @@ export const fromWatch =
         switch (op.event) {
           case "create":
           case "update":
-            return store.set(op.guildId, op.resourceId, op.resource);
+            return store.set(op.parentId!, op.resourceId, op.resource);
 
           case "delete":
-            return store.delete(op.guildId, op.resourceId);
+            return store.delete(op.parentId!, op.resourceId);
 
-          case "guild_delete":
-            return store.parentDelete(op.guildId);
+          case "parent_delete":
+            return store.parentDelete(op.parentId!);
         }
       }),
     );
@@ -148,7 +148,7 @@ export const fromWatchNonParent =
           case "delete":
             return store.delete(op.resourceId);
 
-          case "guild_delete":
+          case "parent_delete":
             return Rx.EMPTY;
         }
       }),

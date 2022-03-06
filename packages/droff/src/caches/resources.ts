@@ -16,24 +16,24 @@ export interface CrudObserables<T> {
 
 export type CreateOp<T> = {
   event: "create";
-  guildId: Snowflake;
+  parentId?: Snowflake;
   resourceId: string;
   resource: T;
 };
 export type UpdateOp<T> = {
   event: "update";
-  guildId: Snowflake;
+  parentId?: Snowflake;
   resourceId: string;
   resource: T;
 };
 export type DeleteOp = {
   event: "delete";
-  guildId: Snowflake;
+  parentId?: Snowflake;
   resourceId: string;
 };
-export type GuildDeleteOp = { event: "guild_delete"; guildId: Snowflake };
+export type ParentDeleteOp = { event: "parent_delete"; parentId: Snowflake };
 
-export type WatchOp<T> = CreateOp<T> | UpdateOp<T> | DeleteOp | GuildDeleteOp;
+export type WatchOp<T> = CreateOp<T> | UpdateOp<T> | DeleteOp | ParentDeleteOp;
 
 export const watch$ = <T>(
   fromDispatch: Dispatch,
@@ -64,7 +64,7 @@ export const watch$ = <T>(
       RxO.map(
         ([guildId, resource]): CreateOp<T> => ({
           event: "create",
-          guildId,
+          parentId: guildId,
           resourceId: id(resource),
           resource,
         }),
@@ -72,9 +72,9 @@ export const watch$ = <T>(
     ),
     fromDispatch("GUILD_DELETE").pipe(
       RxO.map(
-        (guild): GuildDeleteOp => ({
-          event: "guild_delete",
-          guildId: guild.id,
+        (guild): ParentDeleteOp => ({
+          event: "parent_delete",
+          parentId: guild.id,
         }),
       ),
     ),
@@ -83,7 +83,7 @@ export const watch$ = <T>(
       RxO.map(
         ([guildId, resource]): CreateOp<T> => ({
           event: "create",
-          guildId,
+          parentId: guildId,
           resourceId: id(resource),
           resource,
         }),
@@ -93,7 +93,7 @@ export const watch$ = <T>(
       RxO.map(
         ([guildId, resource]): UpdateOp<T> => ({
           event: "update",
-          guildId,
+          parentId: guildId,
           resourceId: id(resource),
           resource,
         }),
@@ -103,7 +103,7 @@ export const watch$ = <T>(
       RxO.map(
         ([guildId, resourceId]): DeleteOp => ({
           event: "delete",
-          guildId,
+          parentId: guildId,
           resourceId,
         }),
       ),

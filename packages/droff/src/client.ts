@@ -8,6 +8,7 @@ import * as Guilds from "./caches/guilds";
 import * as Invites from "./caches/invites";
 import { PartialInvite } from "./caches/invites";
 import * as Members from "./caches/members";
+import * as DirectMessages from "./caches/direct-messages";
 import * as Messages from "./caches/messages";
 import * as Roles from "./caches/roles";
 import * as StageInstances from "./caches/stage-instances";
@@ -136,6 +137,9 @@ export function create({
   const messagesCache = CacheStore.fromWatch(
     Messages.watch$(gateway.fromDispatch),
   );
+  const directMessagesCache = CacheStore.fromWatchNonParent(
+    DirectMessages.watch$(gateway.fromDispatch),
+  );
   const invitesCache = CacheStore.fromWatch(
     Invites.watch$(gateway.fromDispatch, rest),
   );
@@ -157,6 +161,7 @@ export function create({
     gateway,
 
     applicationCache,
+    directMessagesCache,
     guildsCache,
     channelsCache,
     rolesCache,
@@ -200,6 +205,8 @@ export interface ClientExtras {
 
   /** Cache of the latest application */
   applicationCache: NonParentCacheStoreFactory<Application>;
+  /** Cache of the latest direct messages for each guild */
+  directMessagesCache: NonParentCacheStoreFactory<Message>;
   /** Cache of the latest guilds */
   guildsCache: NonParentCacheStoreFactory<Guild>;
   /** Cache of the latest roles for each guild */

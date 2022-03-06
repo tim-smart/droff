@@ -65,7 +65,9 @@ const childClient = createClient({
 });
 
 // Use a shared cache
-const [rolesCache, childRolesCache$] = childClient.rolesCache(caches.roles());
+// We dont need the cache effects$ observable, as we don't perform any syncing
+// in the child clients.
+const [rolesCache] = childClient.rolesCache(caches.roles());
 
 const roles$ = childClient.fromDispatch("MESSAGE_CREATE").pipe(
   RxO.filter((msg) => msg.author.bot !== true),
@@ -102,9 +104,4 @@ const roleCount$ = childClient.fromDispatch("MESSAGE_CREATE").pipe(
 );
 
 // Subscribe
-Rx.merge(
-  childClient.effects$,
-  childRolesCache$,
-  roles$,
-  roleCount$,
-).subscribe();
+Rx.merge(childClient.effects$, roles$, roleCount$).subscribe();

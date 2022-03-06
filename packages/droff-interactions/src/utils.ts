@@ -18,3 +18,16 @@ export const focusedOption = (interaction: Interaction) =>
     O.fromNullable(interaction.data?.options),
     O.chain(Arr.findFirst(({ focused }) => focused === true)),
   );
+
+export const memoize = <A, T>(fn: (arg: A) => T) => {
+  const cache = new Map<A, T>();
+
+  return (arg: A) => {
+    const val = cache.get(arg);
+    if (val) return val;
+
+    const newVal = fn(arg);
+    cache.set(arg, newVal);
+    return newVal;
+  };
+};

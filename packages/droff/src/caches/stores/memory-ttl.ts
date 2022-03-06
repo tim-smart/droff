@@ -16,6 +16,16 @@ export interface MemoryTTLStoreOpts {
    * Defaults to 5 minutes
    */
   resolution?: number;
+
+  /**
+   * What sweep strategy to use.
+   *
+   * "activity" means the TTL is reset for every `set` OR `get` operation
+   * "usage" means the TTL is only reset for the `get` operation
+   *
+   * Defaults to "usage"
+   */
+  strategy?: "activity" | "usage";
 }
 
 interface TTLBucket {
@@ -26,6 +36,7 @@ interface TTLBucket {
 export const createNonParent = <T>({
   ttl,
   resolution = 1 * minute,
+  strategy = "usage",
 }: MemoryTTLStoreOpts): NonParentCacheStore<T> => {
   const additionalMilliseconds =
     (Math.floor(ttl / resolution) + 1) * resolution;
@@ -84,10 +95,11 @@ export const createNonParent = <T>({
 
     set: async (resourceId, resource) => {
       const exists = items.has(resourceId);
+      const needsRefresh = exists === false || strategy === "activity";
+
       items.set(resourceId, resource);
 
-      // We only want to update TTL if we "use" the resource
-      if (!exists) {
+      if (needsRefresh) {
         refreshTTL(resourceId);
       }
     },

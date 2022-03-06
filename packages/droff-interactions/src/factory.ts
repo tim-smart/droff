@@ -56,19 +56,9 @@ export interface InteractionContext {
   focusedOption?: ApplicationCommandInteractionDataOption;
 
   /** Respond to the interaction immediately */
-  respond: (data: InteractionCallbackMessage) => Promise<any>;
-  /** Respond to the interaction later with editResponse */
-  defer: () => Promise<any>;
-  /** Update the original message (components only) */
-  update: (data: InteractionCallbackMessage) => Promise<any>;
-  /** Update the original message later (components only) */
-  deferUpdate: () => Promise<any>;
+  respond: Commands.RespondFn;
   /** Follow up message when using deferred */
   editResponse: (data: InteractionCallbackMessage) => Promise<any>;
-  /** Respond with autocomplete choices */
-  autocomplete: (data: InteractionCallbackAutocomplete) => Promise<any>;
-  /** Respond with a modal */
-  modal: (data: InteractionCallbackModal) => Promise<any>;
 }
 
 export interface InteractionsHelper {
@@ -112,6 +102,10 @@ export interface InteractionsHelper {
     components: Exclude<Component, ActionRow>[],
   ) => Rx.Observable<readonly [InteractionContext, Component]>;
   /**
+   * Listen for the given InteractionType
+   */
+  interaction: (type: InteractionType) => Rx.Observable<InteractionContext>;
+  /**
    * An observable of side effects. By `subscribe`-ing you start the syncing of
    * commands to Discord.
    *
@@ -145,27 +139,7 @@ export const create = (client: Client): InteractionsHelper => {
   );
 
   // Response helpers
-  const respond = Commands.respond<InteractionCallbackMessage>(
-    client,
-    InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE,
-  );
-  const respondDeferred = Commands.respond(
-    client,
-    InteractionCallbackType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
-  );
-  const update = Commands.respond(
-    client,
-    InteractionCallbackType.UPDATE_MESSAGE,
-  );
-  const updateDeferred = Commands.respond(
-    client,
-    InteractionCallbackType.DEFERRED_UPDATE_MESSAGE,
-  );
-  const autocompleteResponse = Commands.respond(
-    client,
-    InteractionCallbackType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT,
-  );
-  const modalResponse = Commands.respond(client, InteractionCallbackType.MODAL);
+  const respond = Commands.respond(client);
   const editOriginal = Commands.editOriginal(client);
   const createContext = (interaction: Interaction): InteractionContext => ({
     interaction,
@@ -175,11 +149,6 @@ export const create = (client: Client): InteractionsHelper => {
     targetUser: pipe(Utils.targetUser(interaction), O.toUndefined),
     focusedOption: pipe(Utils.focusedOption(interaction), O.toUndefined),
     respond: respond(interaction),
-    defer: respondDeferred(interaction),
-    update: update(interaction),
-    deferUpdate: updateDeferred(interaction),
-    autocomplete: autocompleteResponse(interaction),
-    modal: modalResponse(interaction),
     editResponse: editOriginal(interaction),
   });
 
@@ -187,27 +156,23 @@ export const create = (client: Client): InteractionsHelper => {
   const setPermissions = Commands.setPermissions(client);
 
   // Shared command create observable
-  const interactionCreate$ = fromDispatch("INTERACTION_CREATE").pipe(
-    RxO.filter((i) => i.type === InteractionType.APPLICATION_COMMAND),
-    RxO.map(createContext),
-    RxO.share(),
+  const interactionCreate = (type: InteractionType) =>
+    fromDispatch("INTERACTION_CREATE").pipe(
+      RxO.filter((i) => i.type === type),
+      RxO.map(createContext),
+      RxO.share(),
+    );
+  const applicationCommand$ = interactionCreate(
+    InteractionType.APPLICATION_COMMAND_AUTOCOMPLETE,
   );
-  const interactionAutocomplete$ = fromDispatch("INTERACTION_CREATE").pipe(
-    RxO.filter(
-      (i) => i.type === InteractionType.APPLICATION_COMMAND_AUTOCOMPLETE,
-    ),
-    RxO.map(createContext),
-    RxO.share(),
+  const interactionAutocomplete$ = interactionCreate(
+    InteractionType.APPLICATION_COMMAND_AUTOCOMPLETE,
   );
-  const interactionModalSubmit$ = fromDispatch("INTERACTION_CREATE").pipe(
-    RxO.filter((i) => i.type === InteractionType.MODAL_SUBMIT),
-    RxO.map(createContext),
-    RxO.share(),
+  const interactionModalSubmit$ = interactionCreate(
+    InteractionType.MODAL_SUBMIT,
   );
-  const interactionComponent$ = fromDispatch("INTERACTION_CREATE").pipe(
-    RxO.filter((i) => i.type === InteractionType.MESSAGE_COMPONENT),
-    RxO.map(createContext),
-    RxO.share(),
+  const interactionComponent$ = interactionCreate(
+    InteractionType.MESSAGE_COMPONENT,
   );
 
   // Command creation functions
@@ -223,7 +188,7 @@ export const create = (client: Client): InteractionsHelper => {
 
     return Rx.iif(() => create, create$, Rx.of(0)).pipe(
       // Switch to emitting the interactions
-      RxO.switchMap(() => interactionCreate$),
+      RxO.switchMap(() => applicationCommand$),
       RxO.filter(({ interaction }) => interaction.data!.name === command.name),
     );
   };
@@ -236,7 +201,7 @@ export const create = (client: Client): InteractionsHelper => {
       permissions: command.permissions || (() => Rx.EMPTY),
     });
 
-    return interactionCreate$.pipe(
+    return applicationCommand$.pipe(
       RxO.filter(({ interaction }) => interaction.data!.name === command.name),
     );
   };
@@ -313,6 +278,7 @@ export const create = (client: Client): InteractionsHelper => {
     modalSubmit,
     component,
     components,
+    interaction: interactionCreate,
     effects$,
   };
 };

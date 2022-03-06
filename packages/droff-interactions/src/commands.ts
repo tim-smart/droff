@@ -3,7 +3,10 @@ import {
   ApplicationCommand,
   Guild,
   Interaction,
+  InteractionCallbackAutocomplete,
   InteractionCallbackDatum,
+  InteractionCallbackMessage,
+  InteractionCallbackModal,
   InteractionCallbackType,
 } from "droff/dist/types";
 import * as F from "fp-ts/function";
@@ -22,13 +25,22 @@ export const enabled =
       O.map((ob) => Rx.lastValueFrom(ob)),
     );
 
+export interface ResponseTypes {
+  [type: number]: InteractionCallbackDatum | undefined;
+  [InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE]: InteractionCallbackMessage;
+  [InteractionCallbackType.UPDATE_MESSAGE]: InteractionCallbackMessage;
+  [InteractionCallbackType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT]: InteractionCallbackAutocomplete;
+  [InteractionCallbackType.MODAL]: InteractionCallbackModal;
+}
+export type RespondFn = <K extends keyof ResponseTypes>(
+  type: K,
+) => (data?: ResponseTypes[K]) => Promise<any>;
+
 export const respond =
-  <T extends InteractionCallbackDatum>(
-    rest: Client,
-    type: InteractionCallbackType,
-  ) =>
-  (interaction: Interaction) =>
-  (data?: T) =>
+  (rest: Client) =>
+  (interaction: Interaction): RespondFn =>
+  (type) =>
+  (data) =>
     rest.createInteractionResponse(interaction.id, interaction.token, {
       type,
       data,

@@ -4,6 +4,7 @@ import { createClient, Intents, Permissions } from "droff";
 import {
   ApplicationCommandOptionType,
   ApplicationCommandPermissionType,
+  InteractionCallbackType,
   MessageFlag,
 } from "droff/dist/types";
 import { flow } from "fp-ts/lib/function";
@@ -31,7 +32,9 @@ const hello$ = commands
   })
   .pipe(
     RxO.flatMap(({ respond, member }) =>
-      respond({ content: `Hi there ${member!.user!.username}` }),
+      respond(InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE)({
+        content: `Hi there ${member!.user!.username}`,
+      }),
     ),
   );
 
@@ -52,7 +55,7 @@ const countries$ = commands
   })
   .pipe(
     RxO.flatMap(({ interaction, respond }) =>
-      respond({
+      respond(InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE)({
         content: `You chose the country: ${getCountry(interaction)}`,
       }),
     ),
@@ -60,8 +63,8 @@ const countries$ = commands
 
 // Add the autocomplete handler
 const countryAutocomplete$ = commands.autocomplete("country", "name").pipe(
-  RxO.flatMap(({ autocomplete, focusedOption }) =>
-    autocomplete({
+  RxO.flatMap(({ respond, focusedOption }) =>
+    respond(InteractionCallbackType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT)({
       choices: [
         {
           name: `Other: ${focusedOption!.value}`,
@@ -87,7 +90,13 @@ const ping$ = commands
     name: "ping",
     description: "A simple ping command",
   })
-  .pipe(RxO.flatMap(({ respond }) => respond({ content: "Pong!" })));
+  .pipe(
+    RxO.flatMap(({ respond }) =>
+      respond(InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE)({
+        content: "Pong!",
+      }),
+    ),
+  );
 
 const disabled$ = commands
   .guild({
@@ -95,7 +104,13 @@ const disabled$ = commands
     description: "A disabled command. Will not show up in Discord.",
     enabled: (_guild) => Rx.of(false),
   })
-  .pipe(RxO.flatMap(({ respond }) => respond({ content: "Pong!" })));
+  .pipe(
+    RxO.flatMap(({ respond }) =>
+      respond(InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE)({
+        content: "Pong!",
+      }),
+    ),
+  );
 
 // You can set role or user level permissions
 const hasAdmin = H.Perms.has(Permissions.ADMINISTRATOR);
@@ -128,7 +143,7 @@ const admin$ = commands
   })
   .pipe(
     RxO.flatMap(({ respond }) =>
-      respond({
+      respond(InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE)({
         content: "You are the special.",
 
         // Add some buttons
@@ -147,7 +162,7 @@ const admin$ = commands
 // Button / component interaction
 const button$ = commands.component("admin-button").pipe(
   RxO.flatMap(({ respond }) =>
-    respond({
+    respond(InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE)({
       content: "You clicked a button. wow.",
       flags: MessageFlag.EPHEMERAL,
     }),
@@ -161,8 +176,8 @@ const greeting$ = commands
     description: "Give a nice greeting :)",
   })
   .pipe(
-    RxO.flatMap(({ modal }) =>
-      modal({
+    RxO.flatMap(({ respond }) =>
+      respond(InteractionCallbackType.MODAL)({
         custom_id: "greeting-modal",
         title: "What is your name?",
         components: H.UI.singleColumn([
@@ -177,13 +192,13 @@ const greeting$ = commands
 
 const getName = flow(H.Ix.componentValue("name"), toUndefined);
 
-const greetingModal$ = commands
-  .modalSubmit("greeting-modal")
-  .pipe(
-    RxO.flatMap(({ respond, interaction }) =>
-      respond({ content: `Hello there ${getName(interaction)}` }),
-    ),
-  );
+const greetingModal$ = commands.modalSubmit("greeting-modal").pipe(
+  RxO.flatMap(({ respond, interaction }) =>
+    respond(InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE)({
+      content: `Hello there ${getName(interaction)}`,
+    }),
+  ),
+);
 
 // Subscribe
 Rx.merge(

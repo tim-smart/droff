@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.27.0](https://github.com/tim-smart/droff/compare/droff@0.26.0...droff@0.27.0) (2022-03-06)
+
+### Features
+
+- Add \*WithTTL cache store variants ([6b77fa0](https://github.com/tim-smart/droff/commit/6b77fa0147634420a0abf1e1a2fcc4a92de641b4))
+- Add DM cache ([32b0ff5](https://github.com/tim-smart/droff/commit/32b0ff5078fee158ba29038e1943090d33f46de7))
+
 # [0.26.0](https://github.com/tim-smart/droff/compare/droff@0.25.0...droff@0.26.0) (2022-03-06)
 
 ### Features

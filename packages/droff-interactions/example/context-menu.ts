@@ -1,7 +1,12 @@
 require("dotenv").config();
 
 import { createClient } from "droff";
-import { ApplicationCommandType, MessageFlag } from "droff/dist/types";
+import {
+  ApplicationCommandType,
+  InteractionCallbackType,
+  InteractionType,
+  MessageFlag,
+} from "droff/dist/types";
 import { pipe } from "fp-ts/lib/function";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
@@ -21,7 +26,7 @@ const echo$ = pipe(
     description: "",
   }),
   RxO.flatMap(({ targetMessage, respond }) =>
-    respond({
+    respond(InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE)({
       content: targetMessage!.content,
       flags: MessageFlag.EPHEMERAL,
     }),

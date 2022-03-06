@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.27.1](https://github.com/tim-smart/droff/compare/droff@0.27.0...droff@0.27.1) (2022-03-06)
+
+### Bug Fixes
+
+- Correctly parse decimal reset after headers ([ebc039e](https://github.com/tim-smart/droff/commit/ebc039ecc4d73ccc6227639c49042fa8dd9a9163))
+
 # [0.27.0](https://github.com/tim-smart/droff/compare/droff@0.26.0...droff@0.27.0) (2022-03-06)
 
 ### Features

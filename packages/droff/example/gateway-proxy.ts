@@ -1,6 +1,7 @@
 require("dotenv").config();
 
-import * as RxO from "rxjs";
+import * as Rx from "rxjs";
+import * as RxO from "rxjs/operators";
 import { Subject } from "rxjs";
 import { createClient, Intents } from "../src/mod";
 import { GatewayPayload } from "../src/types";
@@ -39,4 +40,4 @@ const ping$ = childClient.fromDispatch("MESSAGE_CREATE").pipe(
   ),
 );
 
-RxO.merge(childClient.effects$, ping$).subscribe();
+Rx.merge(childClient.effects$, ping$).subscribe();

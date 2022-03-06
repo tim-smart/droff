@@ -9,17 +9,21 @@ export interface CacheStore<T> {
   size: () => Promise<number>;
   sizeForParent: (parentId: Snowflake) => Promise<number>;
   get: (resourceId: string) => Promise<T | undefined>;
+  getSync?: (resourceId: string) => T | undefined;
   getForParent: (parentId: Snowflake) => Promise<ReadonlyMap<string, T>>;
   set: (parentId: Snowflake, resourceId: string, resource: T) => Promise<void>;
   delete: (parentId: Snowflake, resourceId: string) => Promise<void>;
   parentDelete: (parentId: Snowflake) => Promise<void>;
+  effects$?: Rx.Observable<never>;
 }
 
 export interface NonParentCacheStore<T> {
   size: () => Promise<number>;
   get: (resourceId: string) => Promise<T | undefined>;
+  getSync?: (resourceId: string) => T | undefined;
   set: (resourceId: string, resource: T) => Promise<void>;
   delete: (resourceId: string) => Promise<void>;
+  effects$?: Rx.Observable<never>;
 }
 
 type FallbackFn<T> = (id: Snowflake) => Promise<T>;
@@ -124,7 +128,10 @@ export const fromWatch =
       }),
     );
 
-    return [{ ...addHelpers(store), watch$ }, effects$] as const;
+    return [
+      { ...addHelpers(store), watch$ },
+      store.effects$ ? Rx.merge(store.effects$, effects$) : effects$,
+    ] as const;
   };
 
 export const fromWatchNonParent =
@@ -147,7 +154,10 @@ export const fromWatchNonParent =
       }),
     );
 
-    return [{ ...addNonParentHelpers(store), watch$ }, effects$] as const;
+    return [
+      { ...addNonParentHelpers(store), watch$ },
+      store.effects$ ? Rx.merge(store.effects$, effects$) : effects$,
+    ] as const;
   };
 
 type WithCachesResult<M extends { [key: string]: WithCachesFn<any> }> = {

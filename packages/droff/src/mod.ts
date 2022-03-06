@@ -13,6 +13,8 @@ export type { Client, ClientExtras, Options, RESTClient } from "./client";
 
 export type { Dispatch, DispatchWithShard } from "./gateway/dispatch";
 
+export * as CacheStore from "./caches/stores/memory";
+export * as CacheTTLStore from "./caches/stores/memory-ttl";
 export * as RateLimitStore from "./rate-limits/store";
 
 export {

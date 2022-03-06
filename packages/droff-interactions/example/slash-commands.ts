@@ -5,6 +5,7 @@ import {
   ApplicationCommandOptionType,
   ApplicationCommandPermissionType,
   InteractionCallbackType,
+  InteractionType,
   MessageFlag,
 } from "droff/dist/types";
 import { flow } from "fp-ts/lib/function";
@@ -12,20 +13,14 @@ import { toUndefined } from "fp-ts/lib/Option";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import * as H from "../../droff-helpers";
-import * as Interactions from "../src/mod";
+import * as Ix from "../src/mod";
 
-const client = createClient({
-  token: process.env.DISCORD_BOT_TOKEN!,
-  gateway: {
-    intents: Intents.GUILDS,
-  },
-});
-
-const commands = Interactions.create(client);
+const client = createClient({ token: process.env.DISCORD_BOT_TOKEN! });
+const ix = Ix.create(client);
 
 // Global commands are for every guild.
 // They can take up to an hour to show up.
-const hello$ = commands
+const hello$ = ix
   .global({
     name: "hello",
     description: "A simple hello command",
@@ -40,7 +35,7 @@ const hello$ = commands
 
 // Command with autocomplete
 const getCountry = flow(H.Ix.optionValue("name"), toUndefined);
-const countries$ = commands
+const countries$ = ix
   .guild({
     name: "country",
     description: "A simple country command",
@@ -62,30 +57,35 @@ const countries$ = commands
   );
 
 // Add the autocomplete handler
-const countryAutocomplete$ = commands.autocomplete("country", "name").pipe(
-  RxO.flatMap(({ respond, focusedOption }) =>
-    respond(InteractionCallbackType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT)({
-      choices: [
-        {
-          name: `Other: ${focusedOption!.value}`,
-          value: `Other: ${focusedOption!.value}`,
-        },
-        {
-          name: "New Zealand",
-          value: "New Zealand",
-        },
-        {
-          name: "United States",
-          value: "USA",
-        },
-      ],
-    }),
-  ),
-);
+const countryAutocomplete$ = ix
+  .interaction(InteractionType.APPLICATION_COMMAND_AUTOCOMPLETE)
+  .pipe(
+    Ix.filterByName("country"),
+    Ix.filterByFocusedOption("name"),
+
+    RxO.flatMap(({ respond, focusedOption }) =>
+      respond(InteractionCallbackType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT)({
+        choices: [
+          {
+            name: `Other: ${focusedOption!.value}`,
+            value: `Other: ${focusedOption!.value}`,
+          },
+          {
+            name: "New Zealand",
+            value: "New Zealand",
+          },
+          {
+            name: "United States",
+            value: "USA",
+          },
+        ],
+      }),
+    ),
+  );
 
 // Guild commands can be enabled / disabled per guild.
 // They show up instantly.
-const ping$ = commands
+const ping$ = ix
   .guild({
     name: "ping",
     description: "A simple ping command",
@@ -98,7 +98,7 @@ const ping$ = commands
     ),
   );
 
-const disabled$ = commands
+const disabled$ = ix
   .guild({
     name: "disabled",
     description: "A disabled command. Will not show up in Discord.",
@@ -114,7 +114,7 @@ const disabled$ = commands
 
 // You can set role or user level permissions
 const hasAdmin = H.Perms.has(Permissions.ADMINISTRATOR);
-const admin$ = commands
+const admin$ = ix
   .guild({
     name: "admin-only",
     description: "A restricted command",
@@ -160,7 +160,9 @@ const admin$ = commands
   );
 
 // Button / component interaction
-const button$ = commands.component("admin-button").pipe(
+const button$ = ix.interaction(InteractionType.MESSAGE_COMPONENT).pipe(
+  Ix.filterByCustomId("admin-button"),
+
   RxO.flatMap(({ respond }) =>
     respond(InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE)({
       content: "You clicked a button. wow.",
@@ -170,7 +172,7 @@ const button$ = commands.component("admin-button").pipe(
 );
 
 // Modals
-const greeting$ = commands
+const greeting$ = ix
   .guild({
     name: "greeting",
     description: "Give a nice greeting :)",
@@ -192,7 +194,9 @@ const greeting$ = commands
 
 const getName = flow(H.Ix.componentValue("name"), toUndefined);
 
-const greetingModal$ = commands.modalSubmit("greeting-modal").pipe(
+const greetingModal$ = ix.interaction(InteractionType.MODAL_SUBMIT).pipe(
+  Ix.filterByCustomId("greeting-modal"),
+
   RxO.flatMap(({ respond, interaction }) =>
     respond(InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE)({
       content: `Hello there ${getName(interaction)}`,
@@ -203,7 +207,7 @@ const greetingModal$ = commands.modalSubmit("greeting-modal").pipe(
 // Subscribe
 Rx.merge(
   client.effects$,
-  commands.effects$,
+  ix.effects$,
 
   hello$,
   countries$,

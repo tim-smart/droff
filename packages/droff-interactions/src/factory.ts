@@ -23,6 +23,7 @@ import { Map } from "immutable";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import * as Commands from "./commands";
+import { filterByName } from "./operators";
 import * as Sync from "./sync";
 import * as Utils from "./utils";
 
@@ -74,33 +75,6 @@ export interface InteractionsHelper {
    * For large bots, you will very likely hit rate limits.
    */
   guild: (command: GuildCommandCreate) => Rx.Observable<InteractionContext>;
-  /**
-   * Listen for autocomplete requests for the given command and option
-   */
-  autocomplete: (
-    command: string,
-    option: string,
-  ) => Rx.Observable<InteractionContext>;
-  /**
-   * Listen for modal submit requests for the given custom_id
-   */
-  modalSubmit: (customID: string) => Rx.Observable<InteractionContext>;
-  /**
-   * Listen to component interactions. Pass in a `custom_id` to determine what
-   * interfactions to listen for.
-   *
-   * You can also pass in a `RegExp`. For example, this would match both
-   * "button_1" and "button_2":
-   *
-   * ```
-   * commands.component(/^button_/).subscribe()
-   * ```
-   */
-  component: (customID: string | RegExp) => Rx.Observable<InteractionContext>;
-  /** Listen to multiple component interactions */
-  components: (
-    components: Exclude<Component, ActionRow>[],
-  ) => Rx.Observable<readonly [InteractionContext, Component]>;
   /**
    * Listen for the given InteractionType
    */
@@ -156,23 +130,15 @@ export const create = (client: Client): InteractionsHelper => {
   const setPermissions = Commands.setPermissions(client);
 
   // Shared command create observable
-  const interactionCreate = (type: InteractionType) =>
+  const interactionCreate = Utils.memoize((type: InteractionType) =>
     fromDispatch("INTERACTION_CREATE").pipe(
       RxO.filter((i) => i.type === type),
       RxO.map(createContext),
       RxO.share(),
-    );
+    ),
+  );
   const applicationCommand$ = interactionCreate(
     InteractionType.APPLICATION_COMMAND,
-  );
-  const interactionAutocomplete$ = interactionCreate(
-    InteractionType.APPLICATION_COMMAND_AUTOCOMPLETE,
-  );
-  const interactionModalSubmit$ = interactionCreate(
-    InteractionType.MODAL_SUBMIT,
-  );
-  const interactionComponent$ = interactionCreate(
-    InteractionType.MESSAGE_COMPONENT,
   );
 
   // Command creation functions
@@ -189,7 +155,7 @@ export const create = (client: Client): InteractionsHelper => {
     return Rx.iif(() => create, create$, Rx.of(0)).pipe(
       // Switch to emitting the interactions
       RxO.switchMap(() => applicationCommand$),
-      RxO.filter(({ interaction }) => interaction.data!.name === command.name),
+      filterByName(command.name),
     );
   };
 
@@ -201,47 +167,7 @@ export const create = (client: Client): InteractionsHelper => {
       permissions: command.permissions || (() => Rx.EMPTY),
     });
 
-    return applicationCommand$.pipe(
-      RxO.filter(({ interaction }) => interaction.data!.name === command.name),
-    );
-  };
-
-  const autocomplete = (command: string, option: string) =>
-    interactionAutocomplete$.pipe(
-      RxO.filter(
-        ({ interaction, focusedOption }) =>
-          interaction.data!.name === command && focusedOption?.name === option,
-      ),
-    );
-
-  const modalSubmit = (customID: string) =>
-    interactionModalSubmit$.pipe(
-      RxO.filter(({ interaction }) => interaction.data!.custom_id === customID),
-    );
-
-  const component = (customID: string | RegExp) =>
-    interactionComponent$.pipe(
-      RxO.filter(({ interaction }) =>
-        customID instanceof RegExp
-          ? customID.test(interaction.data!.custom_id || "")
-          : interaction.data!.custom_id === customID,
-      ),
-    );
-
-  const components = (components: Exclude<Component, ActionRow>[]) => {
-    const map = components
-      .filter(({ custom_id }) => !!custom_id)
-      .reduce((map, c) => map.set(c.custom_id!, c), Map<string, Component>());
-
-    return interactionComponent$.pipe(
-      RxO.filter(({ interaction }) =>
-        map.has(interaction.data!.custom_id || ""),
-      ),
-      RxO.map(
-        (ctx) =>
-          [ctx, map.get(ctx.interaction.data!.custom_id || "")!] as const,
-      ),
-    );
+    return applicationCommand$.pipe(filterByName(command.name));
   };
 
   // Respond to pings
@@ -274,10 +200,6 @@ export const create = (client: Client): InteractionsHelper => {
   return {
     global,
     guild,
-    autocomplete,
-    modalSubmit,
-    component,
-    components,
     interaction: interactionCreate,
     effects$,
   };

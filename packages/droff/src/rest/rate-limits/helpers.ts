@@ -22,7 +22,8 @@ export const routeFromConfig = ({ url, method }: AxiosRequestConfig) => {
 export const numberHeader = (headers: any) => (key: string) =>
   F.pipe(
     O.fromNullable(headers[key]),
-    O.chainNullableK((val) => parseInt(val, 10)),
+    O.map(parseFloat),
+    O.filter((n) => !isNaN(n)),
   );
 
 export const rateLimitFromHeaders = (headers: any) =>

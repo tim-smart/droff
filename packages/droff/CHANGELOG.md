@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.26.0](https://github.com/tim-smart/droff/compare/droff@0.25.0...droff@0.26.0) (2022-03-06)
+
+### Features
+
+- Add strategy option to ttl cache store ([2933719](https://github.com/tim-smart/droff/commit/293371990b56a706e9f44c80e6bd9c995f37ff8b))
+
 # [0.25.0](https://github.com/tim-smart/droff/compare/droff@0.24.1...droff@0.25.0) (2022-03-06)
 
 ### Features

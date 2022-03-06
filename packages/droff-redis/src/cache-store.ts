@@ -1,4 +1,9 @@
-import { CacheStore, NonParentCacheStore } from "droff/dist/caches/stores";
+import {
+  CacheStore,
+  CacheStoreWithTTL,
+  NonParentCacheStore,
+  NonParentCacheStoreWithTTL,
+} from "droff/dist/caches/stores";
 import { Snowflake } from "droff/dist/types";
 import { createClient } from "redis";
 
@@ -90,7 +95,7 @@ export const createNonParentCacheStore =
 // == TTL versions
 export const createCacheStoreWithTTL =
   ({ client, prefix = "droff" }: CreateStoreOpts) =>
-  <T>(storePrefix: string, ttl: number): CacheStore<T> => {
+  <T>(storePrefix: string, ttl: number): CacheStoreWithTTL<T> => {
     const key = `${prefix}:cache:${storePrefix}`;
     const keyForIds = `${key}:ids`;
     const keyForResource = (id: string) => `${key}:r:${id}`;
@@ -101,6 +106,10 @@ export const createCacheStoreWithTTL =
       size: () => client.SCARD(keyForIds),
       /** WARNING: Will be inaccurate, for performance reasons */
       sizeForParent: (parentId) => client.SCARD(keyForParent(parentId)),
+
+      refreshTTL: async (resourceId) => {
+        await client.PEXPIRE(keyForResource(resourceId), ttl);
+      },
 
       get: async (resourceId) => {
         const key = keyForResource(resourceId);
@@ -154,7 +163,9 @@ export const createCacheStoreWithTTL =
 
         await client
           .multi()
-          .SET(key, JSON.stringify(resource), { PX: ttl })
+          // Only set initial ttl for new items
+          .SET(key, "null", { NX: true, PX: ttl })
+          .SET(key, JSON.stringify(resource))
           .SADD(keyForIds, resourceId)
           .SADD(parentKey, resourceId)
           .exec();
@@ -187,7 +198,7 @@ export const createCacheStoreWithTTL =
 
 export const createNonParentCacheStoreWithTTL =
   ({ client, prefix = "droff" }: CreateStoreOpts) =>
-  <T>(storePrefix: string, ttl: number): NonParentCacheStore<T> => {
+  <T>(storePrefix: string, ttl: number): NonParentCacheStoreWithTTL<T> => {
     const key = `${prefix}:cache:${storePrefix}`;
     const keyForIds = `${key}:ids`;
     const keyForResource = (id: string) => `${key}:r:${id}`;
@@ -195,6 +206,10 @@ export const createNonParentCacheStoreWithTTL =
     return {
       /** WARNING: Will be inaccurate, for performance reasons */
       size: () => client.SCARD(keyForIds),
+
+      refreshTTL: async (resourceId) => {
+        await client.PEXPIRE(keyForResource(resourceId), ttl);
+      },
 
       get: async (resourceId) => {
         const key = keyForResource(resourceId);
@@ -213,7 +228,8 @@ export const createNonParentCacheStoreWithTTL =
 
         await client
           .multi()
-          .SET(key, JSON.stringify(resource), { PX: ttl })
+          .SET(key, "null", { NX: true, PX: ttl })
+          .SET(key, JSON.stringify(resource))
           .SADD(keyForIds, resourceId)
           .exec();
       },

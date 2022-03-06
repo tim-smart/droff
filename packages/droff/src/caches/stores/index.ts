@@ -17,6 +17,10 @@ export interface CacheStore<T> {
   effects$?: Rx.Observable<never>;
 }
 
+export interface CacheStoreWithTTL<T> extends CacheStore<T> {
+  refreshTTL: (resourceId: string) => Promise<void>;
+}
+
 export interface NonParentCacheStore<T> {
   size: () => Promise<number>;
   get: (resourceId: string) => Promise<T | undefined>;
@@ -25,6 +29,15 @@ export interface NonParentCacheStore<T> {
   delete: (resourceId: string) => Promise<void>;
   effects$?: Rx.Observable<never>;
 }
+
+export interface NonParentCacheStoreWithTTL<T> extends NonParentCacheStore<T> {
+  refreshTTL: (resourceId: string) => Promise<void>;
+}
+
+export type AnyCacheStore<T> = CacheStore<T> | CacheStoreWithTTL<T>;
+export type AnyNonParentStore<T> =
+  | NonParentCacheStore<T>
+  | NonParentCacheStoreWithTTL<T>;
 
 type FallbackFn<T> = (id: Snowflake) => Promise<T>;
 export type NonParentGetOrFn<T> = (
@@ -41,29 +54,28 @@ export type GetForParentOrFn<T> = (
   id: (item: T) => string,
 ) => FallbackFn<ReadonlyMap<string, T>>;
 
-export interface CacheStoreWithHelpers<T> extends CacheStore<T> {
+export interface CacheStoreHelpers<T> {
   watch$: Rx.Observable<WatchOp<T>>;
   getOr: GetOrFn<T>;
   getForParentOr: GetForParentOrFn<T>;
 }
 
-export interface NonParentCacheStoreWithHelpers<T>
-  extends NonParentCacheStore<T> {
+export interface NonParentCacheStoreHelpers<T> {
   watch$: Rx.Observable<WatchOp<T>>;
   getOr: NonParentGetOrFn<T>;
 }
 
-export type CacheStoreFactory<T> = (
-  store?: CacheStore<T>,
-) => readonly [CacheStoreWithHelpers<T>, Rx.Observable<void>];
+export type CacheStoreFactory<T> = <S extends AnyCacheStore<T>>(
+  store?: S,
+) => readonly [S & CacheStoreHelpers<T>, Rx.Observable<void>];
 
-export type NonParentCacheStoreFactory<T> = (
-  store?: NonParentCacheStore<T>,
-) => readonly [NonParentCacheStoreWithHelpers<T>, Rx.Observable<void>];
+export type NonParentCacheStoreFactory<T> = <S extends AnyNonParentStore<T>>(
+  store?: S,
+) => readonly [S & NonParentCacheStoreHelpers<T>, Rx.Observable<void>];
 
-export const addHelpers = <T>(
-  store: CacheStore<T>,
-): CacheStoreWithHelpers<T> => ({
+export const addHelpers = <T, S extends AnyCacheStore<T>>(
+  store: S,
+): S & CacheStoreHelpers<T> => ({
   ...store,
   watch$: Rx.NEVER,
   getOr: (fallback, parentId) => async (id) => {
@@ -90,9 +102,9 @@ export const addHelpers = <T>(
   },
 });
 
-export const addNonParentHelpers = <T>(
-  store: NonParentCacheStore<T>,
-): NonParentCacheStoreWithHelpers<T> => ({
+export const addNonParentHelpers = <T, S extends AnyNonParentStore<T>>(
+  store: S,
+): S & NonParentCacheStoreHelpers<T> => ({
   ...store,
   watch$: Rx.NEVER,
   getOr: (fallback) => async (id) => {
@@ -110,7 +122,7 @@ export const addNonParentHelpers = <T>(
 
 export const fromWatch =
   <T>(watch$: Rx.Observable<WatchOp<T>>): CacheStoreFactory<T> =>
-  (store = Memory.create<T>()) => {
+  <S extends AnyCacheStore<T>>(store = Memory.create<T>() as S) => {
     const effects$ = pipe(
       watch$,
       RxO.flatMap((op) => {
@@ -136,7 +148,9 @@ export const fromWatch =
 
 export const fromWatchNonParent =
   <T>(watch$: Rx.Observable<WatchOp<T>>): NonParentCacheStoreFactory<T> =>
-  (store = Memory.createNonParent<T>()) => {
+  <S extends AnyNonParentStore<T>>(
+    store = Memory.createNonParent<T>() as S,
+  ) => {
     const effects$ = pipe(
       watch$,
       RxO.flatMap((op) => {

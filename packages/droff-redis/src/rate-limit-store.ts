@@ -1,6 +1,4 @@
 import { Store } from "droff/dist/rate-limits/store";
-import { delayFrom } from "droff/dist/rate-limits/stores/utils";
-import { number } from "fp-ts";
 import { WatchError } from "redis";
 import { CreateStoreOpts } from "./cache-store";
 

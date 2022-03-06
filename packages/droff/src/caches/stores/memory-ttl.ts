@@ -1,5 +1,10 @@
 import { Snowflake } from "../../types";
-import { CacheStore, NonParentCacheStore } from ".";
+import {
+  CacheStore,
+  CacheStoreWithTTL,
+  NonParentCacheStore,
+  NonParentCacheStoreWithTTL,
+} from ".";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 
@@ -37,7 +42,7 @@ export const createNonParent = <T>({
   ttl,
   resolution = 1 * minute,
   strategy = "usage",
-}: MemoryTTLStoreOpts): NonParentCacheStore<T> => {
+}: MemoryTTLStoreOpts): NonParentCacheStoreWithTTL<T> => {
   const additionalMilliseconds =
     (Math.floor(ttl / resolution) + 1) * resolution;
 
@@ -93,6 +98,8 @@ export const createNonParent = <T>({
     getSync,
     get: async (id) => getSync(id),
 
+    refreshTTL: async (id) => refreshTTL(id),
+
     set: async (resourceId, resource) => {
       const exists = items.has(resourceId);
       const needsRefresh = exists === false || strategy === "activity";
@@ -115,13 +122,15 @@ export const createNonParent = <T>({
   };
 };
 
-export const create = <T>(opts: MemoryTTLStoreOpts): CacheStore<T> => {
+export const create = <T>(opts: MemoryTTLStoreOpts): CacheStoreWithTTL<T> => {
   const store = createNonParent<T>(opts);
   const parentIds = new Map<Snowflake, Set<string>>();
 
   return {
     size: store.size,
     sizeForParent: async (parentId) => parentIds.get(parentId)?.size ?? 0,
+
+    refreshTTL: store.refreshTTL,
 
     getSync: store.getSync,
     get: store.get,

@@ -1,4 +1,4 @@
-import { Client } from "droff";
+import { RESTClient } from "droff";
 import {
   ApplicationCommand,
   Guild,
@@ -37,7 +37,7 @@ export type RespondFn = <K extends keyof ResponseTypes>(
 ) => (data?: ResponseTypes[K]) => Promise<any>;
 
 export const respond =
-  (rest: Client) =>
+  (rest: RESTClient) =>
   (interaction: Interaction): RespondFn =>
   (type) =>
   (data) =>
@@ -47,7 +47,7 @@ export const respond =
     });
 
 export const editOriginal =
-  (rest: Client) =>
+  (rest: RESTClient) =>
   (interaction: Interaction) =>
   (data?: InteractionCallbackDatum) =>
     rest.editOriginalInteractionResponse(
@@ -57,7 +57,7 @@ export const editOriginal =
     );
 
 export const setPermissions =
-  (rest: Client) =>
+  (rest: RESTClient) =>
   (guild: Guild, command: GuildCommand, apiCommand: ApplicationCommand) =>
     F.pipe(
       O.fromNullable(command.permissions),

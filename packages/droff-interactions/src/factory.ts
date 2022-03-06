@@ -163,7 +163,7 @@ export const create = (client: Client): InteractionsHelper => {
       RxO.share(),
     );
   const applicationCommand$ = interactionCreate(
-    InteractionType.APPLICATION_COMMAND_AUTOCOMPLETE,
+    InteractionType.APPLICATION_COMMAND,
   );
   const interactionAutocomplete$ = interactionCreate(
     InteractionType.APPLICATION_COMMAND_AUTOCOMPLETE,

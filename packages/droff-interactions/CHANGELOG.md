@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.1](https://github.com/tim-smart/droff/compare/droff-interactions@0.8.0...droff-interactions@0.8.1) (2022-03-06)
+
+### Bug Fixes
+
+- Narrow commands helpers to RESTClient ([2c5cc17](https://github.com/tim-smart/droff/commit/2c5cc170c453ad62041305790775ad7aa3522b6a))
+
 # [0.8.0](https://github.com/tim-smart/droff/compare/droff-interactions@0.7.8...droff-interactions@0.8.0) (2022-03-06)
 
 ### Bug Fixes

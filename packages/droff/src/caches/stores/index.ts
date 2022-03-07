@@ -65,11 +65,13 @@ export interface NonParentCacheStoreHelpers<T> {
   getOr: NonParentGetOrFn<T>;
 }
 
-export type CacheStoreFactory<T> = <S extends AnyCacheStore<T>>(
+export type CacheStoreFactory<T> = <S extends AnyCacheStore<T> = CacheStore<T>>(
   store?: S,
 ) => readonly [S & CacheStoreHelpers<T>, Rx.Observable<void>];
 
-export type NonParentCacheStoreFactory<T> = <S extends AnyNonParentStore<T>>(
+export type NonParentCacheStoreFactory<T> = <
+  S extends AnyNonParentStore<T> = NonParentCacheStore<T>,
+>(
   store?: S,
 ) => readonly [S & NonParentCacheStoreHelpers<T>, Rx.Observable<void>];
 

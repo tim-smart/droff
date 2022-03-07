@@ -4,7 +4,6 @@ import { createClient } from "droff";
 import {
   ApplicationCommandType,
   InteractionCallbackType,
-  InteractionType,
   MessageFlag,
 } from "droff/dist/types";
 import { pipe } from "fp-ts/lib/function";

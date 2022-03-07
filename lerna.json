@@ -2,5 +2,13 @@
   "packages": ["packages/*"],
   "version": "independent",
   "npmClient": "yarn",
-  "useWorkspaces": true
+  "useWorkspaces": true,
+  "command": {
+    "version": {
+      "allowBranch": "main",
+      "conventialCommits": true,
+      "message": "chore(release): %s",
+      "createRelease": "github"
+    }
+  }
 }

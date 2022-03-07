@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.27.2](https://github.com/tim-smart/droff/compare/droff@0.27.1...droff@0.27.2) (2022-03-07)
+
+### Bug Fixes
+
+- **rate-limits:** use parseFloat for retryAfter helper ([4de90a7](https://github.com/tim-smart/droff/commit/4de90a7d9a36f4b107dac64cb57d66a9e34296f8))
+
 ## [0.27.1](https://github.com/tim-smart/droff/compare/droff@0.27.0...droff@0.27.1) (2022-03-06)
 
 ### Bug Fixes

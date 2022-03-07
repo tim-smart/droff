@@ -18,7 +18,7 @@ export const filterBySelector =
         )
       : RxO.filter((ctx: InteractionContext) => selector(ctx) === matcher);
 
-export const startsWithSelector =
+export const selectorStartsWith =
   (selector: (data: InteractionContext) => string | undefined) =>
   (prefix: string) =>
     RxO.filter((ctx: InteractionContext) =>
@@ -29,7 +29,7 @@ export const filterByCustomId = filterBySelector(
   ({ interaction }) => interaction.data?.custom_id,
 );
 
-export const startsWithCustomId = startsWithSelector(
+export const customIdStartsWith = selectorStartsWith(
   ({ interaction }) => interaction.data?.custom_id,
 );
 
@@ -37,7 +37,7 @@ export const filterByFocusedOption = filterBySelector(
   ({ focusedOption }) => focusedOption?.name,
 );
 
-export const startsWithFocusedOption = startsWithSelector(
+export const focusedOptionStartsWith = selectorStartsWith(
   ({ focusedOption }) => focusedOption?.name,
 );
 

@@ -45,7 +45,6 @@ export type RateLimitDetails = ReturnType<typeof rateLimitFromHeaders>;
 
 export const retryAfter = (headers: any) =>
   F.pipe(
-    O.fromNullable(headers["x-ratelimit-reset-after"]),
-    O.chainNullableK((seconds) => parseInt(seconds, 10)),
+    numberHeader(headers)("x-ratelimit-reset-after"),
     O.map((secs) => secs * 1000),
   );

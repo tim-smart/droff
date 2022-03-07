@@ -1,4 +1,4 @@
-import { ActionRow, Component, InteractionDatum } from "droff/dist/types";
+import { ActionRow, Component } from "droff/dist/types";
 import { Map } from "immutable";
 import { Observable } from "rxjs";
 import * as RxO from "rxjs/operators";
@@ -18,10 +18,26 @@ export const filterBySelector =
         )
       : RxO.filter((ctx: InteractionContext) => selector(ctx) === matcher);
 
+export const startsWithSelector =
+  (selector: (data: InteractionContext) => string | undefined) =>
+  (prefix: string) =>
+    RxO.filter((ctx: InteractionContext) =>
+      (selector(ctx) ?? "").startsWith(prefix),
+    );
+
 export const filterByCustomId = filterBySelector(
   ({ interaction }) => interaction.data?.custom_id,
 );
+
+export const startsWithCustomId = startsWithSelector(
+  ({ interaction }) => interaction.data?.custom_id,
+);
+
 export const filterByFocusedOption = filterBySelector(
+  ({ focusedOption }) => focusedOption?.name,
+);
+
+export const startsWithFocusedOption = startsWithSelector(
   ({ focusedOption }) => focusedOption?.name,
 );
 

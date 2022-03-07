@@ -1,6 +1,6 @@
 {
   "name": "droff",
-  "version": "0.27.3",
+  "version": "0.27.4",
   "description": "Simple Discord client powered by RxJS and Axios",
   "main": "dist/mod.js",
   "author": "Tim Smart <tim.smart@arisechurch.com>",

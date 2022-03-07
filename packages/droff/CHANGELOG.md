@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.27.4](https://github.com/tim-smart/droff/compare/droff@0.27.3...droff@0.27.4) (2022-03-07)
+
+### Bug Fixes
+
+- Add default store type to factory fn types ([0c8226f](https://github.com/tim-smart/droff/commit/0c8226fc809bfe56aa3e28bc5b6c60a3daded07f))
+
 ## [0.27.3](https://github.com/tim-smart/droff/compare/droff@0.27.2...droff@0.27.3) (2022-03-07)
 
 **Note:** Version bump only for package droff

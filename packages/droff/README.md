@@ -18,6 +18,8 @@ Simple Discord client powered by RxJS and Axios
 - Functional - Favour functional composition over inheritence. Every function or
   property on the client can be destructured and used without worrying about
   scope.
+- Scalable - Every component of the library can be scaled seperately, allowing
+  for easy horizontal distribution of your bot.
 
 ## Packages
 

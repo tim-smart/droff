@@ -1,4 +1,4 @@
-import { AxiosInstance, AxiosResponse, Method } from "axios";
+import { AxiosInstance, AxiosResponse, Method, AxiosError } from "axios";
 import * as Http from "http";
 
 export const createHandler =
@@ -12,9 +12,13 @@ export const createHandler =
         responseType: "stream",
       })
       .then(handleResponse(res))
-      .catch(() => {
-        res.writeHead(500);
-        res.end();
+      .catch((err: AxiosError) => {
+        if (err.response?.data) {
+          handleResponse(res)(err.response!);
+        } else {
+          res.writeHead(500);
+          res.end();
+        }
       });
 
 const handleResponse = (res: Http.ServerResponse) => (r: AxiosResponse) => {

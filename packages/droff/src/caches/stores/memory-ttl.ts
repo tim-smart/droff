@@ -1,12 +1,7 @@
-import { Snowflake } from "../../types";
-import {
-  CacheStore,
-  CacheStoreWithTTL,
-  NonParentCacheStore,
-  NonParentCacheStoreWithTTL,
-} from ".";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
+import { CacheStoreWithTTL, NonParentCacheStoreWithTTL } from ".";
+import { Snowflake } from "../../types";
 
 const second = 1000;
 const minute = 60 * second;

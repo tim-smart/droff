@@ -23,15 +23,15 @@ export const opCode = <T = any>(code: GatewayOpcode) =>
 export type ConnectionPayload = WS.Payload<GatewayPayload>;
 
 export function create(
-  input$: Rx.Observable<ConnectionPayload>,
+  outgoing$: Rx.Observable<ConnectionPayload>,
   baseURL = "wss://gateway.discord.gg/",
 ) {
   const { encode, decode, encoding } = Codec.create();
   const url = `${baseURL}?v=${VERSION}&encoding=${encoding}`;
 
-  const raw$ = WS.create<GatewayPayload, GatewayPayload>(url, input$, {
+  const raw$ = WS.create<GatewayPayload, GatewayPayload>(url, outgoing$, {
     encode,
-    decode: decode as any,
+    decode,
   });
   const dispatch$ = raw$.pipe(opCode<GatewayEvent>(GatewayOpcode.DISPATCH));
   const heartbeat$ = raw$.pipe(opCode<Heartbeat>(GatewayOpcode.HEARTBEAT));

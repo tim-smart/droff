@@ -98,7 +98,7 @@ export const create =
       }),
       RxO.map(() => {}),
       RxO.first(),
-      RxO.shareReplay({ bufferSize: 1, refCount: true }),
+      RxO.shareReplay({ refCount: true }),
     );
 
     const raw$ = shards$.pipe(

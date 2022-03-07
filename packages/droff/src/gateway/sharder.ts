@@ -47,18 +47,18 @@ export const spawn = ({
       const totalCount = shardConfig?.count ?? shards;
       const concurrency = limit.max_concurrency;
 
-      const [iterator, cancel] = generateOpts({
+      const [iterator, cancel] = generateShardConfigs({
         url,
         totalCount,
         store,
         shardConfig,
       });
 
-      const [opts$, pull] = RxI.from(iterator, {
+      const [configs$, pull] = RxI.from(iterator, {
         initialCount: concurrency,
       });
 
-      return opts$.pipe(
+      return configs$.pipe(
         RxO.groupBy(({ id }) => id % concurrency),
         RxO.mergeMap((group$) =>
           group$.pipe(
@@ -91,7 +91,7 @@ interface GeneratorOptsOpts {
   store: SharderStore;
 }
 
-function generateOpts({
+function generateShardConfigs({
   url,
   totalCount: count,
   shardConfig,

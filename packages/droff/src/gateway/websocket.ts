@@ -6,15 +6,15 @@ import * as RxO from "rxjs/operators";
 export const RECONNECT = Symbol();
 export type Payload<T> = T | typeof RECONNECT;
 
-export function create<R, T>(
+export function create<Rx, Tx>(
   url: string,
-  input$: Rx.Observable<Payload<T>>,
-  opts: { encode: (data: T) => RawData; decode: (data: RawData) => R } = {
+  outgoing$: Rx.Observable<Payload<Tx>>,
+  opts: { encode: (data: Tx) => RawData; decode: (data: RawData) => Rx } = {
     encode: F.identity as any,
     decode: F.identity as any,
   },
 ) {
-  return new Rx.Observable<R>((s) => {
+  return new Rx.Observable<Rx>((s) => {
     let closed = false;
 
     const createWS = () => {
@@ -22,7 +22,7 @@ export function create<R, T>(
       let sub: Rx.Subscription;
 
       ws.on("open", () => {
-        sub = input$.subscribe((payload) => {
+        sub = outgoing$.subscribe((payload) => {
           if (payload === RECONNECT) {
             ws.close(1012, "reconnecting");
             return;

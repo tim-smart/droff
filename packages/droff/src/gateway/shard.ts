@@ -33,7 +33,7 @@ export function create({
 }: Options) {
   const sendSubject = new QueueingSubject<Conn.ConnectionPayload>();
 
-  const input$ = sendSubject.pipe(
+  const outgoing$ = sendSubject.pipe(
     rateLimitOp("gateway.send", sendWindow, sendLimit),
   );
 
@@ -44,7 +44,7 @@ export function create({
     sendSubject.next(RECONNECT);
   }
 
-  const conn = Conn.create(input$, baseURL);
+  const conn = Conn.create(outgoing$, baseURL);
 
   const fromDispatch = Dispatch.listen(conn.dispatch$);
   const sequenceNumber$ = Internal.latestSequenceNumber(conn.dispatch$);

@@ -1,7 +1,7 @@
 import { RawData } from "ws";
 
-type Encode = (payload: unknown) => RawData;
-type Decode = (bloc: RawData) => unknown;
+type Encode = <T = unknown>(payload: T) => RawData;
+type Decode = <T = unknown>(bloc: RawData) => T;
 
 export interface Codec {
   encode: Encode;

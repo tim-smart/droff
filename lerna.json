@@ -6,7 +6,8 @@
   "command": {
     "version": {
       "allowBranch": "main",
-      "conventialCommits": true,
+      "conventionalCommits": true,
+      "changelogPreset": "angular",
       "message": "chore(release): %s",
       "createRelease": "github"
     }

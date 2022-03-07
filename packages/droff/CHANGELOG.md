@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.27.5](https://github.com/tim-smart/droff/compare/droff@0.27.4...droff@0.27.5) (2022-03-07)
+
+**Note:** Version bump only for package droff
+
 ## [0.27.4](https://github.com/tim-smart/droff/compare/droff@0.27.3...droff@0.27.4) (2022-03-07)
 
 ### Bug Fixes

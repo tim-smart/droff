@@ -38,13 +38,7 @@ export function create({
   disableRateLimiter = false,
 }: Options) {
   if (disableRateLimiter) {
-    return [
-      Axios.create({
-        baseURL,
-        timeout: 10000,
-      }),
-      EMPTY,
-    ] as const;
+    return [Axios.create({ baseURL }), EMPTY] as const;
   }
 
   const client = Axios.create({

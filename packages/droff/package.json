@@ -14,7 +14,7 @@
     "prepare": "rm -rf dist && tsc"
   },
   "devDependencies": {
-    "@tim-smart/discord-api-docs-parser": "^0.2.0",
+    "@tim-smart/discord-api-docs-parser": "^0.2.1",
     "@types/node": "^17.0.21",
     "@types/ws": "^8.5.1",
     "dotenv": "^16.0.0",

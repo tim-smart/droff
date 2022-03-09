@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.6.0](https://github.com/tim-smart/droff/compare/droff-helpers@0.5.16...droff-helpers@0.6.0) (2022-03-09)
+
+### Features
+
+- add resolveOptionValue for interactions ([e8b8f8b](https://github.com/tim-smart/droff/commit/e8b8f8b47731fcb913d83768ae6121a9f1d8b37a))
+
 ## [0.5.16](https://github.com/tim-smart/droff/compare/droff-helpers@0.5.15...droff-helpers@0.5.16) (2022-03-07)
 
 **Note:** Version bump only for package droff-helpers

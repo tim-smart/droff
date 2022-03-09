@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.27.6](https://github.com/tim-smart/droff/compare/droff@0.27.5...droff@0.27.6) (2022-03-09)
+
+### Bug Fixes
+
+- catch get gateway bot errors ([1d6ed57](https://github.com/tim-smart/droff/commit/1d6ed57a8fb63c7de919b4a04d05a847db368864))
+
 ## [0.27.5](https://github.com/tim-smart/droff/compare/droff@0.27.4...droff@0.27.5) (2022-03-07)
 
 **Note:** Version bump only for package droff

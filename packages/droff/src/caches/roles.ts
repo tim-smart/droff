@@ -1,3 +1,4 @@
+import { from } from "rxjs";
 import * as RxO from "rxjs/operators";
 import { Dispatch } from "../gateway/dispatch";
 import { Role } from "../types";
@@ -6,7 +7,7 @@ import * as Resources from "./resources";
 export const watch$ = (fromDispatch: Dispatch) =>
   Resources.watch$<Role>(fromDispatch, {
     id: (role) => role.id,
-    guildProp: "roles",
+    init: (g) => from(g.roles),
 
     create$: fromDispatch("GUILD_ROLE_CREATE").pipe(
       RxO.map(({ role, guild_id }) => [guild_id, role] as const),

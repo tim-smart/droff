@@ -1,3 +1,5 @@
+import { identity } from "fp-ts/lib/function";
+import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { Dispatch } from "../gateway/dispatch";
 import { Routes } from "../rest/client";
@@ -12,10 +14,11 @@ export const watch$ = (fromDispatch: Dispatch, rest: Routes) =>
   Resources.watch$(fromDispatch, {
     id: (i: PartialInvite) => i.code,
     init: (guild) =>
-      rest.getGuildInvites(guild.id).then((invites: any[]) =>
-        invites.map((i) => ({
+      Rx.from(rest.getGuildInvites(guild.id)).pipe(
+        RxO.mergeMap(identity),
+        RxO.map((i): any => ({
           ...i,
-          channel_id: i.channel.id,
+          channel_id: i.channel!.id,
         })),
       ),
 

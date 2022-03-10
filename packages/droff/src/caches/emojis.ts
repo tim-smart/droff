@@ -6,7 +6,7 @@ import * as Resources from "./resources";
 export const watch$ = (fromDispatch: Dispatch) =>
   Resources.watch$(fromDispatch, {
     id: (e) => e.id!,
-    guildProp: "emojis",
+    init: (g) => Rx.from(g.emojis),
     update$: fromDispatch("GUILD_EMOJIS_UPDATE").pipe(
       RxO.flatMap(({ emojis, guild_id }) =>
         Rx.from(emojis).pipe(RxO.map((emoji) => [guild_id, emoji] as const)),

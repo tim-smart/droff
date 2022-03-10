@@ -3,10 +3,9 @@ import * as RxO from "rxjs/operators";
 import { Dispatch } from "../gateway/dispatch";
 import { Guild, Snowflake } from "../types";
 
-export interface CrudObserables<T> {
+export interface CrudObservables<T> {
   id: (resource: T) => string;
-  guildProp?: keyof Guild;
-  init?: (guild: Guild) => Promise<T[]>;
+  init?: (guild: Guild) => Rx.Observable<T>;
 
   create$?: Rx.Observable<readonly [Snowflake, T]>;
   update$?: Rx.Observable<readonly [Snowflake, T]>;
@@ -39,26 +38,19 @@ export const watch$ = <T>(
   fromDispatch: Dispatch,
   {
     id,
-    guildProp,
-    init = () => Promise.resolve([]),
+    init = () => Rx.EMPTY,
     create$ = Rx.EMPTY,
     update$ = Rx.EMPTY,
     delete$ = Rx.EMPTY,
     effects$ = Rx.NEVER,
-  }: CrudObserables<T>,
+  }: CrudObservables<T>,
 ): Rx.Observable<WatchOp<T>> =>
   Rx.merge(
     fromDispatch("GUILD_CREATE").pipe(
       RxO.flatMap((guild) =>
-        Rx.merge(
-          Rx.from((guildProp ? guild[guildProp] || [] : []) as T[]).pipe(
-            RxO.map((r) => [guild.id, r] as const),
-          ),
-          Rx.from(init(guild)).pipe(
-            RxO.catchError(() => []),
-            RxO.flatMap((items) => items),
-            RxO.map((r) => [guild.id, r] as const),
-          ),
+        init(guild).pipe(
+          RxO.catchError(() => Rx.EMPTY),
+          RxO.map((r) => [guild.id, r] as const),
         ),
       ),
       RxO.map(

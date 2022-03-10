@@ -13,7 +13,6 @@
     "docs": "lerna run docs"
   },
   "devDependencies": {
-    "conventional-changelog-angular": "^5.0.13",
     "husky": "^7.0.0",
     "lerna": "^4.0.0",
     "lint-staged": ">=10",

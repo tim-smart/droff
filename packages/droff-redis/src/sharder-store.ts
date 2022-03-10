@@ -1,4 +1,4 @@
-import { ClaimIdContext, SharderStore } from "droff/dist/gateway/sharder/store";
+import { ClaimIdContext, SharderStore } from "droff/gateway/sharder/store";
 import * as Arr from "fp-ts/lib/Array";
 import { flow, identity, pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/lib/Option";

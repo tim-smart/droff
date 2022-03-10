@@ -7,7 +7,7 @@ import {
   SelectMenu,
   TextInput,
   TextInputStyle,
-} from "droff/dist/types";
+} from "droff/types";
 
 export type UIComponent = Exclude<Component, ActionRow>;
 

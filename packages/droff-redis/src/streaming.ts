@@ -1,5 +1,5 @@
 import { Client } from "droff";
-import { GatewayPayload, GuildCreateEvent } from "droff/dist/types";
+import { GatewayPayload, GuildCreateEvent } from "droff/types";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/lib/Option";
 import * as T from "fp-ts/lib/Task";

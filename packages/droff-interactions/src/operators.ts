@@ -1,4 +1,4 @@
-import { ActionRow, Component } from "droff/dist/types";
+import { ActionRow, Component } from "droff/types";
 import { Map } from "immutable";
 import { Observable } from "rxjs";
 import * as RxO from "rxjs/operators";

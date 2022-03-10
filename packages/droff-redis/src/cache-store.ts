@@ -3,8 +3,8 @@ import {
   CacheStoreWithTTL,
   NonParentCacheStore,
   NonParentCacheStoreWithTTL,
-} from "droff/dist/caches/stores";
-import { Snowflake } from "droff/dist/types";
+} from "droff/caches/stores";
+import { Snowflake } from "droff/types";
 import { createClient } from "redis";
 
 export interface CreateStoreOpts {

@@ -4,7 +4,7 @@ import {
   Overwrite,
   PermissionFlag,
   Role,
-} from "droff/dist/types";
+} from "droff/types";
 import * as F from "fp-ts/function";
 import * as Flags from "./flags";
 import * as Members from "./members";

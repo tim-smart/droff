@@ -2,16 +2,18 @@
   "name": "droff",
   "version": "0.28.0",
   "description": "Simple Discord client powered by RxJS and Axios",
-  "main": "dist/mod.js",
+  "main": "mod.js",
   "author": "Tim Smart <tim.smart@arisechurch.com>",
   "license": "MIT",
   "files": [
-    "dist/"
+    "**/*.js",
+    "**/*.d.ts"
   ],
   "scripts": {
     "types": "discord-api-codegen ./discord-api-docs -l typescript > src/types.ts && prettier -w src/types.ts",
     "docs": "rm -rf docs && typedoc src/mod.ts",
-    "prepare": "rm -rf dist && tsc"
+    "prepare": "rm -rf dist && tsc && cp -r dist/* . && rm -r dist",
+    "clean": "git clean -fxd -e .env -e node_modules"
   },
   "devDependencies": {
     "@tim-smart/discord-api-docs-parser": "^0.2.1",

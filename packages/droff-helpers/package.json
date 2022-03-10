@@ -10,20 +10,19 @@
   "author": "Tim Smart <tim.smart@arisechurch.com>",
   "homepage": "https://github.com/tim-smart/droff#readme",
   "license": "MIT",
-  "main": "dist/mod.js",
-  "directories": {
-    "dist": "dist"
-  },
+  "main": "mod.js",
   "files": [
-    "dist"
+    "**/*.js",
+    "**/*.d.ts"
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tim-smart/droff.git"
   },
   "scripts": {
-    "prepare": "rm -rf dist && tsc",
-    "docs": "rm -rf docs && typedoc src/mod.ts"
+    "prepare": "rm -rf dist && tsc && cp -r dist/* . && rm -r dist",
+    "docs": "rm -rf docs && typedoc src/mod.ts",
+    "clean": "git clean -fxd -e .env -e node_modules"
   },
   "bugs": {
     "url": "https://github.com/tim-smart/droff/issues"

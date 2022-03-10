@@ -1,4 +1,4 @@
-import { GuildMember, Role } from "droff/dist/types";
+import { GuildMember, Role } from "droff/types";
 
 /**
  * From a list of roles, filter out the ones the guild member has.

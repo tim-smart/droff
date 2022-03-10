@@ -1,4 +1,4 @@
-import { GatewayIntents } from "droff/dist/types";
+import { GatewayIntents } from "droff/types";
 import * as Flags from "./flags";
 
 /**

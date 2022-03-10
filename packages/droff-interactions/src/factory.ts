@@ -1,22 +1,18 @@
 import { Client } from "droff";
 import {
-  ActionRow,
   ApplicationCommandInteractionDataOption,
   ApplicationCommandPermission,
-  Component,
   CreateGlobalApplicationCommandParams,
   CreateGuildApplicationCommandParams,
   Guild,
   GuildMember,
   Interaction,
-  InteractionCallbackAutocomplete,
   InteractionCallbackMessage,
-  InteractionCallbackModal,
   InteractionCallbackType,
   InteractionType,
   Message,
   User,
-} from "droff/dist/types";
+} from "droff/types";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/lib/Option";
 import { Map } from "immutable";

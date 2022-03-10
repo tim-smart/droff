@@ -5,7 +5,7 @@ import {
   ApplicationCommandType,
   InteractionCallbackType,
   MessageFlag,
-} from "droff/dist/types";
+} from "droff/types";
 import { pipe } from "fp-ts/lib/function";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";

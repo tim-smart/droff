@@ -1,13 +1,13 @@
 require("dotenv").config();
 
-import { createClient, Intents, Permissions } from "droff";
+import { createClient, Permissions } from "droff";
 import {
   ApplicationCommandOptionType,
   ApplicationCommandPermissionType,
   InteractionCallbackType,
   InteractionType,
   MessageFlag,
-} from "droff/dist/types";
+} from "droff/types";
 import { flow } from "fp-ts/lib/function";
 import { toUndefined } from "fp-ts/lib/Option";
 import * as Rx from "rxjs";

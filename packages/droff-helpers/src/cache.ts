@@ -1,4 +1,4 @@
-import { WatchOp } from "droff/dist/caches/resources";
+import { WatchOp } from "droff/caches/resources";
 
 export const filterWatch =
   <T>(f: (resource: T) => boolean) =>

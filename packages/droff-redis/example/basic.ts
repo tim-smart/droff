@@ -3,8 +3,8 @@ require("dotenv").config();
 import * as Redis from "redis";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import { createClient, Intents } from "../../droff";
-import { Guild, Role, Channel } from "../../droff/dist/types";
+import { createClient, Intents } from "droff";
+import { Guild, Role, Channel } from "droff/types";
 import { createStores } from "../src/mod";
 
 // some constants

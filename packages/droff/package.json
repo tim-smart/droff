@@ -31,7 +31,7 @@
     "immutable": "^4.0.0",
     "queueing-subject": "^1.0.0",
     "rxjs": "^7.1.0",
-    "rxjs-iterable": "^0.1.1",
+    "rxjs-iterable": "^0.2.0",
     "tslib": "^2.3.0",
     "ws": "^8.2.2"
   },

@@ -12,6 +12,7 @@ import { RECONNECT } from "./websocket";
 export interface Options {
   token: string;
   intents: number;
+  outgoing$: Rx.Observable<GatewayPayload>;
   shard?: [number, number];
   baseURL?: string;
   sharderHeartbeat?: () => void;
@@ -26,16 +27,14 @@ export interface Options {
 export function create({
   token,
   baseURL,
+  outgoing$,
   intents,
   sharderHeartbeat,
   shard = [0, 1],
   rateLimits: { op: rateLimitOp, sendLimit = 120, sendWindow = 60000 },
 }: Options) {
   const sendSubject = new QueueingSubject<Conn.ConnectionPayload>();
-
-  const outgoing$ = sendSubject.pipe(
-    rateLimitOp("gateway.send", sendWindow, sendLimit),
-  );
+  outgoing$.subscribe(sendSubject);
 
   function send(payload: GatewayPayload) {
     sendSubject.next(payload);
@@ -44,7 +43,11 @@ export function create({
     sendSubject.next(RECONNECT);
   }
 
-  const conn = Conn.create(outgoing$, baseURL);
+  const send$ = sendSubject.pipe(
+    rateLimitOp("gateway.send", sendWindow, sendLimit),
+  );
+
+  const conn = Conn.create(send$, baseURL);
 
   const fromDispatch = Dispatch.listen(conn.dispatch$);
   const sequenceNumber$ = Internal.latestSequenceNumber(conn.dispatch$);

@@ -109,7 +109,10 @@ export function create({
   });
 
   const gateway = gatewayOptions.payloads$
-    ? GatewayClient.createFromPayloads(gatewayOptions.payloads$)
+    ? GatewayClient.createFromPayloads(
+        gatewayOptions.payloads$,
+        gatewayOptions.sendOverride,
+      )
     : GatewayClient.create(rest)({
         token,
         ...gatewayOptions,

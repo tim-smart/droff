@@ -4582,10 +4582,10 @@ run-parallel@^1.1.9:
   dependencies:
     queue-microtask "^1.2.2"
 
-rxjs-iterable@^0.1.1:
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/rxjs-iterable/-/rxjs-iterable-0.1.2.tgz#ba218f8c2d786b3f8eed1943730d1c65ddd6712f"
-  integrity sha512-RHjEvKcOdOdbaQMG0cWyFYKQBXZO2Ng6wcXN7NLTITIYXld2kGIBuME0e5Fsq6qyw1hownjBuWA2vJAs/PloCw==
+rxjs-iterable@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/rxjs-iterable/-/rxjs-iterable-0.2.0.tgz#b5d1196e7fe4854425ecbfbdf0abb402bc6c2503"
+  integrity sha512-h9NUizKcV8ijaqr9DcKuVdTxubfuglFjRN6BRgCbyqe58j/4mZPJi4+cJqfv/2M0H/VCll8T1qj+7JA9C50cRw==
 
 rxjs@^6.6.0:
   version "6.6.7"

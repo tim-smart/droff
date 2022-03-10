@@ -1,4 +1,4 @@
-import { Interaction, Message, User } from "droff/dist/types";
+import { Interaction, Message, User } from "droff/types";
 import * as Arr from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/lib/Option";

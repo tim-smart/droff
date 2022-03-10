@@ -261,13 +261,21 @@ export enum ApplicationCommandType {
   MESSAGE = 3,
 }
 export const ApplicationFlag = {
+  /** Intent required for bots in 100 or more servers to receive presence_update events */
   GATEWAY_PRESENCE: 1 << 12,
+  /** Intent required for bots in under 100 servers to receive presence_update events, found in Bot Settings */
   GATEWAY_PRESENCE_LIMITED: 1 << 13,
+  /** Intent required for bots in 100 or more servers to receive member-related events like guild_member_add. See list of member-related events under GUILD_MEMBERS */
   GATEWAY_GUILD_MEMBERS: 1 << 14,
+  /** Intent required for bots in under 100 servers to receive member-related events like guild_member_add, found in Bot Settings. See list of member-related events under GUILD_MEMBERS */
   GATEWAY_GUILD_MEMBERS_LIMITED: 1 << 15,
+  /** Indicates unusual growth of an app that prevents verification */
   VERIFICATION_PENDING_GUILD_LIMIT: 1 << 16,
+  /** Indicates if an app is embedded within the Discord client (currently unavailable publicly) */
   EMBEDDED: 1 << 17,
+  /** Intent required for bots in 100 or more servers to receive message content */
   GATEWAY_MESSAGE_CONTENT: 1 << 18,
+  /** Intent required for bots in under 100 servers to receive message content, found in Bot Settings */
   GATEWAY_MESSAGE_CONTENT_LIMITED: 1 << 19,
 } as const;
 export interface Attachment {
@@ -706,9 +714,9 @@ export interface CreateGuildRoleParams {
   /** whether the role should be displayed separately in the sidebar */
   hoist: boolean;
   /** the role's icon image (if the guild has the ROLE_ICONS feature) */
-  icon: string;
+  icon?: string | null;
   /** the role's unicode emoji as a standard emoji (if the guild has the ROLE_ICONS feature) */
-  unicode_emoji: string;
+  unicode_emoji?: string | null;
   /** whether the role should be mentionable */
   mentionable: boolean;
 }
@@ -2257,8 +2265,7 @@ export interface Endpoints<O> {
     params?: Partial<CreateGuildTemplateParams>,
     options?: O,
   ) => Promise<GuildTemplate>;
-  /** Create a response to an Interaction from the gateway. Takes an interaction response.
-This endpoint also supports file attachments similar to the webhook endpoints. Refer to Uploading Files for details on uploading files and multipart/form-data requests. */
+  /** Create a response to an Interaction from the gateway. Body is an interaction response. Returns 204 No Content. */
   createInteractionResponse: (
     interactionId: string,
     interactionToken: string,
@@ -2278,11 +2285,11 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     emoji: string,
     options?: O,
   ) => Promise<any>;
-  /** Creates a new Stage instance associated to a Stage channel. */
+  /** Creates a new Stage instance associated to a Stage channel. Returns that Stage instance. */
   createStageInstance: (
     params?: Partial<CreateStageInstanceParams>,
     options?: O,
-  ) => Promise<any>;
+  ) => Promise<StageInstance>;
   /** Create a new webhook. Requires the MANAGE_WEBHOOKS permission. Returns a webhook object on success. Webhook names follow our naming restrictions that can be found in our Usernames and Nicknames documentation, with the following additional stipulations: */
   createWebhook: (
     channelId: string,
@@ -2397,7 +2404,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     emoji: string,
     options?: O,
   ) => Promise<any>;
-  /** Deletes the Stage instance. */
+  /** Deletes the Stage instance. Returns 204 No Content. */
   deleteStageInstance: (channelId: string, options?: O) => Promise<any>;
   /** Deletes another user's reaction. This endpoint requires the 'MANAGE_MESSAGES' permission to be present on the current user. Returns a 204 empty response on success.
 The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
@@ -2491,7 +2498,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     webhookToken: string,
     options?: O,
   ) => Promise<any>;
-  /** Refer to Uploading Files for details on attachments and multipart/form-data requests. */
+  /** Refer to Uploading Files for details on attachments and multipart/form-data requests. Returns a message or 204 No Content depending on the wait query parameter. */
   executeWebhook: (
     webhookId: string,
     webhookToken: string,
@@ -2828,7 +2835,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<ModifyCurrentUserNickParams>,
     options?: O,
   ) => Promise<any>;
-  /** Updates the current user's voice state. */
+  /** Updates the current user's voice state. Returns 204 No Content on success. */
   modifyCurrentUserVoiceState: (
     guildId: string,
     params?: Partial<ModifyCurrentUserVoiceStateParams>,
@@ -2905,12 +2912,12 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     guildId: string,
     options?: O,
   ) => Promise<GuildWidgetSetting>;
-  /** Updates fields of an existing Stage instance. */
+  /** Updates fields of an existing Stage instance. Returns the updated Stage instance. */
   modifyStageInstance: (
     channelId: string,
     params?: Partial<ModifyStageInstanceParams>,
     options?: O,
-  ) => Promise<any>;
+  ) => Promise<StageInstance>;
   /** Updates another user's voice state. */
   modifyUserVoiceState: (
     guildId: string,
@@ -3646,7 +3653,7 @@ export interface GuildScheduledEvent {
   /** the name of the scheduled event (1-100 characters) */
   name: string;
   /** the description of the scheduled event (1-1000 characters) */
-  description?: string;
+  description?: string | null;
   /** the time the scheduled event will start */
   scheduled_start_time: string;
   /** the time the scheduled event will end, required if entity_type is EXTERNAL */
@@ -4508,7 +4515,7 @@ export interface ModifyGuildScheduledEventParams {
   /** the channel id of the scheduled event, set to null if changing entity type to EXTERNAL */
   channel_id?: Snowflake | null;
   /** the entity metadata of the scheduled event */
-  entity_metadata?: GuildScheduledEventEntityMetadatum;
+  entity_metadata?: GuildScheduledEventEntityMetadatum | null;
   /** the name of the scheduled event */
   name?: string;
   /** the privacy level of the scheduled event */
@@ -4518,7 +4525,7 @@ export interface ModifyGuildScheduledEventParams {
   /** the time when the scheduled event is scheduled to end */
   scheduled_end_time?: string;
   /** the description of the scheduled event */
-  description?: string;
+  description?: string | null;
   /** the entity type of the scheduled event */
   entity_type?: GuildScheduledEventEntityType;
   /** the status of the scheduled event */
@@ -4814,7 +4821,7 @@ export interface SelectMenu {
   custom_id: string;
   /** the choices in the select, max 25 */
   options: SelectOption[];
-  /** custom placeholder text if nothing is selected, max 100 characters */
+  /** custom placeholder text if nothing is selected, max 150 characters */
   placeholder?: string;
   /** the minimum number of items that must be chosen; default 1, min 0, max 25 */
   min_values?: number;
@@ -4859,6 +4866,8 @@ export interface StageInstance {
   privacy_level: PrivacyLevel;
   /** Whether or not Stage Discovery is disabled (deprecated) */
   discoverable_disabled: boolean;
+  /** The id of the scheduled event for this Stage instance */
+  guild_scheduled_event_id?: Snowflake | null;
 }
 export type StageInstanceCreateEvent = StageInstance;
 export type StageInstanceDeleteEvent = StageInstance;
@@ -4907,7 +4916,7 @@ export interface Sticker {
   /** autocomplete/suggestion tags for the sticker (max 200 characters) */
   tags: string;
   /** Deprecated previously the sticker asset hash, now an empty string */
-  asset: string;
+  asset?: string;
   /** type of sticker */
   type: StickerType;
   /** type of sticker format */
@@ -5241,7 +5250,7 @@ export interface VoiceState {
   /** the guild id this voice state is for */
   guild_id?: Snowflake;
   /** the channel id this user is connected to */
-  channel_id?: Snowflake | null;
+  channel_id?: Snowflake;
   /** the user id this voice state is for */
   user_id: Snowflake;
   /** the guild member this voice state is for */
@@ -5263,7 +5272,7 @@ export interface VoiceState {
   /** whether this user is muted by the current user */
   suppress: boolean;
   /** the time at which the user requested to speak */
-  request_to_speak_timestamp?: string | null;
+  request_to_speak_timestamp?: string;
 }
 export type VoiceStateUpdateEvent = VoiceState;
 export interface Webhook {

@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.1](https://github.com/tim-smart/droff/compare/droff-commands@0.7.0...droff-commands@0.7.1) (2022-03-10)
+
+**Note:** Version bump only for package droff-commands
+
+# [0.7.0](https://github.com/tim-smart/droff/compare/droff-commands@0.6.18...droff-commands@0.7.0) (2022-03-10)
+
+**Note:** Version bump only for package droff-commands
+
+## [0.6.18](https://github.com/tim-smart/droff/compare/droff-commands@0.6.17...droff-commands@0.6.18) (2022-03-09)
+
+**Note:** Version bump only for package droff-commands
+
+## [0.6.17](https://github.com/tim-smart/droff/compare/droff-commands@0.6.16...droff-commands@0.6.17) (2022-03-09)
+
+**Note:** Version bump only for package droff-commands
+
 ## [0.6.16](https://github.com/tim-smart/droff/compare/droff-commands@0.6.15...droff-commands@0.6.16) (2022-03-07)
 
 **Note:** Version bump only for package droff-commands

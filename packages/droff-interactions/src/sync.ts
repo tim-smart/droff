@@ -1,5 +1,5 @@
 import { Client } from "droff";
-import { Application } from "droff/dist/types";
+import { Application } from "droff/types";
 import * as F from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { Map } from "immutable";

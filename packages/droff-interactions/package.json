@@ -1,6 +1,6 @@
 {
   "name": "droff-interactions",
-  "version": "0.9.1",
+  "version": "0.10.1",
   "description": "Helpers for using Discord interactions (slash commands and buttons) with droff",
   "keywords": [
     "discord",
@@ -9,20 +9,19 @@
   "author": "Tim Smart <tim.smart@arisechurch.com>",
   "homepage": "https://github.com/tim-smart/droff#readme",
   "license": "MIT",
-  "main": "dist/mod.js",
-  "directories": {
-    "dist": "dist"
-  },
+  "main": "mod.js",
   "files": [
-    "dist"
+    "**/*.js",
+    "**/*.d.ts"
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tim-smart/droff.git"
   },
   "scripts": {
-    "prepare": "rm -rf dist && tsc",
-    "docs": "rm -rf docs && typedoc src/mod.ts"
+    "prepare": "rm -rf dist && tsc && cp -r dist/* . && rm -r dist",
+    "docs": "rm -rf docs && typedoc src/mod.ts",
+    "clean": "git clean -fxd -e .env -e node_modules"
   },
   "bugs": {
     "url": "https://github.com/tim-smart/droff/issues"
@@ -33,7 +32,7 @@
     "typescript": "^4.3.2"
   },
   "dependencies": {
-    "droff": "^0.27.5",
+    "droff": "^0.29.1",
     "fp-ts": "^2.10.5",
     "immutable": "^4.0.0",
     "rxjs": "^7.1.0",

@@ -3,6 +3,7 @@ import * as RxI from "rxjs-iterable";
 import * as RxO from "rxjs/operators";
 import * as RL from "../rate-limits/rxjs";
 import { Routes } from "../rest/client";
+import { GetGatewayBotResponse } from "../types";
 import * as Shard from "./shard";
 import { SharderStore } from "./sharder/store";
 
@@ -43,6 +44,19 @@ export const spawn = ({
   identifyWindow,
 }: Options) =>
   Rx.defer(() => routes.getGatewayBot()).pipe(
+    RxO.catchError(() =>
+      Rx.of<GetGatewayBotResponse>({
+        url: "wss://gateway.discord.gg/",
+        shards: 1,
+        session_start_limit: {
+          total: 0,
+          remaining: 0,
+          reset_after: 0,
+          max_concurrency: 1,
+        },
+      }),
+    ),
+
     RxO.mergeMap(({ url, shards, session_start_limit: limit }) => {
       const totalCount = shardConfig?.count ?? shards;
       const concurrency = limit.max_concurrency;

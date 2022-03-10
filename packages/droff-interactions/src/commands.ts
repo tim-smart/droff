@@ -8,7 +8,7 @@ import {
   InteractionCallbackMessage,
   InteractionCallbackModal,
   InteractionCallbackType,
-} from "droff/dist/types";
+} from "droff/types";
 import * as F from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { Map } from "immutable";

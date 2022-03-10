@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.29.1](https://github.com/tim-smart/droff/compare/droff@0.29.0...droff@0.29.1) (2022-03-10)
+
+### Bug Fixes
+
+- package.json import ([61affaa](https://github.com/tim-smart/droff/commit/61affaa6031680bfa83a105535c6f26205d232df))
+
+# [0.29.0](https://github.com/tim-smart/droff/compare/droff@0.28.0...droff@0.29.0) (2022-03-10)
+
+**Note:** Version bump only for package droff
+
+# [0.28.0](https://github.com/tim-smart/droff/compare/droff@0.27.6...droff@0.28.0) (2022-03-09)
+
+### Features
+
+- update api types ([80167d5](https://github.com/tim-smart/droff/commit/80167d5c657d7314394648bc78fa6fa8f9051214))
+
+## [0.27.6](https://github.com/tim-smart/droff/compare/droff@0.27.5...droff@0.27.6) (2022-03-09)
+
+### Bug Fixes
+
+- catch get gateway bot errors ([1d6ed57](https://github.com/tim-smart/droff/commit/1d6ed57a8fb63c7de919b4a04d05a847db368864))
+
 ## [0.27.5](https://github.com/tim-smart/droff/compare/droff@0.27.4...droff@0.27.5) (2022-03-07)
 
 **Note:** Version bump only for package droff

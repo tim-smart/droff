@@ -3,8 +3,10 @@ import {
   ApplicationCommandOptionType,
   Component,
   Interaction,
+  ResolvedDatum,
+  Snowflake,
   TextInput,
-} from "droff/dist/types";
+} from "droff/types";
 import * as Arr from "fp-ts/Array";
 import * as F from "fp-ts/function";
 import * as O from "fp-ts/Option";
@@ -84,6 +86,23 @@ export const optionValue = (name: string) =>
     getOption(name),
     O.chainNullableK((o) => o.value),
   );
+
+/**
+ * Try find a matching option value from the interaction.
+ */
+export const resolveOptionValue =
+  <T>(name: string, f: (id: Snowflake, data: ResolvedDatum) => T | undefined) =>
+  (interaction: Interaction) =>
+    F.pipe(
+      getOption(name)(interaction),
+      O.chainNullableK(({ value }) => value as Snowflake),
+      O.bindTo("id"),
+      O.bind(
+        "data",
+        O.fromNullableK(() => interaction.data?.resolved),
+      ),
+      O.chainNullableK(({ id, data }) => f(id, data)),
+    );
 
 const extractComponents = (c: Component): Component[] => {
   if ("components" in c) {

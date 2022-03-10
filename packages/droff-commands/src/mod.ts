@@ -1,6 +1,6 @@
 import { Client } from "droff";
-import { NonParentCacheStore } from "droff/dist/caches/stores";
-import { CreateMessageParams, Guild, Message } from "droff/dist/types";
+import { NonParentCacheStore } from "droff/caches/stores";
+import { CreateMessageParams, Guild, Message } from "droff/types";
 import { Args, Lexer, longShortStrategy, Parser, Token } from "lexure";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";

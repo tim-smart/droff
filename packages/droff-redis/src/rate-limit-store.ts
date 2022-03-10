@@ -1,4 +1,4 @@
-import { Store } from "droff/dist/rate-limits/store";
+import { Store } from "droff/rate-limits/store";
 import { WatchError } from "redis";
 import { CreateStoreOpts } from "./cache-store";
 

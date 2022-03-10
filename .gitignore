@@ -1,6 +1,10 @@
 .env
 dist/
+*.js
+*.d.ts
 tmp/
 node_modules/
 /discord-api-docs
 docs/
+lerna-debug.log
+yarn-error.log

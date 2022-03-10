@@ -1,4 +1,9 @@
-const Pkg = require("../../package.json");
+let Pkg: any;
+try {
+  Pkg = require("../package.json");
+} catch (err) {
+  Pkg = require("../../package.json");
+}
 
 import Axios, {
   AxiosError,
@@ -38,13 +43,7 @@ export function create({
   disableRateLimiter = false,
 }: Options) {
   if (disableRateLimiter) {
-    return [
-      Axios.create({
-        baseURL,
-        timeout: 10000,
-      }),
-      EMPTY,
-    ] as const;
+    return [Axios.create({ baseURL }), EMPTY] as const;
   }
 
   const client = Axios.create({

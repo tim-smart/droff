@@ -45,9 +45,13 @@ export const createSharderStore =
               .SADD(membersKey, nodeId)
               .PEXPIRE(membersKey, ttl)
               .exec(),
-          (err) => `claimId multi: ${err}`,
+          (err) => `multi: ${err}`,
         ),
         TE.map(([result]) => result !== null),
+        TE.getOrElse((err) => {
+          console.error(`[droff-redis] [sharder] [claimId] ${err}`);
+          return T.of(false);
+        }),
       );
 
     const claimAvailableId = (
@@ -61,7 +65,7 @@ export const createSharderStore =
         TE.chain((id) =>
           pipe(
             claimId(id),
-            TE.chain((success) =>
+            T.chain((success) =>
               success ? TE.right(id) : claimAvailableId(ctx),
             ),
           ),

@@ -10,8 +10,11 @@ import { CreateStoreOpts } from "./cache-store";
 
 export const pushPayloads =
   ({ client, prefix = "droff" }: CreateStoreOpts) =>
-  ({ dispatch$ }: Pick<Client, "dispatch$">): Rx.Observable<void> => {
-    const key = `${prefix}:gateway`;
+  (
+    name: string,
+    { dispatch$ }: Pick<Client, "dispatch$">,
+  ): Rx.Observable<void> => {
+    const key = `${prefix}:${name}`;
 
     return dispatch$.pipe(
       // Strip out initial guild create data
@@ -41,9 +44,9 @@ export const pushPayloads =
 
 export const pullPayloads =
   ({ client: parentClient, prefix = "droff" }: CreateStoreOpts) =>
-  (): Rx.Observable<GatewayPayload> => {
+  (name: string): Rx.Observable<GatewayPayload> => {
     const client = parentClient.duplicate();
-    const key = `${prefix}:gateway`;
+    const key = `${prefix}:${name}`;
 
     const pull: T.Task<GatewayPayload> = pipe(
       TE.tryCatch(

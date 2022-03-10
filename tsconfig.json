@@ -12,5 +12,7 @@
     "skipLibCheck": true,
     "removeComments": false,
     "importHelpers": true
-  }
+  },
+
+  "exclude": ["node_modules"]
 }

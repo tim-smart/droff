@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.5.2](https://github.com/tim-smart/droff/compare/droff-redis@0.5.1...droff-redis@0.5.2) (2022-03-10)
+
+### Bug Fixes
+
+- absorb errors in claimId ([b1652a7](https://github.com/tim-smart/droff/commit/b1652a7cd8cb94ff3f63c3bf84a1f17c4f4b5c4d))
+
 ## [0.5.1](https://github.com/tim-smart/droff/compare/droff-redis@0.5.0...droff-redis@0.5.1) (2022-03-10)
 
 **Note:** Version bump only for package droff-redis

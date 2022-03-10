@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.30.0](https://github.com/tim-smart/droff/compare/droff@0.29.1...droff@0.30.0) (2022-03-10)
+
+### Bug Fixes
+
+- absorb null in invite cache ([e5b6f90](https://github.com/tim-smart/droff/commit/e5b6f904c1ca4d2d30b79dd42f1938f0862d3e48))
+
+### Features
+
+- add load balanced send method to gateway client ([0059b9e](https://github.com/tim-smart/droff/commit/0059b9e8b7fb589b40078ae38ef312c0df89421f))
+- Add presence option to gateway ([46b2190](https://github.com/tim-smart/droff/commit/46b2190f05239aa4f9bf4f6f4c66a5127b975e0d))
+- **caches:** simplify CrudObservables ([14f8fa3](https://github.com/tim-smart/droff/commit/14f8fa34d55173a38c72303ab4c92974e985a1f5))
+
 ## [0.29.1](https://github.com/tim-smart/droff/compare/droff@0.29.0...droff@0.29.1) (2022-03-10)
 
 ### Bug Fixes

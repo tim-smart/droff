@@ -57,11 +57,14 @@ Rx.merge(
 
 // === Child clients
 
-// Setup the client, using redis as the gateway payloads source
+// Setup the child client
 const childClient = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
   rateLimitStore: redis.rateLimit(),
-  gateway: { payloads$: redis.pullPayloads() },
+  gateway: {
+    // Pull the payloads from redis here
+    payloads$: redis.pullPayloads(),
+  },
 });
 
 // Use a shared cache

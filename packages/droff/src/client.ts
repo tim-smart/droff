@@ -3,12 +3,12 @@ import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import * as Apps from "./caches/applications";
 import * as Channels from "./caches/channels";
+import * as DirectMessages from "./caches/direct-messages";
 import * as Emojis from "./caches/emojis";
 import * as Guilds from "./caches/guilds";
 import * as Invites from "./caches/invites";
 import { PartialInvite } from "./caches/invites";
 import * as Members from "./caches/members";
-import * as DirectMessages from "./caches/direct-messages";
 import * as Messages from "./caches/messages";
 import * as Roles from "./caches/roles";
 import * as StageInstances from "./caches/stage-instances";
@@ -23,7 +23,6 @@ import {
   Application,
   Channel,
   Emoji,
-  GatewayPayload,
   Guild,
   GuildMember,
   Message,
@@ -109,10 +108,7 @@ export function create({
   });
 
   const gateway = gatewayOptions.payloads$
-    ? GatewayClient.createFromPayloads(
-        gatewayOptions.payloads$,
-        gatewayOptions.sendOverride,
-      )
+    ? GatewayClient.createFromPayloads(gatewayOptions.payloads$)
     : GatewayClient.create(rest)({
         token,
         ...gatewayOptions,

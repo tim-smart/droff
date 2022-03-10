@@ -11,7 +11,6 @@ import {
   GatewayOpcode,
   GatewayPayload,
 } from "../types";
-import * as RxI from "rxjs-iterable";
 import { opCode } from "./connection";
 import * as Dispatch from "./dispatch";
 import * as Shard from "./shard";
@@ -25,7 +24,7 @@ export interface Options {
   payloads$?: Rx.Observable<GatewayPayload>;
 
   /** Override gateway send */
-  sendOverride?: (payload: GatewayPayload) => void;
+  sendOverride?: (payload: GatewayPayload, shardId?: number) => void;
 
   rateLimits?: {
     store: Store.Store;
@@ -66,38 +65,29 @@ export const create =
     sharderStore = SharderStore.memoryStore(),
   }: Options) => {
     const rateLimit = RL.rateLimit(rateLimitStore);
-    let actualSend: (payload: GatewayPayload) => void = () => {};
-    function send(payload: GatewayPayload) {
-      actualSend(payload);
-    }
 
-    const shards$ = RxI.writable$<GatewayPayload>().pipe(
-      RxO.mergeMap(({ iterator, write }) => {
-        actualSend = write;
-        return Sharder.spawn({
-          createShard: ({ id, baseURL, heartbeat }) =>
-            Shard.create({
-              token,
-              baseURL,
-              outgoing$: Rx.from(iterator),
-              intents: intents | GatewayIntents.GUILDS,
-              shard: id,
-              sharderHeartbeat: heartbeat,
-              rateLimits: {
-                ...shardRateLimits,
-                op: rateLimit,
-              },
-            }),
-          routes,
-          shardConfig,
-          store: sharderStore,
-          rateLimit,
-          identifyLimit,
-          identifyWindow,
-        });
+    const shards$ = Rx.defer(() =>
+      Sharder.spawn({
+        createShard: ({ id, baseURL, heartbeat }) =>
+          Shard.create({
+            token,
+            baseURL,
+            intents: intents | GatewayIntents.GUILDS,
+            shard: id,
+            sharderHeartbeat: heartbeat,
+            rateLimits: {
+              ...shardRateLimits,
+              op: rateLimit,
+            },
+          }),
+        routes,
+        shardConfig,
+        store: sharderStore,
+        rateLimit,
+        identifyLimit,
+        identifyWindow,
       }),
-      RxO.shareReplay({ refCount: true }),
-    );
+    ).pipe(RxO.shareReplay({ refCount: true }));
 
     const shardsReady$ = shards$.pipe(
       RxO.switchMap(({ id: [, totalCount] }) => {
@@ -139,7 +129,6 @@ export const create =
       latestDispatch,
       shards$,
       shardsReady$,
-      send,
     };
   };
 
@@ -147,7 +136,6 @@ export type Client = ReturnType<ReturnType<typeof create>>;
 
 export const createFromPayloads = (
   incoming$: Rx.Observable<GatewayPayload>,
-  send: (payload: GatewayPayload) => void = () => {},
 ): Client => {
   const raw$ = incoming$.pipe(RxO.share());
   const dispatch$ = raw$.pipe(opCode<GatewayEvent>(GatewayOpcode.DISPATCH));
@@ -167,6 +155,5 @@ export const createFromPayloads = (
     latestDispatch,
     shards$,
     shardsReady$,
-    send,
   };
 };

@@ -19,9 +19,7 @@ export const createSharderStore =
       async () => {
         const nodes = await client.SMEMBERS(membersKey);
         if (nodes.length === 0) return 0;
-
-        const results = await client.MGET(nodes.map(nodeKey));
-        return results.filter((r) => r !== null).length;
+        return client.EXISTS(nodes.map(nodeKey));
       },
       (err) => `nodeCount: ${err}`,
     );

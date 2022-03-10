@@ -10,6 +10,7 @@ import {
   HelloEvent,
   InvalidSessionEvent,
   ReadyEvent,
+  UpdatePresence,
 } from "../types";
 import * as Commands from "./commands";
 import { Connection } from "./connection";
@@ -23,11 +24,13 @@ export const identify$ = ({
   token,
   intents,
   shard,
+  presence,
 }: {
   token: string;
   conn: Connection;
   latestReady: Rx.Observable<O.Option<ReadyEvent>>;
   latestSequence: Rx.Observable<O.Option<number>>;
+  presence?: UpdatePresence;
 } & Pick<Options, "token" | "intents" | "shard">) =>
   F.pipe(
     conn.hello$,
@@ -46,6 +49,7 @@ export const identify$ = ({
                 $device: "droff",
               },
               shard,
+              presence,
             }),
 
           ([ready, seq]) =>

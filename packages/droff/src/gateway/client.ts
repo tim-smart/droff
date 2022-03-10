@@ -10,6 +10,7 @@ import {
   GatewayIntents,
   GatewayOpcode,
   GatewayPayload,
+  UpdatePresence,
 } from "../types";
 import { opCode } from "./connection";
 import * as Dispatch from "./dispatch";
@@ -22,9 +23,6 @@ export interface Options {
 
   /** Override gateway handling with custom payload source */
   payloads$?: Rx.Observable<GatewayPayload>;
-
-  /** Override gateway send */
-  sendOverride?: (payload: GatewayPayload, shardId?: number) => void;
 
   rateLimits?: {
     store: Store.Store;
@@ -41,6 +39,11 @@ export interface Options {
    * `Intents.GUILDS` is always enabled.
    */
   intents?: number;
+
+  /**
+   * Set the initial presence
+   */
+  presence?: UpdatePresence;
 
   shardConfig?: Sharder.Options["shardConfig"];
 
@@ -63,6 +66,7 @@ export const create =
     },
     shardConfig,
     sharderStore = SharderStore.memoryStore(),
+    presence,
   }: Options) => {
     const rateLimit = RL.rateLimit(rateLimitStore);
 
@@ -79,6 +83,7 @@ export const create =
               ...shardRateLimits,
               op: rateLimit,
             },
+            presence,
           }),
         routes,
         shardConfig,

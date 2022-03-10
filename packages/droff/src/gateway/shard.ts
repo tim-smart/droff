@@ -3,7 +3,7 @@ import { QueueingSubject } from "queueing-subject";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { RateLimitOp } from "../rate-limits/rxjs";
-import { GatewayPayload } from "../types";
+import { GatewayPayload, UpdatePresence } from "../types";
 import * as Conn from "./connection";
 import * as Dispatch from "./dispatch";
 import * as Internal from "./internal";
@@ -15,6 +15,8 @@ export interface Options {
   shard?: [number, number];
   baseURL?: string;
   sharderHeartbeat?: () => void;
+
+  presence?: UpdatePresence;
 
   rateLimits: {
     op: RateLimitOp;
@@ -30,6 +32,7 @@ export function create({
   sharderHeartbeat,
   shard = [0, 1],
   rateLimits: { op: rateLimitOp, sendLimit = 120, sendWindow = 60000 },
+  presence,
 }: Options) {
   const sendSubject = new QueueingSubject<Conn.ConnectionPayload>();
 
@@ -59,6 +62,7 @@ export function create({
       intents,
       latestReady: latestReady$,
       latestSequence: sequenceNumber$,
+      presence,
     }),
     RxO.tap(send),
   );

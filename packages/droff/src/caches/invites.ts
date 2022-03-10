@@ -18,7 +18,7 @@ export const watch$ = (fromDispatch: Dispatch, rest: Routes) =>
         RxO.mergeMap(identity),
         RxO.map((i): any => ({
           ...i,
-          channel_id: i.channel!.id,
+          channel_id: i.channel?.id,
         })),
       ),
 

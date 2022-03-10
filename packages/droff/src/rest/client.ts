@@ -1,4 +1,9 @@
-const Pkg = require("../../package.json");
+let Pkg: any;
+try {
+  Pkg = require("../package.json");
+} catch (err) {
+  Pkg = require("../../package.json");
+}
 
 import Axios, {
   AxiosError,

@@ -40,10 +40,17 @@ export function create<Rx, Tx>(
         ws.close(1012, "reconnecting");
       });
 
-      ws.on("close", () => {
+      ws.on("close", (code, reason) => {
         ws.removeAllListeners();
         sub?.unsubscribe();
         if (closed) return;
+
+        console.error(
+          "[droff/gateway/websocket]",
+          "[close]",
+          code,
+          reason.toString(),
+        );
         replaceWS();
       });
 

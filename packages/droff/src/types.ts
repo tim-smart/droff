@@ -2290,7 +2290,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<CreateStageInstanceParams>,
     options?: O,
   ) => Promise<StageInstance>;
-  /** Create a new webhook. Requires the MANAGE_WEBHOOKS permission. Returns a webhook object on success. Webhook names follow our naming restrictions that can be found in our Usernames and Nicknames documentation, with the following additional stipulations: */
+  /** Creates a new webhook and returns a webhook object on success. Requires the MANAGE_WEBHOOKS permission. */
   createWebhook: (
     channelId: string,
     params?: Partial<CreateWebhookParams>,

@@ -26,6 +26,8 @@ export interface Options {
   rateLimitStore?: Store.Store;
   /** Global rate limit in requests per second */
   rateLimit?: number;
+  /** How much extra delay to add to rate limits */
+  rateLimitMargin?: number;
   /** Turn on debug logging */
   debug?: boolean;
   /** Change baseURL (if using a proxy) */
@@ -40,6 +42,7 @@ export function create({
   rateLimit = 50,
   debug = false,
   baseURL = `https://discord.com/api/v${VERSION}`,
+  rateLimitMargin,
   disableRateLimiter = false,
 }: Options) {
   if (disableRateLimiter) {
@@ -64,6 +67,7 @@ export function create({
     rateLimitStore,
     globalLimit: rateLimit,
     globalWindow: 1000,
+    delayMargin: rateLimitMargin,
     debug,
     axios: client,
   });

@@ -4,7 +4,7 @@ import * as TO from "fp-ts/TaskOption";
 import { delayFrom } from "./stores/utils";
 
 export type BucketDetails = {
-  key: string;
+  key: "global" | string;
   resetAfter: number;
   limit: number;
 };

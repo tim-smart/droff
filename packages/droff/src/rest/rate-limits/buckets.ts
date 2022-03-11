@@ -9,23 +9,42 @@ import { Request, Response } from "../rate-limits";
 export interface LimiterOptions {
   rateLimitStore: Store.Store;
   responses$: Rx.Observable<Response>;
+  delayMargin?: number;
   whenDebug: <T>(fn: (d: T) => void) => Rx.MonoTypeOperatorFunction<T>;
 }
+
+const bucketForRouteFactory = (store: Store.Store) => (route: string) =>
+  store.getBucketForRoute(route).then(
+    (bucket): Store.BucketDetails =>
+      bucket ?? {
+        // For undiscovered routes use a default rate limit
+        key: route,
+        resetAfter: 5000,
+        limit: 1,
+      },
+  );
 
 export const createLimiter = ({
   rateLimitStore: store,
   responses$,
+  delayMargin = 30,
   whenDebug,
 }: LimiterOptions) => {
   const rateLimit = RL.rateLimit(store);
 
   const rateLimits$ = responses$.pipe(
-    RxO.flatMap(({ route, rateLimit }) =>
+    RxO.map(({ route, rateLimit }) =>
       F.pipe(
         rateLimit,
         O.fold(
-          () => Rx.EMPTY,
-          (rateLimit) => Rx.of({ route, ...rateLimit } as const),
+          () => ({
+            route,
+            bucket: "global",
+            resetAfter: 0,
+            limit: 0,
+            remaining: 0,
+          }),
+          (rateLimit) => ({ route, ...rateLimit }),
         ),
       ),
     ),
@@ -51,40 +70,40 @@ export const createLimiter = ({
   );
 
   const effects$ = Rx.merge(routeToBucket$, buckets$);
+  const bucketForRoute = bucketForRouteFactory(store);
 
   return {
     effects$,
     bucketLimiter: () => (requests$: Rx.Observable<Request>) =>
       requests$.pipe(
         RxO.flatMap((request) =>
-          Rx.zip(Rx.of(request), store.getBucketForRoute(request.route)),
+          Rx.zip(Rx.of(request), bucketForRoute(request.route)),
         ),
 
         // Group by bucket or undefined
-        RxO.groupBy(([_, bucket]) => bucket?.key, {
+        RxO.groupBy(([_, bucket]) => bucket.key, {
           duration: (requests$) =>
-            requests$.key
-              ? // Garbage collect bucket rate limiters after inactivity
+            requests$.key === "global"
+              ? Rx.NEVER
+              : // Garbage collect bucket rate limiters after inactivity
                 requests$.pipe(
                   RxO.debounce(([_, bucket]) =>
                     Rx.timer(bucket!.resetAfter * 2),
                   ),
-                )
-              : // Never garbage collect the global pass-through
-                Rx.NEVER,
+                ),
         }),
 
         // Apply rate limits
-        RxO.mergeMap((requests$) =>
-          requests$.key
-            ? F.pipe(
-                requests$ as Rx.Observable<
-                  readonly [Request, Store.BucketDetails]
-                >,
-                applyRateLimit(rateLimit, whenDebug),
-              )
-            : requests$,
-        ),
+        RxO.mergeMap((requests$) => {
+          if (requests$.key === "global") {
+            return requests$;
+          }
+
+          return F.pipe(
+            requests$,
+            applyRateLimit(rateLimit, whenDebug, delayMargin),
+          );
+        }),
 
         RxO.map(([request]) => request),
       ),
@@ -92,13 +111,18 @@ export const createLimiter = ({
 };
 
 const applyRateLimit =
-  (rateLimit: RL.RateLimitOp, whenDebug: LimiterOptions["whenDebug"]) =>
+  (
+    rateLimit: RL.RateLimitOp,
+    whenDebug: LimiterOptions["whenDebug"],
+    delayMargin: number,
+  ) =>
   (requests$: Rx.Observable<readonly [Request, Store.BucketDetails]>) =>
     F.pipe(
       requests$,
       RxO.first(),
       RxO.flatMap((item) => {
         const [_, { key, resetAfter, limit }] = item;
+
         return requests$.pipe(
           RxO.startWith(item),
           whenDebug(([request, bucket]) =>
@@ -109,7 +133,7 @@ const applyRateLimit =
               bucket,
             ),
           ),
-          rateLimit(`rest.bucket.${key}`, resetAfter * 1.1, limit),
+          rateLimit(`rest.bucket.${key}`, resetAfter + delayMargin, limit),
         );
       }),
     );

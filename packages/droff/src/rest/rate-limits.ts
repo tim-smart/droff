@@ -37,6 +37,7 @@ export interface Options {
   rateLimitStore: Store.Store;
   globalLimit: number;
   globalWindow: number;
+  delayMargin?: number;
   debug: boolean;
   axios: AxiosInstance;
 }
@@ -45,6 +46,7 @@ export const interceptors = ({
   rateLimitStore: store,
   globalLimit,
   globalWindow,
+  delayMargin,
   debug,
   axios,
 }: Options) => {
@@ -105,6 +107,7 @@ export const interceptors = ({
   const { effects$: bucketEffects$, bucketLimiter } = Buckets.createLimiter({
     rateLimitStore: store,
     responses$,
+    delayMargin,
     whenDebug,
   });
 

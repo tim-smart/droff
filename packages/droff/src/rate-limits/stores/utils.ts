@@ -14,9 +14,12 @@ export const delayFrom = (
   const remainingWindows = Math.floor((remainingRequests - 1) / limit);
   const delayRemainder = elapsedTime % window;
 
+  const requestRemainder = count % limit;
+  const staggerDelay = requestRemainder * 50;
+
   if (remainingWindows === 0) {
     return 0;
   }
 
-  return remainingWindows * window - delayRemainder;
+  return remainingWindows * window - delayRemainder + staggerDelay;
 };

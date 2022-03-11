@@ -11,7 +11,7 @@ export interface SharderStore {
   allClaimed: (totalCount: number) => Task<boolean>;
 
   /** droff calls this function every 30s for each shard */
-  heartbeat?: (shardId: number) => (latency: number) => Promise<void>;
+  heartbeat?: (shardId: number) => Task<void>;
 }
 
 // Very basic shard id store, that does no health checks

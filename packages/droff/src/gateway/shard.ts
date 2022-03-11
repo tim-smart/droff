@@ -14,7 +14,7 @@ export interface Options {
   intents: number;
   shard?: [number, number];
   baseURL?: string;
-  sharderHeartbeat?: (latency: number) => void;
+  sharderHeartbeat?: () => void;
 
   presence?: UpdatePresence;
 
@@ -99,10 +99,7 @@ export function create({
   ).pipe(RxO.tap(reconnect));
 
   const sharderHeartbeat$ = sharderHeartbeat
-    ? Rx.interval(60000).pipe(
-        RxO.withLatestFrom(latency$),
-        RxO.tap(([, ms]) => sharderHeartbeat(ms)),
-      )
+    ? Rx.interval(60000).pipe(RxO.tap(sharderHeartbeat))
     : Rx.EMPTY;
 
   const effects$ = Rx.merge(

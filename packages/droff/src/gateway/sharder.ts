@@ -10,7 +10,7 @@ import { SharderStore } from "./sharder/store";
 export type CreateShard = (opts: {
   id: [number, number];
   baseURL: string;
-  heartbeat?: (latency: number) => void;
+  heartbeat?: () => void;
 }) => Shard.Shard;
 
 export interface Options {

@@ -40,7 +40,7 @@ export const createSharderStore =
           () =>
             client
               .multi()
-              .SET(shardKey(shardId), nodeId, { NX: true, PX: ttl })
+              .SET(shardKey(shardId), -1, { NX: true, PX: ttl })
               .SET(nodeKey(nodeId), "1", { PX: ttl })
               .SADD(membersKey, nodeId)
               .PEXPIRE(membersKey, ttl)
@@ -78,13 +78,13 @@ export const createSharderStore =
         TE.map((nodeCount) => Math.ceil(totalShards / nodeCount)),
       );
 
-    const heartbeat = (id: number) =>
+    const heartbeat = (id: number, latency: number) =>
       TE.tryCatch(
         () =>
           client
             .multi()
             .PEXPIRE(membersKey, ttl)
-            .SET(shardKey(id), nodeId, { PX: ttl })
+            .SET(shardKey(id), latency, { PX: ttl })
             .SET(nodeKey(nodeId), "1", { PX: ttl })
             .exec(),
         (err) => `heartbeat: ${err}`,
@@ -112,15 +112,16 @@ export const createSharderStore =
         TE.fold(() => T.of(false), flow(O.isNone, T.of)),
       ),
 
-      heartbeat: flow(
-        heartbeat,
-        TE.fold(
-          (err) => {
-            console.error(`[droff-redis] [sharder] [heartbeat] ${err}`);
-            return T.of(undefined);
-          },
-          () => T.of(undefined),
-        ),
-      ),
+      heartbeat: (id) => (latency) =>
+        pipe(
+          heartbeat(id, latency),
+          TE.fold(
+            (err) => {
+              console.error(`[droff-redis] [sharder] [heartbeat] ${err}`);
+              return T.of(undefined);
+            },
+            () => T.of(undefined),
+          ),
+        )(),
     };
   };

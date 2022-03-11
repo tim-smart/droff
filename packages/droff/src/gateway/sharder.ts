@@ -10,7 +10,7 @@ import { SharderStore } from "./sharder/store";
 export type CreateShard = (opts: {
   id: [number, number];
   baseURL: string;
-  heartbeat: () => void;
+  heartbeat?: (latency: number) => void;
 }) => Shard.Shard;
 
 export interface Options {
@@ -85,7 +85,7 @@ export const spawn = ({
               createShard({
                 id: [id, count],
                 baseURL: url,
-                heartbeat: store.heartbeat(id),
+                heartbeat: store.heartbeat?.(id),
               }),
             ),
             RxO.mergeMap((s) => Rx.merge(Rx.of(s), s.effects$)),

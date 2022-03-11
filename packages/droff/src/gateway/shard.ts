@@ -14,7 +14,7 @@ export interface Options {
   intents: number;
   shard?: [number, number];
   baseURL?: string;
-  sharderHeartbeat?: () => void;
+  sharderHeartbeat?: (latency: number) => void;
 
   presence?: UpdatePresence;
 
@@ -83,7 +83,7 @@ export function create({
       return acc.length > 5 ? acc.slice(1) : acc;
     }, [] as number[]),
     RxO.map((arr) => Math.round(arr.reduce((a, b) => a + b) / arr.length)),
-    RxO.share(),
+    RxO.shareReplay({ bufferSize: 1, refCount: true }),
   );
 
   const heartbeatEffects$ = F.pipe(heartbeats$, RxO.tap(send));
@@ -98,9 +98,12 @@ export function create({
     conn.invalidSession$,
   ).pipe(RxO.tap(reconnect));
 
-  const sharderHeartbeat$ = Rx.interval(60000).pipe(
-    RxO.tap(() => sharderHeartbeat?.()),
-  );
+  const sharderHeartbeat$ = sharderHeartbeat
+    ? Rx.interval(60000).pipe(
+        RxO.withLatestFrom(latency$),
+        RxO.tap(([, ms]) => sharderHeartbeat(ms)),
+      )
+    : Rx.EMPTY;
 
   const effects$ = Rx.merge(
     identifyEffects$,

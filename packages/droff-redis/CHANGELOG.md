@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.7.0](https://github.com/tim-smart/droff/compare/droff-redis@0.6.0...droff-redis@0.7.0) (2022-03-11)
+
+### Code Refactoring
+
+- remove latency from sharder store ([65cde5c](https://github.com/tim-smart/droff/commit/65cde5ca51309d14e0cb4973d6581d06c2921422))
+
+### BREAKING CHANGES
+
+- latency removed from sharder heartbeat
+
 # [0.6.0](https://github.com/tim-smart/droff/compare/droff-redis@0.5.4...droff-redis@0.6.0) (2022-03-11)
 
 ### Features

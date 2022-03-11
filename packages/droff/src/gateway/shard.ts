@@ -73,6 +73,19 @@ export function create({
     sequenceNumber$,
   );
 
+  const latency$ = heartbeatDiff$.pipe(
+    RxO.map((diff) => [diff, Date.now()] as const),
+    RxO.pairwise(),
+    RxO.filter(([[a], [b]]) => a === 1 && b === 0),
+    RxO.map(([[, a], [, b]]) => b - a),
+    RxO.scan((acc, ms) => {
+      acc.push(ms);
+      return acc.length > 5 ? acc.slice(1) : acc;
+    }, [] as number[]),
+    RxO.map((arr) => Math.round(arr.reduce((a, b) => a + b) / arr.length)),
+    RxO.share(),
+  );
+
   const heartbeatEffects$ = F.pipe(heartbeats$, RxO.tap(send));
 
   // Reconnect when:
@@ -104,6 +117,7 @@ export function create({
     raw$: conn.raw$,
     dispatch$: conn.dispatch$,
     ready$: latestReady$,
+    latency$,
     effects$,
   };
 }

@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.31.0](https://github.com/tim-smart/droff/compare/droff@0.30.2...droff@0.31.0) (2022-03-11)
+
+### Features
+
+- add latency$ to shard ([d3719a6](https://github.com/tim-smart/droff/commit/d3719a609ed7f4bafac2165446c08e56b5cca3c5))
+- send latency to sharder store ([cd020ae](https://github.com/tim-smart/droff/commit/cd020ae7cb9dc612b66f19b8ccdbb707cdafa276))
+
 ## [0.30.2](https://github.com/tim-smart/droff/compare/droff@0.30.1...droff@0.30.2) (2022-03-11)
 
 **Note:** Version bump only for package droff

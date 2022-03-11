@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.6.0](https://github.com/tim-smart/droff/compare/droff-redis@0.5.4...droff-redis@0.6.0) (2022-03-11)
+
+### Features
+
+- support latency in redis sharder store ([1d6bfce](https://github.com/tim-smart/droff/commit/1d6bfce5b38cafff5d592111a2d50a45e9c09554))
+
 ## [0.5.4](https://github.com/tim-smart/droff/compare/droff-redis@0.5.3...droff-redis@0.5.4) (2022-03-11)
 
 **Note:** Version bump only for package droff-redis

@@ -25,16 +25,23 @@ export const enabled =
       O.map((ob) => Rx.lastValueFrom(ob)),
     );
 
-export interface ResponseTypes {
-  [type: number]: InteractionCallbackDatum | undefined;
-  [InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE]: InteractionCallbackMessage;
-  [InteractionCallbackType.UPDATE_MESSAGE]: InteractionCallbackMessage;
-  [InteractionCallbackType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT]: InteractionCallbackAutocomplete;
-  [InteractionCallbackType.MODAL]: InteractionCallbackModal;
+export interface RespondFn {
+  (type: InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE): (
+    data: InteractionCallbackMessage,
+  ) => Promise<any>;
+  (type: InteractionCallbackType.UPDATE_MESSAGE): (
+    data: InteractionCallbackMessage,
+  ) => Promise<any>;
+  (type: InteractionCallbackType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT): (
+    data: InteractionCallbackAutocomplete,
+  ) => Promise<any>;
+  (type: InteractionCallbackType.MODAL): (
+    data: InteractionCallbackModal,
+  ) => Promise<any>;
+  (type: InteractionCallbackType): (
+    data: InteractionCallbackDatum | undefined,
+  ) => Promise<any>;
 }
-export type RespondFn = <K extends keyof ResponseTypes>(
-  type: K,
-) => (data?: ResponseTypes[K]) => Promise<any>;
 
 export const respond =
   (rest: RESTClient) =>

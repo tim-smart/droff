@@ -39,7 +39,7 @@ export interface RespondFn {
     data: InteractionCallbackModal,
   ) => Promise<any>;
   (type: InteractionCallbackType): (
-    data: InteractionCallbackDatum | undefined,
+    data?: InteractionCallbackDatum,
   ) => Promise<any>;
 }
 

@@ -150,7 +150,7 @@ export interface Application {
   privacy_policy_url?: string;
   /** partial user object containing info on the owner of the application */
   owner?: User;
-  /** if this application is a game sold on Discord, this field will be the summary field for the store page of its primary sku */
+  /** deprecated: previously if this application was a game sold on Discord, this field would be the summary field for the store page of its primary SKU; now an empty string */
   summary: string;
   /** the hex encoded key for verification in interactions and the GameSDK's GetTicket */
   verify_key: string;
@@ -424,6 +424,20 @@ export interface BeginGuildPruneParams {
 export interface BulkDeleteMessageParams {
   /** an array of message ids to delete (2-100) */
   messages: Snowflake[];
+}
+export interface BulkOverwriteGuildApplicationCommandParams {
+  /** application command id, if known */
+  id: Snowflake;
+  /** 1-32 character name */
+  name: string;
+  /** 1-100 character description */
+  description: string;
+  /** the parameters for the command */
+  options?: ApplicationCommandOption[];
+  /** whether the command is enabled by default when the app is added to a guild */
+  default_permission?: boolean;
+  /** the type of command, defaults 1 if not set */
+  type?: ApplicationCommandType;
 }
 export interface Button {
   /** 2 for a button */
@@ -837,10 +851,16 @@ export function createRoutes<O = any>(
         url: `/applications/${applicationId}/commands`,
         options,
       }),
-    bulkOverwriteGuildApplicationCommands: (applicationId, guildId, options) =>
+    bulkOverwriteGuildApplicationCommands: (
+      applicationId,
+      guildId,
+      params,
+      options,
+    ) =>
       fetch({
         method: "PUT",
         url: `/applications/${applicationId}/guilds/${guildId}/commands`,
+        params,
         options,
       }),
     createChannelInvite: (channelId, params, options) =>
@@ -2179,6 +2199,7 @@ export interface Endpoints<O> {
   bulkOverwriteGuildApplicationCommands: (
     applicationId: string,
     guildId: string,
+    params?: Partial<BulkOverwriteGuildApplicationCommandParams>,
     options?: O,
   ) => Promise<ApplicationCommand[]>;
   /** Create a new invite object for the channel. Only usable for guild channels. Requires the CREATE_INSTANT_INVITE permission. All JSON parameters for this route are optional, however the request body is not. If you are not sending any fields, you still have to send an empty JSON object ({}). Returns an invite object. Fires an Invite Create Gateway event. */
@@ -2438,14 +2459,14 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<EditApplicationCommandPermissionParams>,
     options?: O,
   ) => Promise<GuildApplicationCommandPermission>;
-  /** Edit the channel permission overwrites for a user or role in a channel. Only usable for guild channels. Requires the MANAGE_ROLES permission. Only permissions your bot has in the guild or channel can be allowed/denied (unless your bot has a MANAGE_ROLES overwrite in the channel). Returns a 204 empty response on success. For more information about permissions, see permissions. */
+  /** Edit the channel permission overwrites for a user or role in a channel. Only usable for guild channels. Requires the MANAGE_ROLES permission. Only permissions your bot has in the guild or parent channel (if applicable) can be allowed/denied (unless your bot has a MANAGE_ROLES overwrite in the channel). Returns a 204 empty response on success. For more information about permissions, see permissions. */
   editChannelPermissions: (
     channelId: string,
     overwriteId: string,
     params?: Partial<EditChannelPermissionParams>,
     options?: O,
   ) => Promise<any>;
-  /** Edits a followup message for an Interaction. Functions the same as Edit Webhook Message. Does not support ephemeral followups. */
+  /** Edits a followup message for an Interaction. Functions the same as Edit Webhook Message. */
   editFollowupMessage: (
     applicationId: string,
     interactionToken: string,
@@ -2548,7 +2569,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<GetCurrentUserGuildParams>,
     options?: O,
   ) => Promise<Guild[]>;
-  /** Returns a followup message for an Interaction. Functions the same as Get Webhook Message. Does not support ephemeral followups. */
+  /** Returns a followup message for an Interaction. Functions the same as Get Webhook Message. */
   getFollowupMessage: (
     applicationId: string,
     interactionToken: string,
@@ -3918,7 +3939,7 @@ export interface InteractionCallbackMessage {
 export interface InteractionCallbackModal {
   /** a developer-defined identifier for the component, max 100 characters */
   custom_id: string;
-  /** the title of the popup modal */
+  /** the title of the popup modal, max 45 characters */
   title: string;
   /** between 1 and 5 (inclusive) components that make up the modal */
   components: Component[];
@@ -4817,7 +4838,7 @@ export interface SearchGuildMemberParams {
 export interface SelectMenu {
   /** 3 for a select menu */
   type: number;
-  /** a developer-defined identifier for the button, max 100 characters */
+  /** a developer-defined identifier for the select menu, max 100 characters */
   custom_id: string;
   /** the choices in the select, max 25 */
   options: SelectOption[];
@@ -5250,7 +5271,7 @@ export interface VoiceState {
   /** the guild id this voice state is for */
   guild_id?: Snowflake;
   /** the channel id this user is connected to */
-  channel_id?: Snowflake;
+  channel_id?: Snowflake | null;
   /** the user id this voice state is for */
   user_id: Snowflake;
   /** the guild member this voice state is for */
@@ -5272,7 +5293,7 @@ export interface VoiceState {
   /** whether this user is muted by the current user */
   suppress: boolean;
   /** the time at which the user requested to speak */
-  request_to_speak_timestamp?: string;
+  request_to_speak_timestamp?: string | null;
 }
 export type VoiceStateUpdateEvent = VoiceState;
 export interface Webhook {

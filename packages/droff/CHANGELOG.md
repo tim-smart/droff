@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.32.1](https://github.com/tim-smart/droff/compare/droff@0.32.0...droff@0.32.1) (2022-03-25)
+
+**Note:** Version bump only for package droff
+
 # [0.32.0](https://github.com/tim-smart/droff/compare/droff@0.31.0...droff@0.32.0) (2022-03-11)
 
 ### Code Refactoring

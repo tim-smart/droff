@@ -178,11 +178,15 @@ export interface ApplicationCommand {
   guild_id?: Snowflake;
   /** 1-32 character name */
   name: string;
+  /** Localization dictionary for the name field. Values follow the same restrictions as name */
+  name_localizations?: Locale;
   /** 1-100 character description for CHAT_INPUT commands, empty string for USER and MESSAGE commands */
   description: string;
+  /** Localization dictionary for the description field. Values follow the same restrictions as description */
+  description_localizations?: Locale;
   /** the parameters for the command, max 25 */
   options?: ApplicationCommandOption[];
-  /** whether the command is enabled by default when the app is added to a guild */
+  /** whether the command is enabled by default when the app is added to a guild (default true) */
   default_permission?: boolean;
   /** autoincrementing version identifier updated during substantial record changes */
   version: Snowflake;
@@ -204,8 +208,12 @@ export interface ApplicationCommandOption {
   type: any;
   /** 1-32 character name */
   name: string;
+  /** Localization dictionary for the name field. Values follow the same restrictions as name */
+  name_localizations?: Locale;
   /** 1-100 character description */
   description: string;
+  /** Localization dictionary for the description field. Values follow the same restrictions as description */
+  description_localizations?: Locale;
   /** if the parameter is required or optional--default false */
   required?: boolean;
   /** choices for STRING, INTEGER, and NUMBER types for the user to pick from, max 25 */
@@ -224,6 +232,8 @@ export interface ApplicationCommandOption {
 export interface ApplicationCommandOptionChoice {
   /** 1-100 character choice name */
   name: string;
+  /** Localization dictionary for the name field. Values follow the same restrictions as name */
+  name_localizations?: Locale;
   /** value of the choice, up to 100 characters if string */
   value: string;
 }
@@ -1357,10 +1367,11 @@ export function createRoutes<O = any>(
         url: `/applications/${applicationId}/commands/${commandId}`,
         options,
       }),
-    getGlobalApplicationCommands: (applicationId, options) =>
+    getGlobalApplicationCommands: (applicationId, params, options) =>
       fetch({
         method: "GET",
         url: `/applications/${applicationId}/commands`,
+        params,
         options,
       }),
     getGuild: (guildId, params, options) =>
@@ -1382,10 +1393,11 @@ export function createRoutes<O = any>(
         url: `/applications/${applicationId}/guilds/${guildId}/commands/permissions`,
         options,
       }),
-    getGuildApplicationCommands: (applicationId, guildId, options) =>
+    getGuildApplicationCommands: (applicationId, guildId, params, options) =>
       fetch({
         method: "GET",
         url: `/applications/${applicationId}/guilds/${guildId}/commands`,
+        params,
         options,
       }),
     getGuildAuditLog: (guildId, params, options) =>
@@ -2584,9 +2596,9 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     commandId: string,
     options?: O,
   ) => Promise<ApplicationCommand>;
-  /** Fetch all of the global commands for your application. Returns an array of application command objects. */
   getGlobalApplicationCommands: (
     applicationId: string,
+    params?: Partial<GetGlobalApplicationCommandParams>,
     options?: O,
   ) => Promise<ApplicationCommand[]>;
   /** Returns the guild object for the given id. If with_counts is set to true, this endpoint will also return approximate_member_count and approximate_presence_count for the guild. */
@@ -2608,10 +2620,10 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     guildId: string,
     options?: O,
   ) => Promise<GuildApplicationCommandPermission[]>;
-  /** Fetch all of the guild commands for your application for a specific guild. Returns an array of application command objects. */
   getGuildApplicationCommands: (
     applicationId: string,
     guildId: string,
+    params?: Partial<GetGuildApplicationCommandParams>,
     options?: O,
   ) => Promise<ApplicationCommand[]>;
   /** Returns an audit log object for the guild. Requires the 'VIEW_AUDIT_LOG' permission. */
@@ -3276,6 +3288,14 @@ export interface GetGatewayBotResponse {
   shards: number;
   /** Information on the current session start limit */
   session_start_limit: SessionStartLimit;
+}
+export interface GetGlobalApplicationCommandParams {
+  /** Whether to include full localization dictionaries (name_localizations and description_localizations) in the returned objects, instead of the name_localized and description_localized fields. Default false. */
+  with_localizations?: boolean;
+}
+export interface GetGuildApplicationCommandParams {
+  /** Whether to include full localization dictionaries (name_localizations and description_localizations) in the returned objects, instead of the name_localized and description_localized fields. Default false. */
+  with_localizations?: boolean;
 }
 export interface GetGuildAuditLogParams {
   /** filter the log for actions made by a user */
@@ -5087,7 +5107,7 @@ export interface TextInput {
   custom_id: string;
   /** the Text Input Style */
   style: TextInputStyle;
-  /** the label for this component */
+  /** the label for this component, max 45 characters */
   label: string;
   /** the minimum input length for a text input, min 0, max 4000 */
   min_length?: number;

@@ -13,7 +13,7 @@
     "types": "discord-api-codegen ./discord-api-docs -l typescript > src/types.ts && prettier -w src/types.ts",
     "docs": "rm -rf docs && typedoc src/mod.ts",
     "prepare": "rm -rf dist && tsc && cp -r dist/* . && rm -r dist",
-    "clean": "git clean -fxd -e .env -e node_modules"
+    "clean": "git clean -fxd -e node_modules -- '*.js' '*.d.ts' '*.js.map'"
   },
   "devDependencies": {
     "@tim-smart/discord-api-docs-parser": "^0.3.2",
@@ -29,8 +29,6 @@
     "axios": "^0.26.0",
     "fp-ts": "^2.10.5",
     "immutable": "^4.0.0",
-    "lint-staged": ">=10",
-    "prettier": "^2.3.0",
     "queueing-subject": "^1.0.0",
     "rxjs": "^7.1.0",
     "rxjs-iterable": "^0.2.0",

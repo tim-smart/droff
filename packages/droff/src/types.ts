@@ -150,8 +150,6 @@ export interface Application {
   privacy_policy_url?: string;
   /** partial user object containing info on the owner of the application */
   owner?: User;
-  /** deprecated: previously if this application was a game sold on Discord, this field would be the summary field for the store page of its primary SKU; now an empty string */
-  summary: string;
   /** the hex encoded key for verification in interactions and the GameSDK's GetTicket */
   verify_key: string;
   /** if the application belongs to a team, this will be a list of the members of that team */
@@ -166,6 +164,12 @@ export interface Application {
   cover_image?: string;
   /** the application's public flags */
   flags?: number;
+  /** up to 5 tags describing the content and functionality of the application */
+  tags?: string[];
+  /** settings for the application's default in-app authorization link, if enabled */
+  install_params?: InstallParam;
+  /** the application's default custom authorization link, if enabled */
+  custom_install_url?: string;
 }
 export interface ApplicationCommand {
   /** unique id of the command */
@@ -179,11 +183,11 @@ export interface ApplicationCommand {
   /** 1-32 character name */
   name: string;
   /** Localization dictionary for the name field. Values follow the same restrictions as name */
-  name_localizations?: Locale;
+  name_localizations?: Locale | null;
   /** 1-100 character description for CHAT_INPUT commands, empty string for USER and MESSAGE commands */
   description: string;
   /** Localization dictionary for the description field. Values follow the same restrictions as description */
-  description_localizations?: Locale;
+  description_localizations?: Locale | null;
   /** the parameters for the command, max 25 */
   options?: ApplicationCommandOption[];
   /** whether the command is enabled by default when the app is added to a guild (default true) */
@@ -209,11 +213,11 @@ export interface ApplicationCommandOption {
   /** 1-32 character name */
   name: string;
   /** Localization dictionary for the name field. Values follow the same restrictions as name */
-  name_localizations?: Locale;
+  name_localizations?: Locale | null;
   /** 1-100 character description */
   description: string;
   /** Localization dictionary for the description field. Values follow the same restrictions as description */
-  description_localizations?: Locale;
+  description_localizations?: Locale | null;
   /** if the parameter is required or optional--default false */
   required?: boolean;
   /** choices for STRING, INTEGER, and NUMBER types for the user to pick from, max 25 */
@@ -233,7 +237,7 @@ export interface ApplicationCommandOptionChoice {
   /** 1-100 character choice name */
   name: string;
   /** Localization dictionary for the name field. Values follow the same restrictions as name */
-  name_localizations?: Locale;
+  name_localizations?: Locale | null;
   /** value of the choice, up to 100 characters if string */
   value: string;
 }
@@ -440,8 +444,12 @@ export interface BulkOverwriteGuildApplicationCommandParams {
   id: Snowflake;
   /** 1-32 character name */
   name: string;
+  /** Localization dictionary for the name field. Values follow the same restrictions as name */
+  name_localizations?: Locale | null;
   /** 1-100 character description */
   description: string;
+  /** Localization dictionary for the description field. Values follow the same restrictions as description */
+  description_localizations?: Locale | null;
   /** the parameters for the command */
   options?: ApplicationCommandOption[];
   /** whether the command is enabled by default when the app is added to a guild */
@@ -484,7 +492,7 @@ export interface Channel {
   /** explicit permission overwrites for members and roles */
   permission_overwrites?: Overwrite[];
   /** the name of the channel (1-100 characters) */
-  name?: string;
+  name?: string | null;
   /** the channel topic (0-1024 characters) */
   topic?: string | null;
   /** whether the channel is nsfw */
@@ -559,8 +567,6 @@ export enum ChannelType {
   GUILD_CATEGORY = 4,
   /** a channel that users can follow and crosspost into their own server */
   GUILD_NEWS = 5,
-  /** a channel in which game developers can sell their game on Discord */
-  GUILD_STORE = 6,
   /** a temporary sub-channel within a GUILD_NEWS channel */
   GUILD_NEWS_THREAD = 10,
   /** a temporary sub-channel within a GUILD_TEXT channel */
@@ -633,8 +639,12 @@ export interface CreateDmParams {
 export interface CreateGlobalApplicationCommandParams {
   /** 1-32 character name */
   name: string;
+  /** Localization dictionary for the name field. Values follow the same restrictions as name */
+  name_localizations?: Locale | null;
   /** 1-100 character description */
   description: string;
+  /** Localization dictionary for the description field. Values follow the same restrictions as description */
+  description_localizations?: Locale | null;
   /** the parameters for the command */
   options?: ApplicationCommandOption[];
   /** whether the command is enabled by default when the app is added to a guild */
@@ -651,8 +661,12 @@ export interface CreateGroupDmParams {
 export interface CreateGuildApplicationCommandParams {
   /** 1-32 character name */
   name: string;
+  /** Localization dictionary for the name field. Values follow the same restrictions as name */
+  name_localizations?: Locale | null;
   /** 1-100 character description */
   description: string;
+  /** Localization dictionary for the description field. Values follow the same restrictions as description */
+  description_localizations?: Locale | null;
   /** the parameters for the command */
   options?: ApplicationCommandOption[];
   /** whether the command is enabled by default when the app is added to a guild */
@@ -1956,6 +1970,8 @@ export interface CreateStageInstanceParams {
   topic: string;
   /** The privacy level of the Stage instance (default GUILD_ONLY) */
   privacy_level?: PrivacyLevel;
+  /** Notify @everyone that a Stage instance has started */
+  send_start_notification?: boolean;
 }
 export interface CreateWebhookParams {
   /** name of the webhook (1-80 characters) */
@@ -1988,8 +2004,12 @@ export interface EditChannelPermissionParams {
 export interface EditGlobalApplicationCommandParams {
   /** 1-32 character name */
   name?: string;
+  /** Localization dictionary for the name field. Values follow the same restrictions as name */
+  name_localizations?: Locale | null;
   /** 1-100 character description */
   description?: string;
+  /** Localization dictionary for the description field. Values follow the same restrictions as description */
+  description_localizations?: Locale | null;
   /** the parameters for the command */
   options?: ApplicationCommandOption[];
   /** whether the command is enabled by default when the app is added to a guild */
@@ -1998,8 +2018,12 @@ export interface EditGlobalApplicationCommandParams {
 export interface EditGuildApplicationCommandParams {
   /** 1-32 character name */
   name?: string;
+  /** Localization dictionary for the name field. Values follow the same restrictions as name */
+  name_localizations?: Locale | null;
   /** 1-100 character description */
   description?: string;
+  /** Localization dictionary for the description field. Values follow the same restrictions as description */
+  description_localizations?: Locale | null;
   /** the parameters for the command */
   options?: ApplicationCommandOption[];
   /** whether the command is enabled by default when the app is added to a guild */
@@ -2222,7 +2246,7 @@ export interface Endpoints<O> {
   ) => Promise<Invite>;
   /** Create a new DM channel with a user. Returns a DM channel object. */
   createDm: (params?: Partial<CreateDmParams>, options?: O) => Promise<Channel>;
-  /** Create a followup message for an Interaction. Functions the same as Execute Webhook, but wait is always true, and flags can be set to 64 in the body to send an ephemeral message. The thread_id, avatar_url, and username parameters are not supported when using this endpoint for interaction followups. */
+  /** Create a followup message for an Interaction. Functions the same as Execute Webhook, but wait is always true. The thread_id, avatar_url, and username parameters are not supported when using this endpoint for interaction followups. */
   createFollowupMessage: (
     applicationId: string,
     interactionToken: string,
@@ -3263,6 +3287,14 @@ export interface GatewayPayload<T = any | null> {
   /** the event name for this payload */
   t?: string | null;
 }
+export interface GatewayUrlQueryStringParam {
+  /** Gateway Version to use */
+  v: number;
+  /** The encoding of received gateway packets */
+  encoding: string;
+  /** The (optional) compression of gateway packets */
+  compress?: string;
+}
 export interface GetChannelMessageParams {
   /** get messages around this message ID */
   around: Snowflake;
@@ -3448,7 +3480,7 @@ export interface Guild {
   max_members?: number;
   /** the vanity url code for the guild */
   vanity_url_code?: string | null;
-  /** the description of a Community guild */
+  /** the description of a guild */
   description?: string | null;
   /** banner hash */
   banner?: string | null;
@@ -3510,6 +3542,8 @@ export interface GuildEmojisUpdateEvent {
   emojis: Emoji[];
 }
 export enum GuildFeature {
+  /** guild has access to set an animated guild banner image */
+  ANIMATED_BANNER = "ANIMATED_BANNER",
   /** guild has access to set an animated guild icon */
   ANIMATED_ICON = "ANIMATED_ICON",
   /** guild has access to set a guild banner image */
@@ -3659,7 +3693,7 @@ export interface GuildPreview {
   approximate_member_count: number;
   /** approximate number of online members in this guild */
   approximate_presence_count: number;
-  /** the description for the guild, if the guild is discoverable */
+  /** the description for the guild */
   description?: string | null;
   /** custom guild stickers */
   stickers: Sticker[];
@@ -3828,6 +3862,12 @@ export interface IdentifyConnectionProperty {
   /** your library name */
   $device: string;
 }
+export interface InstallParam {
+  /** the scopes to add the application to the server with */
+  scopes: string[];
+  /** the permissions to request for the bot role */
+  permissions: string;
+}
 export interface Integration {
   /** integration id */
   id: Snowflake;
@@ -3875,8 +3915,6 @@ export interface IntegrationApplication {
   icon?: string | null;
   /** the description of the app */
   description: string;
-  /** the summary of the app */
-  summary: string;
   /** the bot associated with this application */
   bot?: User;
 }
@@ -4573,7 +4611,7 @@ export interface ModifyGuildParams {
   splash?: string | null;
   /** base64 16:9 png/jpeg image for the guild discovery splash (when the server has the DISCOVERABLE feature) */
   discovery_splash?: string | null;
-  /** base64 16:9 png/jpeg image for the guild banner (when the server has the BANNER feature) */
+  /** base64 16:9 png/jpeg image for the guild banner (when the server has the BANNER feature; can be animated gif when the server has the ANIMATED_BANNER feature) */
   banner?: string | null;
   /** the id of the channel where guild notices such as welcome messages and boost events are posted */
   system_channel_id?: Snowflake | null;
@@ -4587,9 +4625,9 @@ export interface ModifyGuildParams {
   preferred_locale?: string | null;
   /** enabled guild features */
   features: GuildFeature[];
-  /** the description for the guild, if the guild is discoverable */
+  /** the description for the guild */
   description?: string | null;
-  /** whether the guild's boost progress bar should be enabled. */
+  /** whether the guild's boost progress bar should be enabled */
   premium_progress_bar_enabled: boolean;
 }
 export interface ModifyGuildRoleParams {
@@ -4936,7 +4974,7 @@ export interface SelectMenu {
 export interface SelectOption {
   /** the user-facing name of the option, max 100 characters */
   label: string;
-  /** the dev-define value of the option, max 100 characters */
+  /** the dev-defined value of the option, max 100 characters */
   value: string;
   /** an additional description of the option, max 100 characters */
   description?: string;
@@ -5255,7 +5293,7 @@ export const UserFlag = {
   STAFF: 1 << 0,
   /** Partnered Server Owner */
   PARTNER: 1 << 1,
-  /** HypeSquad Events Coordinator */
+  /** HypeSquad Events Member */
   HYPESQUAD: 1 << 2,
   /** Bug Hunter Level 1 */
   BUG_HUNTER_LEVEL_1: 1 << 3,

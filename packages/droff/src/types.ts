@@ -575,6 +575,8 @@ export enum ChannelType {
   GUILD_PRIVATE_THREAD = 12,
   /** a voice channel for hosting events with an audience */
   GUILD_STAGE_VOICE = 13,
+  /** the channel in a hub containing the listed servers */
+  GUILD_DIRECTORY = 14,
 }
 export type ChannelUpdateEvent = Channel;
 export interface ClientStatus {
@@ -1427,10 +1429,11 @@ export function createRoutes<O = any>(
         url: `/guilds/${guildId}/bans/${userId}`,
         options,
       }),
-    getGuildBans: (guildId, options) =>
+    getGuildBans: (guildId, params, options) =>
       fetch({
         method: "GET",
         url: `/guilds/${guildId}/bans`,
+        params,
         options,
       }),
     getGuildChannels: (guildId, options) =>
@@ -2659,7 +2662,11 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   /** Returns a ban object for the given user or a 404 not found if the ban cannot be found. Requires the BAN_MEMBERS permission. */
   getGuildBan: (guildId: string, userId: string, options?: O) => Promise<Ban>;
   /** Returns a list of ban objects for the users banned from this guild. Requires the BAN_MEMBERS permission. */
-  getGuildBans: (guildId: string, options?: O) => Promise<Ban[]>;
+  getGuildBans: (
+    guildId: string,
+    params?: Partial<GetGuildBanParams>,
+    options?: O,
+  ) => Promise<Ban[]>;
   /** Returns a list of guild channel objects. Does not include threads. */
   getGuildChannels: (guildId: string, options?: O) => Promise<Channel[]>;
   /** Returns an emoji object for the given guild and emoji IDs. */
@@ -3338,6 +3345,14 @@ export interface GetGuildAuditLogParams {
   before: Snowflake;
   /** how many entries are returned (default 50, minimum 1, maximum 100) */
   limit: number;
+}
+export interface GetGuildBanParams {
+  /** number of users to return (up to maximum 1000) */
+  limit?: Number;
+  /** consider only users before given user id */
+  before?: Snowflake;
+  /** consider only users after given user id */
+  after?: Snowflake;
 }
 export interface GetGuildParams {
   /** when true, will return approximate member and presence counts for the guild */

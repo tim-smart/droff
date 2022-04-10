@@ -428,7 +428,7 @@ export interface Ban {
 export interface BeginGuildPruneParams {
   /** number of days to prune (1-30) */
   days: number;
-  /** whether 'pruned' is returned, discouraged for large guilds */
+  /** whether pruned is returned, discouraged for large guilds */
   compute_prune_count: boolean;
   /** role(s) to include */
   include_roles: Snowflake[];
@@ -497,7 +497,7 @@ export interface Channel {
   topic?: string | null;
   /** whether the channel is nsfw */
   nsfw?: boolean;
-  /** the id of the last message sent in this channel (may not point to an existing or valid message) */
+  /** the id of the last message sent in this channel (or thread for GUILD_FORUM channels) (may not point to an existing or valid message or thread) */
   last_message_id?: Snowflake | null;
   /** the bitrate (in bits) of the voice channel */
   bitrate?: number;
@@ -533,9 +533,15 @@ export interface Channel {
   default_auto_archive_duration?: number;
   /** computed permissions for the invoking user in the channel, including overwrites, only included when part of the resolved data received on a slash command interaction */
   permissions?: string;
+  /** channel flags combined as a bitfield */
+  flags?: number;
 }
 export type ChannelCreateEvent = Channel;
 export type ChannelDeleteEvent = Channel;
+export const ChannelFlag = {
+  /** this thread is pinned to the top of its parent forum channel */
+  PINNED: 1 << 1,
+} as const;
 export interface ChannelMention {
   /** id of the channel */
   id: Snowflake;
@@ -577,6 +583,8 @@ export enum ChannelType {
   GUILD_STAGE_VOICE = 13,
   /** the channel in a hub containing the listed servers */
   GUILD_DIRECTORY = 14,
+  /** (still in development) a channel that can only contain threads */
+  GUILD_FORUM = 15,
 }
 export type ChannelUpdateEvent = Channel;
 export interface ClientStatus {
@@ -1932,10 +1940,17 @@ export function createRoutes<O = any>(
         params,
         options,
       }),
-    startThreadWithMessage: (channelId, messageId, params, options) =>
+    startThreadFromMessage: (channelId, messageId, params, options) =>
       fetch({
         method: "POST",
         url: `/channels/${channelId}/messages/${messageId}/threads`,
+        params,
+        options,
+      }),
+    startThreadInForumChannel: (channelId, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/channels/${channelId}/threads`,
         params,
         options,
       }),
@@ -2217,7 +2232,7 @@ export interface Endpoints<O> {
     params?: Partial<GuildApplicationCommandPermission[]>,
     options?: O,
   ) => Promise<GuildApplicationCommandPermission[]>;
-  /** Begin a prune operation. Requires the KICK_MEMBERS permission. Returns an object with one 'pruned' key indicating the number of members that were removed in the prune operation. For large guilds it's recommended to set the compute_prune_count option to false, forcing 'pruned' to null. Fires multiple Guild Member Remove Gateway events. */
+  /** Begin a prune operation. Requires the KICK_MEMBERS permission. Returns an object with one pruned key indicating the number of members that were removed in the prune operation. For large guilds it's recommended to set the compute_prune_count option to false, forcing pruned to null. Fires multiple Guild Member Remove Gateway events. */
   beginGuildPrune: (
     guildId: string,
     params?: Partial<BeginGuildPruneParams>,
@@ -2337,7 +2352,7 @@ export interface Endpoints<O> {
     params?: Partial<CreateMessageParams>,
     options?: O,
   ) => Promise<Message>;
-  /** Create a reaction for the message. This endpoint requires the 'READ_MESSAGE_HISTORY' permission to be present on the current user. Additionally, if nobody else has reacted to the message using this emoji, this endpoint requires the 'ADD_REACTIONS' permission to be present on the current user. Returns a 204 empty response on success.
+  /** Create a reaction for the message. This endpoint requires the READ_MESSAGE_HISTORY permission to be present on the current user. Additionally, if nobody else has reacted to the message using this emoji, this endpoint requires the ADD_REACTIONS permission to be present on the current user. Returns a 204 empty response on success.
 The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
   createReaction: (
     channelId: string,
@@ -2356,13 +2371,13 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<CreateWebhookParams>,
     options?: O,
   ) => Promise<Webhook>;
-  /** Crosspost a message in a News Channel to following channels. This endpoint requires the 'SEND_MESSAGES' permission, if the current user sent the message, or additionally the 'MANAGE_MESSAGES' permission, for all other messages, to be present for the current user. */
+  /** Crosspost a message in a News Channel to following channels. This endpoint requires the SEND_MESSAGES permission, if the current user sent the message, or additionally the MANAGE_MESSAGES permission, for all other messages, to be present for the current user. */
   crosspostMessage: (
     channelId: string,
     messageId: string,
     options?: O,
   ) => Promise<Message>;
-  /** Deletes all reactions on a message. This endpoint requires the 'MANAGE_MESSAGES' permission to be present on the current user. Fires a Message Reaction Remove All Gateway event. */
+  /** Deletes all reactions on a message. This endpoint requires the MANAGE_MESSAGES permission to be present on the current user. Fires a Message Reaction Remove All Gateway event. */
   deleteAllReactions: (
     channelId: string,
     messageId: string,
@@ -2466,7 +2481,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   ) => Promise<any>;
   /** Deletes the Stage instance. Returns 204 No Content. */
   deleteStageInstance: (channelId: string, options?: O) => Promise<any>;
-  /** Deletes another user's reaction. This endpoint requires the 'MANAGE_MESSAGES' permission to be present on the current user. Returns a 204 empty response on success.
+  /** Deletes another user's reaction. This endpoint requires the MANAGE_MESSAGES permission to be present on the current user. Returns a 204 empty response on success.
 The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
   deleteUserReaction: (
     channelId: string,
@@ -2582,13 +2597,13 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   getChannel: (channelId: string, options?: O) => Promise<Channel>;
   /** Returns a list of invite objects (with invite metadata) for the channel. Only usable for guild channels. Requires the MANAGE_CHANNELS permission. */
   getChannelInvites: (channelId: string, options?: O) => Promise<Invite[]>;
-  /** Returns a specific message in the channel. If operating on a guild channel, this endpoint requires the 'READ_MESSAGE_HISTORY' permission to be present on the current user. Returns a message object on success. */
+  /** Returns a specific message in the channel. If operating on a guild channel, this endpoint requires the READ_MESSAGE_HISTORY permission to be present on the current user. Returns a message object on success. */
   getChannelMessage: (
     channelId: string,
     messageId: string,
     options?: O,
   ) => Promise<Message>;
-  /** Returns the messages for a channel. If operating on a guild channel, this endpoint requires the VIEW_CHANNEL permission to be present on the current user. If the current user is missing the 'READ_MESSAGE_HISTORY' permission in the channel then this will return no messages (since they cannot read the message history). Returns an array of message objects on success. */
+  /** Returns the messages for a channel. If operating on a guild channel, this endpoint requires the VIEW_CHANNEL permission to be present on the current user. If the current user is missing the READ_MESSAGE_HISTORY permission in the channel then this will return no messages (since they cannot read the message history). Returns an array of message objects on success. */
   getChannelMessages: (
     channelId: string,
     params?: Partial<GetChannelMessageParams>,
@@ -2653,7 +2668,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<GetGuildApplicationCommandParams>,
     options?: O,
   ) => Promise<ApplicationCommand[]>;
-  /** Returns an audit log object for the guild. Requires the 'VIEW_AUDIT_LOG' permission. */
+  /** Returns an audit log object for the guild. Requires the VIEW_AUDIT_LOG permission. */
   getGuildAuditLog: (
     guildId: string,
     params?: Partial<GetGuildAuditLogParams>,
@@ -2690,7 +2705,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   ) => Promise<GuildMember>;
   /** Returns the guild preview object for the given id. If the user is not in the guild, then the guild must be lurkable. */
   getGuildPreview: (guildId: string, options?: O) => Promise<GuildPreview>;
-  /** Returns an object with one 'pruned' key indicating the number of members that would be removed in a prune operation. Requires the KICK_MEMBERS permission. */
+  /** Returns an object with one pruned key indicating the number of members that would be removed in a prune operation. Requires the KICK_MEMBERS permission. */
   getGuildPruneCount: (
     guildId: string,
     params?: Partial<GetGuildPruneCountParams>,
@@ -3039,13 +3054,19 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     options?: O,
   ) => Promise<GuildMember[]>;
   /** Creates a new thread from an existing message. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. Fires a Thread Create Gateway event. */
-  startThreadWithMessage: (
+  startThreadFromMessage: (
     channelId: string,
     messageId: string,
-    params?: Partial<StartThreadWithMessageParams>,
+    params?: Partial<StartThreadFromMessageParams>,
     options?: O,
   ) => Promise<Channel>;
-  /** Creates a new thread that is not connected to an existing message. The created thread defaults to a GUILD_PRIVATE_THREAD*. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. Fires a Thread Create Gateway event. */
+  /** Creates a new thread in a forum channel, and sends a message within the created thread. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. Fires a Thread Create and Message Create Gateway event. */
+  startThreadInForumChannel: (
+    channelId: string,
+    params?: Partial<StartThreadInForumChannelParams>,
+    options?: O,
+  ) => Promise<Channel>;
+  /** Creates a new thread that is not connected to an existing message. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. Fires a Thread Create Gateway event. */
   startThreadWithoutMessage: (
     channelId: string,
     params?: Partial<StartThreadWithoutMessageParams>,
@@ -4045,6 +4066,8 @@ export interface InteractionDatum {
   resolved?: ResolvedDatum;
   /** the params + values from the user */
   options?: ApplicationCommandInteractionDataOption[];
+  /** the id of the guild the command is registered to */
+  guild_id?: Snowflake;
   /** the custom_id of the component */
   custom_id?: string;
   /** the type of the component */
@@ -4764,7 +4787,7 @@ export const PermissionFlag = {
   STREAM: BigInt(1) << BigInt(9),
   /** Allows guild members to view a channel, which includes reading messages in text channels and joining voice channels */
   VIEW_CHANNEL: BigInt(1) << BigInt(10),
-  /** Allows for sending messages in a channel (does not allow sending messages in threads) */
+  /** Allows for sending messages in a channel and creating threads in a forum (does not allow sending messages in threads) */
   SEND_MESSAGES: BigInt(1) << BigInt(11),
   /** Allows for sending of /tts messages */
   SEND_TTS_MESSAGES: BigInt(1) << BigInt(12),
@@ -5028,7 +5051,7 @@ export interface StageInstance {
 export type StageInstanceCreateEvent = StageInstance;
 export type StageInstanceDeleteEvent = StageInstance;
 export type StageInstanceUpdateEvent = StageInstance;
-export interface StartThreadWithMessageParams {
+export interface StartThreadFromMessageParams {
   /** 1-100 character channel name */
   name: string;
   /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
@@ -5036,6 +5059,39 @@ export interface StartThreadWithMessageParams {
   /** amount of seconds a user has to wait before sending another message (0-21600) */
   rate_limit_per_user?: number | null;
 }
+export interface StartThreadInForumChannelForTheMessageParams {
+  /** the message contents (up to 2000 characters) */
+  content: string;
+  /** embedded rich content (up to 6000 characters) */
+  embeds: Embed[];
+  /** embedded rich content, deprecated in favor of embeds */
+  embed: Embed;
+  /** allowed mentions for the message */
+  allowed_mentions: AllowedMention;
+  /** the components to include with the message */
+  components: Component[];
+  /** IDs of up to 3 stickers in the server to send in the message */
+  sticker_ids: Snowflake[];
+  /** the contents of the file being sent */
+  files: string;
+  /** JSON encoded body of non-file params */
+  payload_json: string;
+  /** attachment objects with filename and description */
+  attachments: Attachment[];
+  /** message flags combined as a bitfield (only SUPPRESS_EMBEDS can be set) */
+  flags: number;
+}
+export interface StartThreadInForumChannelForTheThreadParams {
+  /** 1-100 character channel name */
+  name: string;
+  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
+  auto_archive_duration?: number;
+  /** amount of seconds a user has to wait before sending another message (0-21600) */
+  rate_limit_per_user?: number | null;
+}
+export type StartThreadInForumChannelParams =
+  | StartThreadInForumChannelForTheThreadParams
+  | StartThreadInForumChannelForTheMessageParams;
 export interface StartThreadWithoutMessageParams {
   /** 1-100 character channel name */
   name: string;

@@ -711,6 +711,8 @@ export interface CreateGuildChannelParams {
   parent_id: Snowflake;
   /** whether the channel is nsfw */
   nsfw: boolean;
+  /** the default duration that the clients use (not the API) for newly created threads in the channel, in minutes, to automatically archive the thread after recent activity */
+  default_auto_archive_duration: number;
 }
 export interface CreateGuildEmojiParams {
   /** name of the emoji */
@@ -3912,7 +3914,7 @@ export interface Integration {
   /** integration type (twitch, youtube, or discord) */
   type: string;
   /** is this integration enabled */
-  enabled: boolean;
+  enabled?: boolean;
   /** is this integration syncing */
   syncing?: boolean;
   /** id that this integration uses for "subscribers" */

@@ -150,6 +150,8 @@ export interface Application {
   privacy_policy_url?: string;
   /** partial user object containing info on the owner of the application */
   owner?: User;
+  /** deprecated and will be removed in v11. An empty string. */
+  summary: string;
   /** the hex encoded key for verification in interactions and the GameSDK's GetTicket */
   verify_key: string;
   /** if the application belongs to a team, this will be a list of the members of that team */
@@ -172,43 +174,47 @@ export interface Application {
   custom_install_url?: string;
 }
 export interface ApplicationCommand {
-  /** unique id of the command */
+  /** Unique ID of command */
   id: Snowflake;
-  /** the type of command, defaults 1 if not set */
+  /** Type of command, defaults to 1 */
   type?: ApplicationCommandType;
-  /** unique id of the parent application */
+  /** ID of the parent application */
   application_id: Snowflake;
   /** guild id of the command, if not global */
   guild_id?: Snowflake;
-  /** 1-32 character name */
+  /** Name of command, 1-32 characters */
   name: string;
-  /** Localization dictionary for the name field. Values follow the same restrictions as name */
+  /** Localization dictionary for name field. Values follow the same restrictions as name */
   name_localizations?: Locale | null;
-  /** 1-100 character description for CHAT_INPUT commands, empty string for USER and MESSAGE commands */
+  /** Description for CHAT_INPUT commands, 1-100 characters. Empty string for USER and MESSAGE commands */
   description: string;
-  /** Localization dictionary for the description field. Values follow the same restrictions as description */
+  /** Localization dictionary for description field. Values follow the same restrictions as description */
   description_localizations?: Locale | null;
-  /** the parameters for the command, max 25 */
+  /** Parameters for the command, max of 25 */
   options?: ApplicationCommandOption[];
-  /** whether the command is enabled by default when the app is added to a guild (default true) */
-  default_permission?: boolean;
-  /** autoincrementing version identifier updated during substantial record changes */
+  /** Set of permissions represented as a bit set */
+  default_member_permissions?: string | null;
+  /** Indicates whether the command is available in DMs with the app, only for globally-scoped commands. By default, commands are visible. */
+  dm_permission?: boolean | null;
+  /** Not recommended for use as field will soon be deprecated. Indicates whether the command is enabled by default when the app is added to a guild, defaults to true */
+  default_permission?: boolean | null;
+  /** Autoincrementing version identifier updated during substantial record changes */
   version: Snowflake;
 }
 export interface ApplicationCommandInteractionDataOption {
-  /** the name of the parameter */
+  /** Name of the parameter */
   name: string;
-  /** value of application command option type */
+  /** Value of application command option type */
   type: ApplicationCommandOptionType;
-  /** the value of the option resulting from user input */
+  /** Value of the option resulting from user input */
   value?: string;
-  /** present if this option is a group or subcommand */
+  /** Present if this option is a group or subcommand */
   options?: ApplicationCommandInteractionDataOption[];
   /** true if this option is the currently focused option for autocomplete */
   focused?: boolean;
 }
 export interface ApplicationCommandOption {
-  /** the type of option */
+  /** Type of option */
   type: any;
   /** 1-32 character name */
   name: string;
@@ -218,19 +224,19 @@ export interface ApplicationCommandOption {
   description: string;
   /** Localization dictionary for the description field. Values follow the same restrictions as description */
   description_localizations?: Locale | null;
-  /** if the parameter is required or optional--default false */
+  /** If the parameter is required or optional--default false */
   required?: boolean;
-  /** choices for STRING, INTEGER, and NUMBER types for the user to pick from, max 25 */
+  /** Choices for STRING, INTEGER, and NUMBER types for the user to pick from, max 25 */
   choices?: ApplicationCommandOptionChoice[];
-  /** if the option is a subcommand or subcommand group type, these nested options will be the parameters */
+  /** If the option is a subcommand or subcommand group type, these nested options will be the parameters */
   options?: ApplicationCommandOption[];
-  /** if the option is a channel type, the channels shown will be restricted to these types */
+  /** If the option is a channel type, the channels shown will be restricted to these types */
   channel_types?: ChannelType[];
-  /** if the option is an INTEGER or NUMBER type, the minimum value permitted */
+  /** If the option is an INTEGER or NUMBER type, the minimum value permitted */
   min_value?: number;
-  /** if the option is an INTEGER or NUMBER type, the maximum value permitted */
+  /** If the option is an INTEGER or NUMBER type, the maximum value permitted */
   max_value?: number;
-  /** if autocomplete interactions are enabled for this STRING, INTEGER, or NUMBER type option */
+  /** If autocomplete interactions are enabled for this STRING, INTEGER, or NUMBER type option */
   autocomplete?: boolean;
 }
 export interface ApplicationCommandOptionChoice {
@@ -238,7 +244,7 @@ export interface ApplicationCommandOptionChoice {
   name: string;
   /** Localization dictionary for the name field. Values follow the same restrictions as name */
   name_localizations?: Locale | null;
-  /** value of the choice, up to 100 characters if string */
+  /** Value for the choice, up to 100 characters if string */
   value: string;
 }
 export enum ApplicationCommandOptionType {
@@ -255,16 +261,19 @@ export enum ApplicationCommandOptionType {
   ATTACHMENT = 11,
 }
 export interface ApplicationCommandPermission {
-  /** the id of the role or user */
+  /** ID of the role, user, or channel. It can also be a permission constant */
   id: Snowflake;
-  /** role or user */
+  /** role (1), user (2), or channel (3) */
   type: ApplicationCommandPermissionType;
   /** true to allow, false, to disallow */
   permission: boolean;
 }
+export type ApplicationCommandPermissionsUpdateEvent =
+  GuildApplicationCommandPermission;
 export enum ApplicationCommandPermissionType {
   ROLE = 1,
   USER = 2,
+  CHANNEL = 3,
 }
 export enum ApplicationCommandType {
   /** Slash commands; a text-based command that shows up when a user types / */
@@ -315,109 +324,160 @@ export interface Attachment {
   ephemeral?: boolean;
 }
 export interface AuditEntryInfo {
-  /** channel in which the entities were targeted */
+  /** ID of the app whose permissions were targeted */
+  application_id: Snowflake;
+  /** Channel in which the entities were targeted */
   channel_id: Snowflake;
-  /** number of entities that were targeted */
+  /** Number of entities that were targeted */
   count: string;
-  /** number of days after which inactive members were kicked */
+  /** Number of days after which inactive members were kicked */
   delete_member_days: string;
-  /** id of the overwritten entity */
+  /** ID of the overwritten entity */
   id: Snowflake;
-  /** number of members removed by the prune */
+  /** Number of members removed by the prune */
   members_removed: string;
-  /** id of the message that was targeted */
+  /** ID of the message that was targeted */
   message_id: Snowflake;
-  /** name of the role if type is "0" (not present if type is "1") */
+  /** Name of the role if type is "0" (not present if type is "1") */
   role_name: string;
-  /** type of overwritten entity - "0" for "role" or "1" for "member" */
+  /** Type of overwritten entity - role ("0") or member ("1") */
   type: string;
 }
 export interface AuditLog {
-  /** list of audit log entries */
+  /** List of audit log entries, sorted from most to least recent */
   audit_log_entries: AuditLogEntry[];
-  /** list of guild scheduled events found in the audit log */
+  /** List of guild scheduled events found in the audit log */
   guild_scheduled_events: GuildScheduledEvent[];
-  /** list of partial integration objects */
+  /** List of partial integration objects */
   integrations: Integration[];
-  /** list of threads found in the audit log* */
+  /** List of threads found in the audit log* */
   threads: Channel[];
-  /** list of users found in the audit log */
+  /** List of users found in the audit log */
   users: User[];
-  /** list of webhooks found in the audit log */
+  /** List of webhooks found in the audit log */
   webhooks: Webhook[];
 }
 export interface AuditLogChange {
-  /** new value of the key */
+  /** New value of the key */
   new_value?: any;
-  /** old value of the key */
+  /** Old value of the key */
   old_value?: any;
-  /** name of audit log change key */
+  /** Name of the changed entity, with a few exceptions */
   key: string;
 }
 export interface AuditLogEntry {
-  /** id of the affected entity (webhook, user, role, etc.) */
+  /** ID of the affected entity (webhook, user, role, etc.) */
   target_id?: string | null;
-  /** changes made to the target_id */
+  /** Changes made to the target_id */
   changes?: AuditLogChange[];
-  /** the user who made the changes */
+  /** User or app that made the changes */
   user_id?: Snowflake | null;
-  /** id of the entry */
+  /** ID of the entry */
   id: Snowflake;
-  /** type of action that occurred */
+  /** Type of action that occurred */
   action_type: AuditLogEvent;
-  /** additional info for certain action types */
+  /** Additional info for certain event types */
   options?: AuditEntryInfo;
-  /** the reason for the change (0-512 characters) */
+  /** Reason for the change (1-512 characters) */
   reason?: string;
 }
 export enum AuditLogEvent {
+  /** Server settings were updated */
   GUILD_UPDATE = 1,
+  /** Channel was created */
   CHANNEL_CREATE = 10,
+  /** Channel settings were updated */
   CHANNEL_UPDATE = 11,
+  /** Channel was deleted */
   CHANNEL_DELETE = 12,
+  /** Permission overwrite was added to a channel */
   CHANNEL_OVERWRITE_CREATE = 13,
+  /** Permission overwrite was updated for a channel */
   CHANNEL_OVERWRITE_UPDATE = 14,
+  /** Permission overwrite was deleted from a channel */
   CHANNEL_OVERWRITE_DELETE = 15,
+  /** Member was removed from server */
   MEMBER_KICK = 20,
+  /** Members were pruned from server */
   MEMBER_PRUNE = 21,
+  /** Member was banned from server */
   MEMBER_BAN_ADD = 22,
+  /** Server ban was lifted for a member */
   MEMBER_BAN_REMOVE = 23,
+  /** Member was updated in server */
   MEMBER_UPDATE = 24,
+  /** Member was added or removed from a role */
   MEMBER_ROLE_UPDATE = 25,
+  /** Member was moved to a different voice channel */
   MEMBER_MOVE = 26,
+  /** Member was disconnected from a voice channel */
   MEMBER_DISCONNECT = 27,
+  /** Bot user was added to server */
   BOT_ADD = 28,
+  /** Role was created */
   ROLE_CREATE = 30,
+  /** Role was edited */
   ROLE_UPDATE = 31,
+  /** Role was deleted */
   ROLE_DELETE = 32,
+  /** Server invite was created */
   INVITE_CREATE = 40,
+  /** Server invite was updated */
   INVITE_UPDATE = 41,
+  /** Server invite was deleted */
   INVITE_DELETE = 42,
+  /** Webhook was created */
   WEBHOOK_CREATE = 50,
+  /** Webhook properties or channel were updated */
   WEBHOOK_UPDATE = 51,
+  /** Webhook was deleted */
   WEBHOOK_DELETE = 52,
+  /** Emoji was created */
   EMOJI_CREATE = 60,
+  /** Emoji name was updated */
   EMOJI_UPDATE = 61,
+  /** Emoji was deleted */
   EMOJI_DELETE = 62,
+  /** Single message was deleted */
   MESSAGE_DELETE = 72,
+  /** Multiple messages were deleted */
   MESSAGE_BULK_DELETE = 73,
+  /** Messaged was pinned to a channel */
   MESSAGE_PIN = 74,
+  /** Message was unpinned from a channel */
   MESSAGE_UNPIN = 75,
+  /** App was added to server */
   INTEGRATION_CREATE = 80,
+  /** App was updated (as an example, its scopes were updated) */
   INTEGRATION_UPDATE = 81,
+  /** App was removed from server */
   INTEGRATION_DELETE = 82,
+  /** Stage instance was created (stage channel becomes live) */
   STAGE_INSTANCE_CREATE = 83,
+  /** Stage instace details were updated */
   STAGE_INSTANCE_UPDATE = 84,
+  /** Stage instance was deleted (stage channel no longer live) */
   STAGE_INSTANCE_DELETE = 85,
+  /** Sticker was created */
   STICKER_CREATE = 90,
+  /** Sticker details were updated */
   STICKER_UPDATE = 91,
+  /** Sticker was deleted */
   STICKER_DELETE = 92,
+  /** Event was created */
   GUILD_SCHEDULED_EVENT_CREATE = 100,
+  /** Event was updated */
   GUILD_SCHEDULED_EVENT_UPDATE = 101,
+  /** Event was cancelled */
   GUILD_SCHEDULED_EVENT_DELETE = 102,
+  /** Thread was created in a channel */
   THREAD_CREATE = 110,
+  /** Thread was updated */
   THREAD_UPDATE = 111,
+  /** Thread was deleted */
   THREAD_DELETE = 112,
+  /** Permissions were updated for a command */
+  APPLICATION_COMMAND_PERMISSION_UPDATE = 121,
 }
 export interface Ban {
   /** the reason for the ban */
@@ -440,9 +500,9 @@ export interface BulkDeleteMessageParams {
   messages: Snowflake[];
 }
 export interface BulkOverwriteGuildApplicationCommandParams {
-  /** application command id, if known */
+  /** ID of command, if known */
   id: Snowflake;
-  /** 1-32 character name */
+  /** Name of command, 1-32 characters */
   name: string;
   /** Localization dictionary for the name field. Values follow the same restrictions as name */
   name_localizations?: Locale | null;
@@ -450,11 +510,15 @@ export interface BulkOverwriteGuildApplicationCommandParams {
   description: string;
   /** Localization dictionary for the description field. Values follow the same restrictions as description */
   description_localizations?: Locale | null;
-  /** the parameters for the command */
+  /** Parameters for the command */
   options?: ApplicationCommandOption[];
-  /** whether the command is enabled by default when the app is added to a guild */
+  /** Set of permissions represented as a bit set */
+  default_member_permissions?: string | null;
+  /** Indicates whether the command is available in DMs with the app, only for globally-scoped commands. By default, commands are visible. */
+  dm_permission?: boolean | null;
+  /** Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. */
   default_permission?: boolean;
-  /** the type of command, defaults 1 if not set */
+  /** Type of command, defaults 1 if not set */
   type?: ApplicationCommandType;
 }
 export interface Button {
@@ -647,7 +711,7 @@ export interface CreateDmParams {
   recipient_id: Snowflake;
 }
 export interface CreateGlobalApplicationCommandParams {
-  /** 1-32 character name */
+  /** Name of command, 1-32 characters */
   name: string;
   /** Localization dictionary for the name field. Values follow the same restrictions as name */
   name_localizations?: Locale | null;
@@ -657,9 +721,13 @@ export interface CreateGlobalApplicationCommandParams {
   description_localizations?: Locale | null;
   /** the parameters for the command */
   options?: ApplicationCommandOption[];
-  /** whether the command is enabled by default when the app is added to a guild */
+  /** Set of permissions represented as a bit set */
+  default_member_permissions?: string | null;
+  /** Indicates whether the command is available in DMs with the app, only for globally-scoped commands. By default, commands are visible. */
+  dm_permission?: boolean | null;
+  /** Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. */
   default_permission?: boolean;
-  /** the type of command, defaults 1 if not set */
+  /** Type of command, defaults 1 if not set */
   type?: ApplicationCommandType;
 }
 export interface CreateGroupDmParams {
@@ -669,7 +737,7 @@ export interface CreateGroupDmParams {
   nicks: Record<string, string>;
 }
 export interface CreateGuildApplicationCommandParams {
-  /** 1-32 character name */
+  /** Name of command, 1-32 characters */
   name: string;
   /** Localization dictionary for the name field. Values follow the same restrictions as name */
   name_localizations?: Locale | null;
@@ -677,11 +745,13 @@ export interface CreateGuildApplicationCommandParams {
   description: string;
   /** Localization dictionary for the description field. Values follow the same restrictions as description */
   description_localizations?: Locale | null;
-  /** the parameters for the command */
+  /** Parameters for the command */
   options?: ApplicationCommandOption[];
-  /** whether the command is enabled by default when the app is added to a guild */
+  /** Set of permissions represented as a bit set */
+  default_member_permissions?: string | null;
+  /** Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. */
   default_permission?: boolean;
-  /** the type of command, defaults 1 if not set */
+  /** Type of command, defaults 1 if not set */
   type?: ApplicationCommandType;
 }
 export interface CreateGuildBanParams {
@@ -807,30 +877,30 @@ export interface CreateGuildTemplateParams {
   description?: string | null;
 }
 export interface CreateMessageParams {
-  /** the message contents (up to 2000 characters) */
-  content: string;
+  /** Message contents (up to 2000 characters) */
+  content?: string;
   /** true if this is a TTS message */
-  tts: boolean;
-  /** embedded rich content (up to 6000 characters) */
-  embeds: Embed[];
-  /** embedded rich content, deprecated in favor of embeds */
+  tts?: boolean;
+  /** Embedded rich content (up to 6000 characters) */
+  embeds?: Embed[];
+  /** Embedded rich content, deprecated in favor of embeds */
   embed: Embed;
-  /** allowed mentions for the message */
-  allowed_mentions: AllowedMention;
-  /** include to make your message a reply */
-  message_reference: MessageReference;
-  /** the components to include with the message */
-  components: Component[];
+  /** Allowed mentions for the message */
+  allowed_mentions?: AllowedMention;
+  /** Include to make your message a reply */
+  message_reference?: MessageReference;
+  /** Components to include with the message */
+  components?: Component[];
   /** IDs of up to 3 stickers in the server to send in the message */
-  sticker_ids: Snowflake[];
-  /** the contents of the file being sent */
-  files: string;
-  /** JSON encoded body of non-file params */
-  payload_json: string;
-  /** attachment objects with filename and description */
-  attachments: Attachment[];
-  /** message flags combined as a bitfield (only SUPPRESS_EMBEDS can be set) */
-  flags: number;
+  sticker_ids?: Snowflake[];
+  /** Contents of the file being sent. See Uploading Files */
+  files?: string;
+  /** JSON-encoded body of non-file params, only for multipart/form-data requests. See Uploading Files */
+  payload_json?: string;
+  /** Attachment objects with filename and description. See Uploading Files */
+  attachments?: Attachment[];
+  /** Message flags combined as a bitfield (only SUPPRESS_EMBEDS can be set) */
+  flags?: number;
 }
 export function createRoutes<O = any>(
   fetch: <R, P>(route: Route<P, O>) => Promise<R>,
@@ -855,16 +925,10 @@ export function createRoutes<O = any>(
         url: `/channels/${channelId}/thread-members/${userId}`,
         options,
       }),
-    batchEditApplicationCommandPermissions: (
-      applicationId,
-      guildId,
-      params,
-      options,
-    ) =>
+    batchEditApplicationCommandPermissions: (applicationId, guildId, options) =>
       fetch({
         method: "PUT",
         url: `/applications/${applicationId}/guilds/${guildId}/commands/permissions`,
-        params,
         options,
       }),
     beginGuildPrune: (guildId, params, options) =>
@@ -1685,13 +1749,7 @@ export function createRoutes<O = any>(
         url: `/channels/${channelId}/thread-members/@me`,
         options,
       }),
-    listActiveThreads: (channelId, options) =>
-      fetch({
-        method: "GET",
-        url: `/channels/${channelId}/threads/active`,
-        options,
-      }),
-    listGuildActiveThreads: (guildId, options) =>
+    listActiveGuildThreads: (guildId, options) =>
       fetch({
         method: "GET",
         url: `/guilds/${guildId}/threads/active`,
@@ -2010,7 +2068,7 @@ export interface DeleteWebhookMessageParams {
   thread_id: Snowflake;
 }
 export interface EditApplicationCommandPermissionParams {
-  /** the permissions for the command in the guild */
+  /** Permissions for the command in the guild */
   permissions: ApplicationCommandPermission[];
 }
 export interface EditChannelPermissionParams {
@@ -2022,7 +2080,7 @@ export interface EditChannelPermissionParams {
   type: number;
 }
 export interface EditGlobalApplicationCommandParams {
-  /** 1-32 character name */
+  /** Name of command, 1-32 characters */
   name?: string;
   /** Localization dictionary for the name field. Values follow the same restrictions as name */
   name_localizations?: Locale | null;
@@ -2032,11 +2090,15 @@ export interface EditGlobalApplicationCommandParams {
   description_localizations?: Locale | null;
   /** the parameters for the command */
   options?: ApplicationCommandOption[];
-  /** whether the command is enabled by default when the app is added to a guild */
+  /** Set of permissions represented as a bit set */
+  default_member_permissions?: string | null;
+  /** Indicates whether the command is available in DMs with the app, only for globally-scoped commands. By default, commands are visible. */
+  dm_permission?: boolean | null;
+  /** Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. */
   default_permission?: boolean;
 }
 export interface EditGuildApplicationCommandParams {
-  /** 1-32 character name */
+  /** Name of command, 1-32 characters */
   name?: string;
   /** Localization dictionary for the name field. Values follow the same restrictions as name */
   name_localizations?: Locale | null;
@@ -2044,29 +2106,31 @@ export interface EditGuildApplicationCommandParams {
   description?: string;
   /** Localization dictionary for the description field. Values follow the same restrictions as description */
   description_localizations?: Locale | null;
-  /** the parameters for the command */
+  /** Parameters for the command */
   options?: ApplicationCommandOption[];
-  /** whether the command is enabled by default when the app is added to a guild */
+  /** Set of permissions represented as a bit set */
+  default_member_permissions?: string | null;
+  /** Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. */
   default_permission?: boolean;
 }
 export interface EditMessageParams {
-  /** the message contents (up to 2000 characters) */
+  /** Message contents (up to 2000 characters) */
   content: string;
-  /** embedded rich content (up to 6000 characters) */
+  /** Embedded rich content (up to 6000 characters) */
   embeds: Embed[];
-  /** embedded rich content, deprecated in favor of embeds */
+  /** Embedded rich content, deprecated in favor of embeds */
   embed: Embed;
-  /** edit the flags of a message (only SUPPRESS_EMBEDS can currently be set/unset) */
+  /** Edit the flags of a message (only SUPPRESS_EMBEDS can currently be set/unset) */
   flags: number;
-  /** allowed mentions for the message */
+  /** Allowed mentions for the message */
   allowed_mentions: AllowedMention;
-  /** the components to include with the message */
+  /** Components to include with the message */
   components: Component[];
-  /** the contents of the file being sent/edited */
+  /** Contents of the file being sent/edited. See Uploading Files */
   files: string;
-  /** JSON encoded body of non-file params (multipart/form-data only) */
+  /** JSON-encoded body of non-file params (multipart/form-data only). See Uploading Files */
   payload_json: string;
-  /** attached files to keep and possible descriptions for new files */
+  /** Attached files to keep and possible descriptions for new files. See Uploading Files */
   attachments: Attachment[];
 }
 export interface EditWebhookMessageParams {
@@ -2231,9 +2295,8 @@ export interface Endpoints<O> {
   batchEditApplicationCommandPermissions: (
     applicationId: string,
     guildId: string,
-    params?: Partial<GuildApplicationCommandPermission[]>,
     options?: O,
-  ) => Promise<GuildApplicationCommandPermission[]>;
+  ) => Promise<any>;
   /** Begin a prune operation. Requires the KICK_MEMBERS permission. Returns an object with one pruned key indicating the number of members that were removed in the prune operation. For large guilds it's recommended to set the compute_prune_count option to false, forcing pruned to null. Fires multiple Guild Member Remove Gateway events. */
   beginGuildPrune: (
     guildId: string,
@@ -2246,7 +2309,7 @@ export interface Endpoints<O> {
     params?: Partial<BulkDeleteMessageParams>,
     options?: O,
   ) => Promise<any>;
-  /** Takes a list of application commands, overwriting the existing global command list for this application. Updates will be available in all guilds after 1 hour. Returns 200 and a list of application command objects. Commands that do not already exist will count toward daily application command create limits. */
+  /** Takes a list of application commands, overwriting the existing global command list for this application. Returns 200 and a list of application command objects. Commands that do not already exist will count toward daily application command create limits. */
   bulkOverwriteGlobalApplicationCommands: (
     applicationId: string,
     options?: O,
@@ -2588,7 +2651,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<FollowNewsChannelParams>,
     options?: O,
   ) => Promise<FollowedChannel>;
-  /** Fetches command permissions for a specific command for your application in a guild. Returns a guild application command permissions object. */
+  /** Fetches permissions for a specific command for your application in a guild. Returns a guild application command permissions object. */
   getApplicationCommandPermissions: (
     applicationId: string,
     guildId: string,
@@ -2658,7 +2721,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     commandId: string,
     options?: O,
   ) => Promise<ApplicationCommand>;
-  /** Fetches command permissions for all commands for your application in a guild. Returns an array of guild application command permissions objects. */
+  /** Fetches permissions for all commands for your application in a guild. Returns an array of guild application command permissions objects. */
   getGuildApplicationCommandPermissions: (
     applicationId: string,
     guildId: string,
@@ -2841,16 +2904,11 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   leaveGuild: (guildId: string, options?: O) => Promise<any>;
   /** Removes the current user from a thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
   leaveThread: (channelId: string, options?: O) => Promise<any>;
-  /** Returns all active threads in the channel, including public and private threads. Threads are ordered by their id, in descending order. */
-  listActiveThreads: (
-    channelId: string,
-    options?: O,
-  ) => Promise<ListActiveThreadResponse>;
   /** Returns all active threads in the guild, including public and private threads. Threads are ordered by their id, in descending order. */
-  listGuildActiveThreads: (
+  listActiveGuildThreads: (
     guildId: string,
     options?: O,
-  ) => Promise<ListGuildActiveThreadResponse>;
+  ) => Promise<ListActiveGuildThreadResponse>;
   /** Returns a list of emoji objects for the given guild. */
   listGuildEmojis: (guildId: string, options?: O) => Promise<Emoji[]>;
   /** Returns a list of guild member objects that are members of the guild. */
@@ -3062,7 +3120,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<StartThreadFromMessageParams>,
     options?: O,
   ) => Promise<Channel>;
-  /** Creates a new thread in a forum channel, and sends a message within the created thread. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. Fires a Thread Create and Message Create Gateway event. */
+  /** Creates a new thread in a forum channel, and sends a message within the created thread. Returns a channel, with a nested message object, on success, and a 400 BAD REQUEST on invalid parameters. Fires a Thread Create and Message Create Gateway event. */
   startThreadInForumChannel: (
     channelId: string,
     params?: Partial<StartThreadInForumChannelParams>,
@@ -3131,6 +3189,28 @@ export interface FollowNewsChannelParams {
   /** id of target channel */
   webhook_channel_id: Snowflake;
 }
+export interface ForumThreadMessageParam {
+  /** Message contents (up to 2000 characters) */
+  content?: string;
+  /** Embedded rich content (up to 6000 characters) */
+  embeds?: Embed[];
+  /** Embedded rich content, deprecated in favor of embeds */
+  embed: Embed;
+  /** Allowed mentions for the message */
+  allowed_mentions?: AllowedMention;
+  /** Components to include with the message */
+  components?: Component[];
+  /** IDs of up to 3 stickers in the server to send in the message */
+  sticker_ids?: Snowflake[];
+  /** Contents of the file being sent. See Uploading Files */
+  files: string;
+  /** JSON-encoded body of non-file params, only for multipart/form-data requests. See Uploading Files */
+  payload_json?: string;
+  /** Attachment objects with filename and description. See Uploading Files */
+  attachments?: Attachment[];
+  /** Message flags combined as a bitfield (only SUPPRESS_EMBEDS can be set) */
+  flags?: number;
+}
 export type GatewayCommand =
   | Identify
   | Resume
@@ -3152,6 +3232,7 @@ export type GatewayEvent =
   | ResumedEvent
   | ReconnectEvent
   | InvalidSessionEvent
+  | ApplicationCommandPermissionsUpdateEvent
   | ChannelCreateEvent
   | ChannelUpdateEvent
   | ChannelDeleteEvent
@@ -3211,6 +3292,7 @@ export interface GatewayEvents {
   RESUMED: ResumedEvent;
   RECONNECT: ReconnectEvent;
   INVALID_SESSION: InvalidSessionEvent;
+  APPLICATION_COMMAND_PERMISSIONS_UPDATE: ApplicationCommandPermissionsUpdateEvent;
   CHANNEL_CREATE: ChannelCreateEvent;
   CHANNEL_UPDATE: ChannelUpdateEvent;
   CHANNEL_DELETE: ChannelDeleteEvent;
@@ -3281,6 +3363,7 @@ export const GatewayIntents = {
   DIRECT_MESSAGES: 1 << 12,
   DIRECT_MESSAGE_REACTIONS: 1 << 13,
   DIRECT_MESSAGE_TYPING: 1 << 14,
+  MESSAGE_CONTENT: 1 << 15,
   GUILD_SCHEDULED_EVENTS: 1 << 16,
 } as const;
 export enum GatewayOpcode {
@@ -3326,14 +3409,14 @@ export interface GatewayUrlQueryStringParam {
   compress?: string;
 }
 export interface GetChannelMessageParams {
-  /** get messages around this message ID */
-  around: Snowflake;
-  /** get messages before this message ID */
-  before: Snowflake;
-  /** get messages after this message ID */
-  after: Snowflake;
-  /** max number of messages to return (1-100) */
-  limit: number;
+  /** Get messages around this message ID */
+  around?: Snowflake;
+  /** Get messages before this message ID */
+  before?: Snowflake;
+  /** Get messages after this message ID */
+  after?: Snowflake;
+  /** Max number of messages to return (1-100) */
+  limit?: number;
 }
 export interface GetCurrentUserGuildParams {
   /** get guilds before this guild ID */
@@ -3360,13 +3443,13 @@ export interface GetGuildApplicationCommandParams {
   with_localizations?: boolean;
 }
 export interface GetGuildAuditLogParams {
-  /** filter the log for actions made by a user */
+  /** Entries from a specific user ID */
   user_id: Snowflake;
-  /** the type of audit log event */
+  /** Entries for a specific audit log event */
   action_type: AuditLogEvent;
-  /** filter the log before a certain entry id */
+  /** Entries that preceded a specific audit log entry ID */
   before: Snowflake;
-  /** how many entries are returned (default 50, minimum 1, maximum 100) */
+  /** Maximum number of entries (between 1-100) to return, defaults to 50 */
   limit: number;
 }
 export interface GetGuildBanParams {
@@ -3428,10 +3511,10 @@ export interface GetInviteParams {
   guild_scheduled_event_id?: Snowflake;
 }
 export interface GetReactionParams {
-  /** get users after this user ID */
-  after: Snowflake;
-  /** max number of users to return (1-100) */
-  limit: number;
+  /** Get users after this user ID */
+  after?: Snowflake;
+  /** Max number of users to return (1-100) */
+  limit?: number;
 }
 export interface GetWebhookMessageParams {
   /** id of the thread the message is in */
@@ -3494,24 +3577,6 @@ export interface Guild {
   system_channel_flags: number;
   /** the id of the channel where Community guilds can display rules and/or guidelines */
   rules_channel_id?: Snowflake | null;
-  /** when this guild was joined at */
-  joined_at?: string;
-  /** true if this is considered a large guild */
-  large?: boolean;
-  /** true if this guild is unavailable due to an outage */
-  unavailable?: boolean;
-  /** total number of members in this guild */
-  member_count?: number;
-  /** states of members currently in voice channels; lacks the guild_id key */
-  voice_states?: VoiceState[];
-  /** users in the guild */
-  members?: GuildMember[];
-  /** channels in the guild */
-  channels?: Channel[];
-  /** all active threads in the guild that current user has permission to view */
-  threads?: Channel[];
-  /** presences of the members in the guild, will only include non-offline members if the size is greater than large threshold */
-  presences?: PresenceUpdateEvent[];
   /** the maximum number of presences for the guild (null is always returned, apart from the largest of guilds) */
   max_presences?: number | null;
   /** the maximum number of members for the guild */
@@ -3540,23 +3605,19 @@ export interface Guild {
   welcome_screen?: WelcomeScreen;
   /** guild NSFW level */
   nsfw_level: GuildNsfwLevel;
-  /** Stage instances in the guild */
-  stage_instances?: StageInstance[];
   /** custom guild stickers */
   stickers?: Sticker[];
-  /** the scheduled events in the guild */
-  guild_scheduled_events?: GuildScheduledEvent[];
   /** whether the guild has the boost progress bar enabled */
   premium_progress_bar_enabled: boolean;
 }
 export interface GuildApplicationCommandPermission {
-  /** the id of the command */
+  /** ID of the command */
   id: Snowflake;
-  /** the id of the application the command belongs to */
+  /** ID of the application the command belongs to */
   application_id: Snowflake;
-  /** the id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
-  /** the permissions for the command in the guild */
+  /** Permissions for the command in the guild, max of 100 */
   permissions: ApplicationCommandPermission[];
 }
 export interface GuildBanAddEvent {
@@ -3571,7 +3632,31 @@ export interface GuildBanRemoveEvent {
   /** the unbanned user */
   user: User;
 }
-export type GuildCreateEvent = Guild;
+export type GuildCreateEvent = Guild & GuildCreateExtra;
+export interface GuildCreateExtra {
+  /** when this guild was joined at */
+  joined_at: string;
+  /** true if this is considered a large guild */
+  large: boolean;
+  /** true if this guild is unavailable due to an outage */
+  unavailable: boolean;
+  /** total number of members in this guild */
+  member_count: number;
+  /** states of members currently in voice channels; lacks the guild_id key */
+  voice_states: VoiceState[];
+  /** users in the guild */
+  members: GuildMember[];
+  /** channels in the guild */
+  channels: Channel[];
+  /** all active threads in the guild that current user has permission to view */
+  threads: Channel[];
+  /** presences of the members in the guild, will only include non-offline members if the size is greater than large threshold */
+  presences: PresenceUpdateEvent[];
+  /** Stage instances in the guild */
+  stage_instances: StageInstance[];
+  /** the scheduled events in the guild */
+  guild_scheduled_events: GuildScheduledEvent[];
+}
 export type GuildDeleteEvent = UnavailableGuild;
 export interface GuildEmojisUpdateEvent {
   /** id of the guild */
@@ -3612,10 +3697,6 @@ export enum GuildFeature {
   PRIVATE_THREADS = "PRIVATE_THREADS",
   /** guild is able to set role icons */
   ROLE_ICONS = "ROLE_ICONS",
-  /** guild has access to the seven day archive time for threads */
-  SEVEN_DAY_THREAD_ARCHIVE = "SEVEN_DAY_THREAD_ARCHIVE",
-  /** guild has access to the three day archive time for threads */
-  THREE_DAY_THREAD_ARCHIVE = "THREE_DAY_THREAD_ARCHIVE",
   /** guild has enabled ticketed events */
   TICKETED_EVENTS_ENABLED = "TICKETED_EVENTS_ENABLED",
   /** guild has access to set a vanity URL */
@@ -4076,7 +4157,7 @@ export interface InteractionDatum {
   component_type?: ComponentType;
   /** the values the user selected */
   values?: SelectOption[];
-  /** id the of user or message targeted by a user or message command */
+  /** id of the user or message targeted by a user or message command */
   target_id?: Snowflake;
   /** the values submitted by the user */
   components?: Component[];
@@ -4181,15 +4262,7 @@ export enum InviteTargetType {
   STREAM = 1,
   EMBEDDED_APPLICATION = 2,
 }
-export interface ListActiveThreadResponse {
-  /** the active threads */
-  threads: Channel[];
-  /** a thread member object for each returned thread the current user has joined */
-  members: ThreadMember[];
-  /** whether there are potentially additional threads that could be returned on a subsequent call */
-  has_more: boolean;
-}
-export interface ListGuildActiveThreadResponse {
+export interface ListActiveGuildThreadResponse {
   /** the active threads */
   threads: Channel[];
   /** a thread member object for each returned thread the current user has joined */
@@ -4935,7 +5008,7 @@ export interface ResolvedDatum {
   attachments?: Record<Snowflake, Attachment>;
 }
 export interface ResponseBody {
-  /** the active threads */
+  /** the public, archived threads */
   threads: Channel[];
   /** a thread member object for each returned thread the current user has joined */
   members: ThreadMember[];
@@ -5061,39 +5134,38 @@ export interface StartThreadFromMessageParams {
   /** amount of seconds a user has to wait before sending another message (0-21600) */
   rate_limit_per_user?: number | null;
 }
-export interface StartThreadInForumChannelForTheMessageParams {
-  /** the message contents (up to 2000 characters) */
-  content: string;
-  /** embedded rich content (up to 6000 characters) */
-  embeds: Embed[];
-  /** embedded rich content, deprecated in favor of embeds */
+export interface StartThreadInForumChannelForumThreadMessageParams {
+  /** Message contents (up to 2000 characters) */
+  content?: string;
+  /** Embedded rich content (up to 6000 characters) */
+  embeds?: Embed[];
+  /** Embedded rich content, deprecated in favor of embeds */
   embed: Embed;
-  /** allowed mentions for the message */
-  allowed_mentions: AllowedMention;
-  /** the components to include with the message */
-  components: Component[];
+  /** Allowed mentions for the message */
+  allowed_mentions?: AllowedMention;
+  /** Components to include with the message */
+  components?: Component[];
   /** IDs of up to 3 stickers in the server to send in the message */
-  sticker_ids: Snowflake[];
-  /** the contents of the file being sent */
+  sticker_ids?: Snowflake[];
+  /** Contents of the file being sent. See Uploading Files */
   files: string;
-  /** JSON encoded body of non-file params */
-  payload_json: string;
-  /** attachment objects with filename and description */
-  attachments: Attachment[];
-  /** message flags combined as a bitfield (only SUPPRESS_EMBEDS can be set) */
-  flags: number;
+  /** JSON-encoded body of non-file params, only for multipart/form-data requests. See Uploading Files */
+  payload_json?: string;
+  /** Attachment objects with filename and description. See Uploading Files */
+  attachments?: Attachment[];
+  /** Message flags combined as a bitfield (only SUPPRESS_EMBEDS can be set) */
+  flags?: number;
 }
-export interface StartThreadInForumChannelForTheThreadParams {
+export interface StartThreadInForumChannelParams {
   /** 1-100 character channel name */
   name: string;
   /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
   auto_archive_duration?: number;
   /** amount of seconds a user has to wait before sending another message (0-21600) */
   rate_limit_per_user?: number | null;
+  /** contents of the first message in the forum thread */
+  message: StartThreadInForumChannelForumThreadMessageParams;
 }
-export type StartThreadInForumChannelParams =
-  | StartThreadInForumChannelForTheThreadParams
-  | StartThreadInForumChannelForTheMessageParams;
 export interface StartThreadWithoutMessageParams {
   /** 1-100 character channel name */
   name: string;

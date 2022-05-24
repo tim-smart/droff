@@ -1,7 +1,7 @@
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { Dispatch } from "../gateway/dispatch";
-import { Guild } from "../types";
+import { Guild, GuildCreateEvent } from "../types";
 import { WatchOp } from "./resources";
 
 const withOp =
@@ -21,8 +21,8 @@ export const watch$ = (fromDispatch: Dispatch) =>
         case "update":
           // Un-reference some data that might be garbage collected later.
           // We collect these in the other `watch$` methods.
-          const guild: Guild = {
-            ...op[1],
+          const guild: GuildCreateEvent = {
+            ...(op[1] as GuildCreateEvent),
             roles: [],
             emojis: [],
             channels: [],

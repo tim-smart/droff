@@ -1,11 +1,11 @@
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { Dispatch } from "../gateway/dispatch";
-import { Guild, Snowflake } from "../types";
+import { GuildCreateEvent, Snowflake } from "../types";
 
 export interface CrudObservables<T> {
   id: (resource: T) => string;
-  init?: (guild: Guild) => Rx.Observable<T>;
+  init?: (guild: GuildCreateEvent) => Rx.Observable<T>;
 
   create$?: Rx.Observable<readonly [Snowflake, T]>;
   update$?: Rx.Observable<readonly [Snowflake, T]>;

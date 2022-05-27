@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.33.0](https://github.com/tim-smart/droff/compare/droff@0.32.2...droff@0.33.0) (2022-05-27)
+
+### chore
+
+- update api types ([bf18e21](https://github.com/tim-smart/droff/commit/bf18e217ce1abad65a122f43980ac6d5ad0c7f9b))
+- update api types ([5de9ff2](https://github.com/tim-smart/droff/commit/5de9ff2483d35eace71fcb71b137fc1a6e6bfa5b))
+
+### BREAKING CHANGES
+
+- some discord api types have breaking changes
+- renames startThreadWithMessage
+
 ## [0.32.2](https://github.com/tim-smart/droff/compare/droff@0.32.1...droff@0.32.2) (2022-03-30)
 
 **Note:** Version bump only for package droff

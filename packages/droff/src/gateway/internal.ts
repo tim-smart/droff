@@ -44,9 +44,9 @@ export const identify$ = ({
               token,
               intents,
               properties: {
-                $os: OS.platform(),
-                $browser: "droff",
-                $device: "droff",
+                os: OS.platform(),
+                browser: "droff",
+                device: "droff",
               },
               shard,
               presence,

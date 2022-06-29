@@ -1,8 +1,22 @@
+export interface ActionMetadatum {
+  /** SEND_ALERT_MESSAGE */
+  channel_id: Snowflake;
+  /** TIMEOUT */
+  duration_seconds: number;
+}
 export interface ActionRow {
   /** component type */
   type: ComponentType;
   /** a list of child components */
   components: Component[];
+}
+export enum ActionType {
+  /** blocks the content of a message according to the rule */
+  BLOCK_MESSAGE = 1,
+  /** logs user content to a specified channel */
+  SEND_ALERT_MESSAGE = 2,
+  /** timeout user for a specified duration * */
+  TIMEOUT = 3,
 }
 export interface Activity {
   /** the activity's name */
@@ -195,11 +209,27 @@ export interface ApplicationCommand {
   /** Set of permissions represented as a bit set */
   default_member_permissions?: string | null;
   /** Indicates whether the command is available in DMs with the app, only for globally-scoped commands. By default, commands are visible. */
-  dm_permission?: boolean | null;
+  dm_permission?: boolean;
   /** Not recommended for use as field will soon be deprecated. Indicates whether the command is enabled by default when the app is added to a guild, defaults to true */
   default_permission?: boolean | null;
   /** Autoincrementing version identifier updated during substantial record changes */
   version: Snowflake;
+}
+export interface ApplicationCommandDatum {
+  /** the ID of the invoked command */
+  id: Snowflake;
+  /** the name of the invoked command */
+  name: string;
+  /** the type of the invoked command */
+  type: number;
+  /** converted users + roles + channels + attachments */
+  resolved?: ResolvedDatum;
+  /** the params + values from the user */
+  options?: ApplicationCommandInteractionDataOption[];
+  /** the id of the guild the command is registered to */
+  guild_id?: Snowflake;
+  /** id of the user or message targeted by a user or message command */
+  target_id?: Snowflake;
 }
 export interface ApplicationCommandInteractionDataOption {
   /** Name of the parameter */
@@ -346,15 +376,17 @@ export interface AuditEntryInfo {
 export interface AuditLog {
   /** List of audit log entries, sorted from most to least recent */
   audit_log_entries: AuditLogEntry[];
-  /** List of guild scheduled events found in the audit log */
+  /** List of auto moderation rules referenced in the audit log */
+  auto_moderation_rules: AutoModerationRule[];
+  /** List of guild scheduled events referenced in the audit log */
   guild_scheduled_events: GuildScheduledEvent[];
   /** List of partial integration objects */
   integrations: Integration[];
-  /** List of threads found in the audit log* */
+  /** List of threads referenced in the audit log* */
   threads: Channel[];
-  /** List of users found in the audit log */
+  /** List of users referenced in the audit log */
   users: User[];
-  /** List of webhooks found in the audit log */
+  /** List of webhooks referenced in the audit log */
   webhooks: Webhook[];
 }
 export interface AuditLogChange {
@@ -442,7 +474,7 @@ export enum AuditLogEvent {
   MESSAGE_DELETE = 72,
   /** Multiple messages were deleted */
   MESSAGE_BULK_DELETE = 73,
-  /** Messaged was pinned to a channel */
+  /** Message was pinned to a channel */
   MESSAGE_PIN = 74,
   /** Message was unpinned from a channel */
   MESSAGE_UNPIN = 75,
@@ -454,7 +486,7 @@ export enum AuditLogEvent {
   INTEGRATION_DELETE = 82,
   /** Stage instance was created (stage channel becomes live) */
   STAGE_INSTANCE_CREATE = 83,
-  /** Stage instace details were updated */
+  /** Stage instance details were updated */
   STAGE_INSTANCE_UPDATE = 84,
   /** Stage instance was deleted (stage channel no longer live) */
   STAGE_INSTANCE_DELETE = 85,
@@ -478,7 +510,72 @@ export enum AuditLogEvent {
   THREAD_DELETE = 112,
   /** Permissions were updated for a command */
   APPLICATION_COMMAND_PERMISSION_UPDATE = 121,
+  /** Auto Moderation rule was created */
+  AUTO_MODERATION_RULE_CREATE = 140,
+  /** Auto Moderation rule was updated */
+  AUTO_MODERATION_RULE_UPDATE = 141,
+  /** Auto Moderation rule was deleted */
+  AUTO_MODERATION_RULE_DELETE = 142,
+  /** Message was blocked by AutoMod (according to a rule) */
+  AUTO_MODERATION_BLOCK_MESSAGE = 143,
 }
+export interface AutoModerationAction {
+  /** the type of action */
+  type: ActionType;
+  /** additional metadata needed during execution for this specific action type */
+  metadata?: ActionMetadatum;
+}
+export interface AutoModerationActionExecutionEvent {
+  /** the id of the guild in which action was executed */
+  guild_id: Snowflake;
+  /** the action which was executed */
+  action: AutoModerationAction;
+  /** the id of the rule which action belongs to */
+  rule_id: Snowflake;
+  /** the trigger type of rule which was triggered */
+  rule_trigger_type: TriggerType;
+  /** the id of the user which generated the content which triggered the rule */
+  user_id: Snowflake;
+  /** the id of the channel in which user content was posted */
+  channel_id?: Snowflake;
+  /** the id of any user message which content belongs to * */
+  message_id?: Snowflake;
+  /** the id of any system auto moderation messages posted as a result of this action ** */
+  alert_system_message_id?: Snowflake;
+  /** the user generated text content */
+  content: string;
+  /** the word or phrase configured in the rule that triggered the rule */
+  matched_keyword?: string | null;
+  /** the substring in content that triggered the rule */
+  matched_content?: string | null;
+}
+export interface AutoModerationRule {
+  /** the id of this rule */
+  id: Snowflake;
+  /** the guild which this rule belongs to */
+  guild_id: Snowflake;
+  /** the rule name */
+  name: string;
+  /** the user which first created this rule */
+  creator_id: Snowflake;
+  /** the rule event type */
+  event_type: EventType;
+  /** the rule trigger type */
+  trigger_type: TriggerType;
+  /** the rule trigger metadata */
+  trigger_metadata: TriggerMetadatum;
+  /** the actions which will execute when the rule is triggered */
+  actions: AutoModerationAction[];
+  /** whether the rule is enabled */
+  enabled: boolean;
+  /** the role ids that should not be affected by the rule (Maximum of 20) */
+  exempt_roles: Snowflake[];
+  /** the channel ids that should not be affected by the rule (Maximum of 50) */
+  exempt_channels: Snowflake[];
+}
+export type AutoModerationRuleCreateEvent = AutoModerationRule;
+export type AutoModerationRuleDeleteEvent = AutoModerationRule;
+export type AutoModerationRuleUpdateEvent = AutoModerationRule;
 export interface Ban {
   /** the reason for the ban */
   reason?: string | null;
@@ -690,6 +787,24 @@ export interface Connection {
   /** visibility of this connection */
   visibility: VisibilityType;
 }
+export interface CreateAutoModerationRuleParams {
+  /** the rule name */
+  name: string;
+  /** the event type */
+  event_type: EventType;
+  /** the trigger type */
+  trigger_type: TriggerType;
+  /** the trigger metadata */
+  trigger_metadata?: TriggerType;
+  /** the actions which will execute when the rule is triggered */
+  actions: AutoModerationAction[];
+  /** whether the rule is enabled (False by default) */
+  enabled?: boolean;
+  /** the role ids that should not be affected by the rule (Maximum of 20) */
+  exempt_roles?: Snowflake[];
+  /** the channel ids that should not be affected by the rule (Maximum of 50) */
+  exempt_channels?: Snowflake[];
+}
 export interface CreateChannelInviteParams {
   /** duration of invite in seconds before expiry, or 0 for never. between 0 and 604800 (7 days) */
   max_age: number;
@@ -767,9 +882,9 @@ export interface CreateGuildChannelParams {
   type: ChannelType;
   /** channel topic (0-1024 characters) */
   topic: string;
-  /** the bitrate (in bits) of the voice channel (voice only) */
+  /** the bitrate (in bits) of the voice or stage channel; min 8000 */
   bitrate: number;
-  /** the user limit of the voice channel (voice only) */
+  /** the user limit of the voice channel */
   user_limit: number;
   /** amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages or manage_channel, are unaffected */
   rate_limit_per_user: number;
@@ -781,6 +896,10 @@ export interface CreateGuildChannelParams {
   parent_id: Snowflake;
   /** whether the channel is nsfw */
   nsfw: boolean;
+  /** channel voice region id of the voice or stage channel, automatic when set to null */
+  rtc_region: string;
+  /** the camera video quality mode of the voice channel */
+  video_quality_mode: VideoQualityMode;
   /** the default duration that the clients use (not the API) for newly created threads in the channel, in minutes, to automatically archive the thread after recent activity */
   default_auto_archive_duration: number;
 }
@@ -883,8 +1002,6 @@ export interface CreateMessageParams {
   tts?: boolean;
   /** Embedded rich content (up to 6000 characters) */
   embeds?: Embed[];
-  /** Embedded rich content, deprecated in favor of embeds */
-  embed: Embed;
   /** Allowed mentions for the message */
   allowed_mentions?: AllowedMention;
   /** Include to make your message a reply */
@@ -960,6 +1077,13 @@ export function createRoutes<O = any>(
       fetch({
         method: "PUT",
         url: `/applications/${applicationId}/guilds/${guildId}/commands`,
+        params,
+        options,
+      }),
+    createAutoModerationRule: (guildId, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/guilds/${guildId}/auto-moderation/rules`,
         params,
         options,
       }),
@@ -1122,6 +1246,12 @@ export function createRoutes<O = any>(
       fetch({
         method: "DELETE",
         url: `/channels/${channelId}/messages/${messageId}/reactions/${emoji}`,
+        options,
+      }),
+    deleteAutoModerationRule: (guildId, autoModerationRuleId, options) =>
+      fetch({
+        method: "DELETE",
+        url: `/guilds/${guildId}/auto-moderation/rules/${autoModerationRuleId}`,
         options,
       }),
     deleteChannelPermission: (channelId, overwriteId, options) =>
@@ -1381,6 +1511,12 @@ export function createRoutes<O = any>(
       fetch({
         method: "GET",
         url: `/applications/${applicationId}/guilds/${guildId}/commands/${commandId}/permissions`,
+        options,
+      }),
+    getAutoModerationRule: (guildId, autoModerationRuleId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/auto-moderation/rules/${autoModerationRuleId}`,
         options,
       }),
     getChannel: (channelId, options) =>
@@ -1755,6 +1891,12 @@ export function createRoutes<O = any>(
         url: `/guilds/${guildId}/threads/active`,
         options,
       }),
+    listAutoModerationRulesForGuild: (guildId, options) =>
+      fetch({
+        method: "GET",
+        url: `/guilds/${guildId}/auto-moderation/rules`,
+        options,
+      }),
     listGuildEmojis: (guildId, options) =>
       fetch({
         method: "GET",
@@ -1820,6 +1962,18 @@ export function createRoutes<O = any>(
         url: `/voice/regions`,
         options,
       }),
+    modifyAutoModerationRule: (
+      guildId,
+      autoModerationRuleId,
+      params,
+      options,
+    ) =>
+      fetch({
+        method: "PATCH",
+        url: `/guilds/${guildId}/auto-moderation/rules/${autoModerationRuleId}`,
+        params,
+        options,
+      }),
     modifyChannel: (channelId, params, options) =>
       fetch({
         method: "PATCH",
@@ -1880,6 +2034,13 @@ export function createRoutes<O = any>(
       fetch({
         method: "PATCH",
         url: `/guilds/${guildId}/members/${userId}`,
+        params,
+        options,
+      }),
+    modifyGuildMfaLevel: (guildId, params, options) =>
+      fetch({
+        method: "POST",
+        url: `/guilds/${guildId}/mfa`,
         params,
         options,
       }),
@@ -2321,6 +2482,12 @@ export interface Endpoints<O> {
     params?: Partial<BulkOverwriteGuildApplicationCommandParams>,
     options?: O,
   ) => Promise<ApplicationCommand[]>;
+  /** Create a new rule. Returns an auto moderation rule on success. */
+  createAutoModerationRule: (
+    guildId: string,
+    params?: Partial<CreateAutoModerationRuleParams>,
+    options?: O,
+  ) => Promise<AutoModerationRule>;
   /** Create a new invite object for the channel. Only usable for guild channels. Requires the CREATE_INSTANT_INVITE permission. All JSON parameters for this route are optional, however the request body is not. If you are not sending any fields, you still have to send an empty JSON object ({}). Returns an invite object. Fires an Invite Create Gateway event. */
   createChannelInvite: (
     channelId: string,
@@ -2454,6 +2621,12 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     channelId: string,
     messageId: string,
     emoji: string,
+    options?: O,
+  ) => Promise<any>;
+  /** Delete a rule. Returns a 204 on success. */
+  deleteAutoModerationRule: (
+    guildId: string,
+    autoModerationRuleId: string,
     options?: O,
   ) => Promise<any>;
   /** Delete a channel permission overwrite for a user or role in a channel. Only usable for guild channels. Requires the MANAGE_ROLES permission. Returns a 204 empty response on success. For more information about permissions, see permissions */
@@ -2658,6 +2831,12 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     commandId: string,
     options?: O,
   ) => Promise<GuildApplicationCommandPermission>;
+  /** Get a single rule. Returns an auto moderation rule object. */
+  getAutoModerationRule: (
+    guildId: string,
+    autoModerationRuleId: string,
+    options?: O,
+  ) => Promise<AutoModerationRule>;
   /** Get a channel by ID. Returns a channel object.  If the channel is a thread, a thread member object is included in the returned result. */
   getChannel: (channelId: string, options?: O) => Promise<Channel>;
   /** Returns a list of invite objects (with invite metadata) for the channel. Only usable for guild channels. Requires the MANAGE_CHANNELS permission. */
@@ -2820,7 +2999,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     options?: O,
   ) => Promise<WelcomeScreen>;
   /** Returns the widget for the guild. */
-  getGuildWidget: (guildId: string, options?: O) => Promise<GetGuildWidget>;
+  getGuildWidget: (guildId: string, options?: O) => Promise<GuildWidget>;
   /** Returns a PNG image widget for the guild. Requires no permissions or authentication. */
   getGuildWidgetImage: (
     guildId: string,
@@ -2909,6 +3088,11 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     guildId: string,
     options?: O,
   ) => Promise<ListActiveGuildThreadResponse>;
+  /** Get a list of all rules currently configured for guild. Returns a list of auto moderation rule objects for the given guild. */
+  listAutoModerationRulesForGuild: (
+    guildId: string,
+    options?: O,
+  ) => Promise<AutoModerationRule[]>;
   /** Returns a list of emoji objects for the given guild. */
   listGuildEmojis: (guildId: string, options?: O) => Promise<Emoji[]>;
   /** Returns a list of guild member objects that are members of the guild. */
@@ -2952,6 +3136,13 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   ) => Promise<ThreadMember[]>;
   /** Returns an array of voice region objects that can be used when setting a voice or stage channel's rtc_region. */
   listVoiceRegions: (options?: O) => Promise<VoiceRegion[]>;
+  /** Modify an existing rule. Returns an auto moderation rule on success. */
+  modifyAutoModerationRule: (
+    guildId: string,
+    autoModerationRuleId: string,
+    params?: Partial<ModifyAutoModerationRuleParams>,
+    options?: O,
+  ) => Promise<AutoModerationRule>;
   /** Update a channel's settings. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. All JSON parameters are optional. */
   modifyChannel: (
     channelId: string,
@@ -3006,6 +3197,12 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<ModifyGuildMemberParams>,
     options?: O,
   ) => Promise<GuildMember>;
+  /** Modify a guild's MFA level. Requires guild ownership. Returns the updated level on success. Fires a Guild Update Gateway event. */
+  modifyGuildMfaLevel: (
+    guildId: string,
+    params?: Partial<ModifyGuildMfaLevelParams>,
+    options?: O,
+  ) => Promise<MfaLevel>;
   /** Modify a guild role. Requires the MANAGE_ROLES permission. Returns the updated role on success. Fires a Guild Role Update Gateway event. */
   modifyGuildRole: (
     guildId: string,
@@ -3147,6 +3344,10 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     options?: O,
   ) => Promise<any>;
 }
+export enum EventType {
+  /** when a member sends or edits a message in the guild */
+  MESSAGE_SEND = 1,
+}
 export interface ExecuteWebhookParams {
   /** the message contents (up to 2000 characters) */
   content: string;
@@ -3170,6 +3371,8 @@ export interface ExecuteWebhookParams {
   attachments: Attachment[];
   /** message flags combined as a bitfield (only SUPPRESS_EMBEDS can be set) */
   flags: number;
+  /** name of thread to create (requires the webhook channel to be a forum channel) */
+  thread_name: string;
 }
 export enum ExplicitContentFilterLevel {
   /** media content will not be scanned */
@@ -3194,8 +3397,6 @@ export interface ForumThreadMessageParam {
   content?: string;
   /** Embedded rich content (up to 6000 characters) */
   embeds?: Embed[];
-  /** Embedded rich content, deprecated in favor of embeds */
-  embed: Embed;
   /** Allowed mentions for the message */
   allowed_mentions?: AllowedMention;
   /** Components to include with the message */
@@ -3233,6 +3434,10 @@ export type GatewayEvent =
   | ReconnectEvent
   | InvalidSessionEvent
   | ApplicationCommandPermissionsUpdateEvent
+  | AutoModerationRuleCreateEvent
+  | AutoModerationRuleUpdateEvent
+  | AutoModerationRuleDeleteEvent
+  | AutoModerationActionExecutionEvent
   | ChannelCreateEvent
   | ChannelUpdateEvent
   | ChannelDeleteEvent
@@ -3293,6 +3498,10 @@ export interface GatewayEvents {
   RECONNECT: ReconnectEvent;
   INVALID_SESSION: InvalidSessionEvent;
   APPLICATION_COMMAND_PERMISSIONS_UPDATE: ApplicationCommandPermissionsUpdateEvent;
+  AUTO_MODERATION_RULE_CREATE: AutoModerationRuleCreateEvent;
+  AUTO_MODERATION_RULE_UPDATE: AutoModerationRuleUpdateEvent;
+  AUTO_MODERATION_RULE_DELETE: AutoModerationRuleDeleteEvent;
+  AUTO_MODERATION_ACTION_EXECUTION: AutoModerationActionExecutionEvent;
   CHANNEL_CREATE: ChannelCreateEvent;
   CHANNEL_UPDATE: ChannelUpdateEvent;
   CHANNEL_DELETE: ChannelDeleteEvent;
@@ -3365,6 +3574,8 @@ export const GatewayIntents = {
   DIRECT_MESSAGE_TYPING: 1 << 14,
   MESSAGE_CONTENT: 1 << 15,
   GUILD_SCHEDULED_EVENTS: 1 << 16,
+  AUTO_MODERATION_CONFIGURATION: 1 << 20,
+  AUTO_MODERATION_EXECUTION: 1 << 21,
 } as const;
 export enum GatewayOpcode {
   /** An event was dispatched. */
@@ -3401,7 +3612,7 @@ export interface GatewayPayload<T = any | null> {
   t?: string | null;
 }
 export interface GatewayUrlQueryStringParam {
-  /** Gateway Version to use */
+  /** API Version to use */
   v: number;
   /** The encoding of received gateway packets */
   encoding: string;
@@ -3483,20 +3694,6 @@ export interface GetGuildScheduledEventUserParams {
   before?: Snowflake;
   /** consider only users after given user id */
   after?: Snowflake;
-}
-export interface GetGuildWidget {
-  /** guild id */
-  id: Snowflake;
-  /** guild name (2-100 characters) */
-  name: string;
-  /** instant invite for the guilds specified widget invite channel */
-  instant_invite?: string | null;
-  /** voice and stage channels which are accessible by @everyone */
-  channels: Channel[];
-  /** special widget user objects that includes users presence (Limit 100) */
-  members: User[];
-  /** number of online members in this guild */
-  presence_count: number;
 }
 export interface GetGuildWidgetImageParams {
   /** style of the widget image returned (see below) */
@@ -3611,7 +3808,7 @@ export interface Guild {
   premium_progress_bar_enabled: boolean;
 }
 export interface GuildApplicationCommandPermission {
-  /** ID of the command */
+  /** ID of the command or the application ID */
   id: Snowflake;
   /** ID of the application the command belongs to */
   application_id: Snowflake;
@@ -3669,6 +3866,8 @@ export enum GuildFeature {
   ANIMATED_BANNER = "ANIMATED_BANNER",
   /** guild has access to set an animated guild icon */
   ANIMATED_ICON = "ANIMATED_ICON",
+  /** guild has set up auto moderation rules */
+  AUTO_MODERATION = "AUTO_MODERATION",
   /** guild has access to set a guild banner image */
   BANNER = "BANNER",
   /** guild has access to use commerce features (i.e. create store channels) */
@@ -3946,6 +4145,20 @@ export interface GuildTemplate {
   is_dirty?: boolean | null;
 }
 export type GuildUpdateEvent = Guild;
+export interface GuildWidget {
+  /** guild id */
+  id: Snowflake;
+  /** guild name (2-100 characters) */
+  name: string;
+  /** instant invite for the guilds specified widget invite channel */
+  instant_invite?: string | null;
+  /** voice and stage channels which are accessible by @everyone */
+  channels: Channel[];
+  /** special widget user objects that includes users presence (Limit 100) */
+  members: User[];
+  /** number of online members in this guild */
+  presence_count: number;
+}
 export interface GuildWidgetSetting {
   /** whether the widget is enabled */
   enabled: boolean;
@@ -3975,11 +4188,11 @@ export interface Identify {
 }
 export interface IdentifyConnectionProperty {
   /** your operating system */
-  $os: string;
+  os: string;
   /** your library name */
-  $browser: string;
+  browser: string;
   /** your library name */
-  $device: string;
+  device: string;
 }
 export interface InstallParam {
   /** the scopes to add the application to the server with */
@@ -4068,7 +4281,7 @@ export interface Interaction {
   application_id: Snowflake;
   /** the type of interaction */
   type: InteractionType;
-  /** the command data payload */
+  /** the interaction data payload */
   data?: InteractionDatum;
   /** the guild it was sent from */
   guild_id?: Snowflake;
@@ -4138,30 +4351,10 @@ export enum InteractionCallbackType {
   MODAL = 9,
 }
 export type InteractionCreateEvent = Interaction;
-export interface InteractionDatum {
-  /** the ID of the invoked command */
-  id: Snowflake;
-  /** the name of the invoked command */
-  name: string;
-  /** the type of the invoked command */
-  type: number;
-  /** converted users + roles + channels + attachments */
-  resolved?: ResolvedDatum;
-  /** the params + values from the user */
-  options?: ApplicationCommandInteractionDataOption[];
-  /** the id of the guild the command is registered to */
-  guild_id?: Snowflake;
-  /** the custom_id of the component */
-  custom_id?: string;
-  /** the type of the component */
-  component_type?: ComponentType;
-  /** the values the user selected */
-  values?: SelectOption[];
-  /** id of the user or message targeted by a user or message command */
-  target_id?: Snowflake;
-  /** the values submitted by the user */
-  components?: Component[];
-}
+export type InteractionDatum =
+  | ApplicationCommandDatum
+  | MessageComponentDatum
+  | ModalSubmitDatum;
 export interface InteractionResponse {
   /** the type of response */
   type: InteractionCallbackType;
@@ -4261,6 +4454,14 @@ export interface InviteStageInstance {
 export enum InviteTargetType {
   STREAM = 1,
   EMBEDDED_APPLICATION = 2,
+}
+export enum KeywordPresetType {
+  /** Words that may be considered forms of swearing or cursing */
+  PROFANITY = 1,
+  /** Words that refer to sexually explicit behavior or activity */
+  SEXUAL_CONTENT = 2,
+  /** Personal insults or words that may be considered hate speech */
+  SLURS = 3,
 }
 export interface ListActiveGuildThreadResponse {
   /** the active threads */
@@ -4391,12 +4592,8 @@ export interface Message {
   id: Snowflake;
   /** id of the channel the message was sent in */
   channel_id: Snowflake;
-  /** id of the guild the message was sent in */
-  guild_id?: Snowflake;
   /** the author of this message (not guaranteed to be a valid user, see below) */
   author: User;
-  /** member properties for this message's author */
-  member?: GuildMember;
   /** contents of the message */
   content: string;
   /** when this message was sent */
@@ -4462,7 +4659,23 @@ export enum MessageActivityType {
   LISTEN = 3,
   JOIN_REQUEST = 5,
 }
-export type MessageCreateEvent = Message;
+export interface MessageComponentDatum {
+  /** the custom_id of the component */
+  custom_id: string;
+  /** the type of the component */
+  component_type: ComponentType;
+  /** values the user selected in a select menu component */
+  values?: SelectOption[];
+}
+export type MessageCreateEvent = Message & MessageCreateExtra;
+export interface MessageCreateExtra {
+  /** id of the guild the message was sent in - unless it is an ephemeral message */
+  guild_id?: Snowflake;
+  /** member properties for this message's author. Missing for ephemeral messages and messages from webhooks */
+  member?: GuildMember;
+  /** users specifically mentioned in the message */
+  mentions: User[];
+}
 export interface MessageDeleteBulkEvent {
   /** the ids of the messages */
   ids: Snowflake[];
@@ -4573,11 +4786,11 @@ export enum MessageType {
   CHANNEL_NAME_CHANGE = 4,
   CHANNEL_ICON_CHANGE = 5,
   CHANNEL_PINNED_MESSAGE = 6,
-  GUILD_MEMBER_JOIN = 7,
-  USER_PREMIUM_GUILD_SUBSCRIPTION = 8,
-  USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_1 = 9,
-  USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_2 = 10,
-  USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_3 = 11,
+  USER_JOIN = 7,
+  GUILD_BOOST = 8,
+  GUILD_BOOST_TIER_1 = 9,
+  GUILD_BOOST_TIER_2 = 10,
+  GUILD_BOOST_TIER_3 = 11,
   CHANNEL_FOLLOW_ADD = 12,
   GUILD_DISCOVERY_DISQUALIFIED = 14,
   GUILD_DISCOVERY_REQUALIFIED = 15,
@@ -4589,13 +4802,36 @@ export enum MessageType {
   THREAD_STARTER_MESSAGE = 21,
   GUILD_INVITE_REMINDER = 22,
   CONTEXT_MENU_COMMAND = 23,
+  AUTO_MODERATION_ACTION = 24,
 }
-export type MessageUpdateEvent = Message;
+export type MessageUpdateEvent = MessageCreateEvent;
 export enum MfaLevel {
   /** guild has no MFA/2FA requirement for moderation actions */
   NONE = 0,
   /** guild has a 2FA requirement for moderation actions */
   ELEVATED = 1,
+}
+export interface ModalSubmitDatum {
+  /** the custom_id of the modal */
+  custom_id: string;
+  /** the values submitted by the user */
+  components: Component[];
+}
+export interface ModifyAutoModerationRuleParams {
+  /** the rule name */
+  name: string;
+  /** the event type */
+  event_type: EventType;
+  /** the trigger metadata */
+  trigger_metadata?: TriggerType;
+  /** the actions which will execute when the rule is triggered */
+  actions: AutoModerationAction[];
+  /** whether the rule is enabled */
+  enabled: boolean;
+  /** the role ids that should not be affected by the rule (Maximum of 20) */
+  exempt_roles: Snowflake[];
+  /** the channel ids that should not be affected by the rule (Maximum of 50) */
+  exempt_channels: Snowflake[];
 }
 export interface ModifyChannelGroupDmParams {
   /** 1-100 character channel name */
@@ -4616,7 +4852,7 @@ export interface ModifyChannelGuildChannelParams {
   nsfw?: boolean | null;
   /** amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages or manage_channel, are unaffected */
   rate_limit_per_user?: number | null;
-  /** the bitrate (in bits) of the voice channel; 8000 to 96000 (128000 for VIP servers) */
+  /** the bitrate (in bits) of the voice or stage channel; min 8000 */
   bitrate?: number | null;
   /** the user limit of the voice channel; 0 refers to no limit, 1 to 99 refers to a user limit */
   user_limit?: number | null;
@@ -4648,6 +4884,8 @@ export interface ModifyChannelThreadParams {
   invitable: boolean;
   /** amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages, manage_thread, or manage_channel, are unaffected */
   rate_limit_per_user?: number | null;
+  /** channel flags combined as a bitfield; PINNED can only be set for threads in forum channels */
+  flags?: number;
 }
 export interface ModifyCurrentMemberParams {
   /** value to set user's nickname to */
@@ -4700,6 +4938,10 @@ export interface ModifyGuildMemberParams {
   channel_id: Snowflake;
   /** when the user's timeout will expire and the user will be able to communicate in the guild again (up to 28 days in the future), set to null to remove timeout. Will throw a 403 error if the user has the ADMINISTRATOR permission or is the owner of the guild */
   communication_disabled_until?: string | null;
+}
+export interface ModifyGuildMfaLevelParams {
+  /** MFA level */
+  level: MfaLevel;
 }
 export interface ModifyGuildParams {
   /** guild name */
@@ -4965,7 +5207,7 @@ export interface Reaction {
   emoji: Emoji;
 }
 export interface ReadyEvent {
-  /** gateway version */
+  /** API version */
   v: number;
   /** information about the user including email */
   user: User;
@@ -5139,8 +5381,6 @@ export interface StartThreadInForumChannelForumThreadMessageParams {
   content?: string;
   /** Embedded rich content (up to 6000 characters) */
   embeds?: Embed[];
-  /** Embedded rich content, deprecated in favor of embeds */
-  embed: Embed;
   /** Allowed mentions for the message */
   allowed_mentions?: AllowedMention;
   /** Components to include with the message */
@@ -5248,7 +5488,7 @@ export interface StickerPack {
 export enum StickerType {
   /** an official sticker in a pack, part of Nitro or in a removed purchasable pack */
   STANDARD = 1,
-  /** a sticker uploaded to a Boosted guild for the guild's members */
+  /** a sticker uploaded to a guild for the guild's members */
   GUILD = 2,
 }
 export const SystemChannelFlag = {
@@ -5363,6 +5603,22 @@ export interface ThreadMetadatum {
   create_timestamp?: string | null;
 }
 export type ThreadUpdateEvent = Channel;
+export interface TriggerMetadatum {
+  /** KEYWORD */
+  keyword_filter: string[];
+  /** KEYWORD_PRESET */
+  presets: KeywordPresetType[];
+}
+export enum TriggerType {
+  /** check if content contains words from a user defined list of keywords */
+  KEYWORD = 1,
+  /** check if content contains any harmful links */
+  HARMFUL_LINK = 2,
+  /** check if content represents generic spam */
+  SPAM = 3,
+  /** check if content contains words from internal pre-defined wordsets */
+  KEYWORD_PRESET = 4,
+}
 export interface TypingStartEvent {
   /** id of the channel */
   channel_id: Snowflake;

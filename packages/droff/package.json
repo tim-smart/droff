@@ -16,7 +16,7 @@
     "clean": "git clean -fxd -e node_modules -- '*.js' '*.d.ts' '*.js.map'"
   },
   "devDependencies": {
-    "@tim-smart/discord-api-docs-parser": "^0.3.6",
+    "@tim-smart/discord-api-docs-parser": "^0.3.8",
     "@types/node": "^17.0.21",
     "@types/ws": "^8.5.1",
     "dotenv": "^16.0.0",

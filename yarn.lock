@@ -967,10 +967,10 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@tim-smart/discord-api-docs-parser@^0.3.6":
-  version "0.3.6"
-  resolved "https://registry.yarnpkg.com/@tim-smart/discord-api-docs-parser/-/discord-api-docs-parser-0.3.6.tgz#958918929772436ac9f0189ffa796a1c55c3aca5"
-  integrity sha512-vfvuS7ug/SsPpzyK7iTMcX48KwMA1jy+SAGkF72ObGWT1SwoFqiJCL2hqBoBC+XwowWuF/QijAgWpc9Dxn10ow==
+"@tim-smart/discord-api-docs-parser@^0.3.8":
+  version "0.3.8"
+  resolved "https://registry.yarnpkg.com/@tim-smart/discord-api-docs-parser/-/discord-api-docs-parser-0.3.8.tgz#aa2804f7d6225cf17180c447540210777f9a4c33"
+  integrity sha512-NCCXpYicVymnF2NLe+f6wSy1Vg81LIt+A99+8yldPNVSjnxRd3H+NHLIbesYXs6Un6Qjj0dE3djendqOk20wxQ==
   dependencies:
     cheerio "^1.0.0-rc.9"
     fp-ts "^2.10.5"

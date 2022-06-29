@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.11.0](https://github.com/tim-smart/droff/compare/droff-interactions@0.10.11...droff-interactions@0.11.0) (2022-06-29)
+
+### Bug Fixes
+
+- updates for latest interaction type changes ([fc94220](https://github.com/tim-smart/droff/commit/fc9422053b6e051889c6eddf2cfc564e31d0b82d))
+
+### BREAKING CHANGES
+
+- Interaction API surface has changed
+
 ## [0.10.11](https://github.com/tim-smart/droff/compare/droff-interactions@0.10.10...droff-interactions@0.10.11) (2022-05-27)
 
 **Note:** Version bump only for package droff-interactions

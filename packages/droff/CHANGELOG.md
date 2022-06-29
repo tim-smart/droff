@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.34.0](https://github.com/tim-smart/droff/compare/droff@0.33.0...droff@0.34.0) (2022-06-29)
+
+### chore
+
+- update api types ([f1971af](https://github.com/tim-smart/droff/commit/f1971afcffebd1cf6a067dd25f49c29b60e4cf74))
+
+### Features
+
+- update api version to v10 ([6f99057](https://github.com/tim-smart/droff/commit/6f990579c014462d4e7dc80f58c30c7a4dd3fa4f))
+
+### BREAKING CHANGES
+
+- Significant API changes
+
 # [0.33.0](https://github.com/tim-smart/droff/compare/droff@0.32.2...droff@0.33.0) (2022-05-27)
 
 ### chore

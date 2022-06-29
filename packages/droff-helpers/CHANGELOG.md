@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.9.0](https://github.com/tim-smart/droff/compare/droff-helpers@0.8.9...droff-helpers@0.9.0) (2022-06-29)
+
+### Bug Fixes
+
+- updates for latest interaction type changes ([fc94220](https://github.com/tim-smart/droff/commit/fc9422053b6e051889c6eddf2cfc564e31d0b82d))
+
+### BREAKING CHANGES
+
+- Interaction API surface has changed
+
 ## [0.8.9](https://github.com/tim-smart/droff/compare/droff-helpers@0.8.8...droff-helpers@0.8.9) (2022-05-27)
 
 **Note:** Version bump only for package droff-helpers

@@ -8,7 +8,7 @@ import * as Commands from "../src/mod";
 const client = createClient({
   token: process.env.DISCORD_BOT_TOKEN!,
   gateway: {
-    intents: Intents.GUILD_MESSAGES,
+    intents: Intents.GUILD_MESSAGES | Intents.MESSAGE_CONTENT,
   },
 });
 const [guildsCache, guildsCache$] = client.guildsCache();

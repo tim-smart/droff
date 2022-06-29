@@ -17,7 +17,7 @@ import * as Store from "../rate-limits/store";
 import { EMPTY } from "rxjs";
 import * as MemoryStore from "../rate-limits/stores/memory";
 
-const VERSION = 9;
+const VERSION = 10;
 
 export interface Options {
   /** Bot token */

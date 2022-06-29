@@ -12,7 +12,7 @@ import {
 } from "../types";
 import * as Codec from "./codec";
 
-const VERSION = 9;
+const VERSION = 10;
 
 export const opCode = <T = any>(code: GatewayOpcode) =>
   F.flow(

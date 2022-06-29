@@ -1,8 +1,12 @@
 import {
+  ApplicationCommandDatum,
   ApplicationCommandInteractionDataOption,
   ApplicationCommandOptionType,
   Component,
   Interaction,
+  InteractionType,
+  MessageComponentDatum,
+  ModalSubmitDatum,
   ResolvedDatum,
   Snowflake,
   TextInput,
@@ -12,12 +16,43 @@ import * as F from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import Im from "immutable";
 
+export interface InteractionTypeMap {
+  [InteractionType.APPLICATION_COMMAND]: ApplicationCommandDatum;
+  [InteractionType.APPLICATION_COMMAND_AUTOCOMPLETE]: ApplicationCommandDatum;
+  [InteractionType.MESSAGE_COMPONENT]: MessageComponentDatum;
+  [InteractionType.MODAL_SUBMIT]: ModalSubmitDatum;
+}
+
+export const getData =
+  <K extends keyof InteractionTypeMap>(type: K) =>
+  (interaction: Interaction): O.Option<InteractionTypeMap[K]> =>
+    F.pipe(
+      interaction,
+      O.fromPredicate((i) => i.type === type),
+      O.chainNullableK((i) => i.data as InteractionTypeMap[K]),
+    );
+
+export const getCommandData = getData(InteractionType.APPLICATION_COMMAND);
+export const getAutocompleteData = getData(
+  InteractionType.APPLICATION_COMMAND_AUTOCOMPLETE,
+);
+export const getCommandOrAutocompleteData = (interaction: Interaction) =>
+  F.pipe(
+    getData(InteractionType.APPLICATION_COMMAND)(interaction),
+    O.alt(() =>
+      getData(InteractionType.APPLICATION_COMMAND_AUTOCOMPLETE)(interaction),
+    ),
+  );
+export const getComponentData = getData(InteractionType.MESSAGE_COMPONENT);
+export const getModalData = getData(InteractionType.MODAL_SUBMIT);
+
 /**
  * Maybe find a sub-command within the interaction options.
  */
 export const findSubCommand = (name: string) => (interaction: Interaction) =>
   F.pipe(
-    O.fromNullable(interaction.data?.options),
+    getCommandOrAutocompleteData(interaction),
+    O.chainNullableK((d) => d.options),
     O.chain(
       Arr.findFirst(
         (o: ApplicationCommandInteractionDataOption) =>
@@ -49,7 +84,8 @@ export const options = (
   interaction: Interaction,
 ): ApplicationCommandInteractionDataOption[] =>
   F.pipe(
-    O.fromNullable(interaction.data?.options),
+    getCommandOrAutocompleteData(interaction),
+    O.chainNullableK((d) => d.options),
     O.getOrElseW(() => []),
   );
 
@@ -88,6 +124,14 @@ export const optionValue = (name: string) =>
   );
 
 /**
+ * Try extract resolved data
+ */
+export const resolved = F.flow(
+  getCommandOrAutocompleteData,
+  O.chainNullableK((d) => d.resolved),
+);
+
+/**
  * Try find a matching option value from the interaction.
  */
 export const resolveOptionValue =
@@ -97,10 +141,7 @@ export const resolveOptionValue =
       getOption(name)(interaction),
       O.chainNullableK(({ value }) => value as Snowflake),
       O.bindTo("id"),
-      O.bind(
-        "data",
-        O.fromNullableK(() => interaction.data?.resolved),
-      ),
+      O.bind("data", () => resolved(interaction)),
       O.chainNullableK(({ id, data }) => f(id, data)),
     );
 
@@ -117,8 +158,8 @@ const extractComponents = (c: Component): Component[] => {
  */
 export const components = (interaction: Interaction): Component[] =>
   F.pipe(
-    O.fromNullable(interaction.data?.components),
-    O.map((arr) => [...arr, ...arr.flatMap(extractComponents)]),
+    getModalData(interaction),
+    O.map((d) => [...d.components, ...d.components.flatMap(extractComponents)]),
     O.getOrElseW(() => []),
   );
 

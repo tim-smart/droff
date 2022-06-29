@@ -1,12 +1,19 @@
 import { ActionRow, Component } from "droff/types";
+import { pipe } from "fp-ts/lib/function";
 import { Map } from "immutable";
 import { Observable } from "rxjs";
 import * as RxO from "rxjs/operators";
 import { InteractionContext } from "./factory";
+import * as O from "fp-ts/lib/Option";
+import { Interactions as H } from "droff-helpers";
 
 export const filterByName = (name: string) =>
-  RxO.filter(
-    ({ interaction }: InteractionContext) => interaction.data?.name === name,
+  RxO.filter(({ interaction }: InteractionContext) =>
+    pipe(
+      H.getCommandOrAutocompleteData(interaction),
+      O.filter((d) => d.name === name),
+      O.isSome,
+    ),
   );
 
 export const filterBySelector =
@@ -26,11 +33,11 @@ export const selectorStartsWith =
     );
 
 export const filterByCustomId = filterBySelector(
-  ({ interaction }) => interaction.data?.custom_id,
+  ({ interaction }) => (interaction.data as any)?.custom_id,
 );
 
 export const customIdStartsWith = selectorStartsWith(
-  ({ interaction }) => interaction.data?.custom_id,
+  ({ interaction }) => (interaction.data as any)?.custom_id,
 );
 
 export const filterByFocusedOption = filterBySelector(
@@ -50,11 +57,14 @@ export const filterByComponents =
 
     return source$.pipe(
       RxO.filter(({ interaction }) =>
-        map.has(interaction.data!.custom_id || ""),
+        map.has((interaction.data as any).custom_id || ""),
       ),
       RxO.map(
         (ctx) =>
-          [ctx, map.get(ctx.interaction.data!.custom_id || "")!] as const,
+          [
+            ctx,
+            map.get((ctx.interaction.data as any).custom_id || "")!,
+          ] as const,
       ),
     );
   };

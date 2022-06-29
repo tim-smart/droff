@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "droff": "^0.33.0",
+    "droff-helpers": "^0.8.9",
     "fp-ts": "^2.10.5",
     "immutable": "^4.0.0",
     "rxjs": "^7.1.0",

@@ -1,7 +1,6 @@
 import { Client } from "droff";
 import {
   ApplicationCommandInteractionDataOption,
-  ApplicationCommandPermission,
   CreateGlobalApplicationCommandParams,
   CreateGuildApplicationCommandParams,
   Guild,
@@ -26,8 +25,6 @@ import * as Utils from "./utils";
 interface GuildCommandOptions {
   /** Used for enabling / disabling commands per guild */
   enabled?: (guild: Guild) => Rx.Observable<boolean>;
-  /** Used for setting permissions for the command per guild */
-  permissions?: (guild: Guild) => Rx.Observable<ApplicationCommandPermission>;
 }
 
 export type GlobalCommand = CreateGlobalApplicationCommandParams;
@@ -122,9 +119,6 @@ export const create = (client: Client): InteractionsHelper => {
     editResponse: editOriginal(interaction),
   });
 
-  // Set permissions fn
-  const setPermissions = Commands.setPermissions(client);
-
   // Shared command create observable
   const interactionCreate = Utils.memoize((type: InteractionType) =>
     fromDispatch("INTERACTION_CREATE").pipe(
@@ -160,7 +154,6 @@ export const create = (client: Client): InteractionsHelper => {
     guildCommands = guildCommands.set(command.name, {
       ...command,
       enabled: command.enabled || (() => Rx.of(true)),
-      permissions: command.permissions || (() => Rx.EMPTY),
     });
 
     return applicationCommand$.pipe(filterByName(command.name));
@@ -182,7 +175,7 @@ export const create = (client: Client): InteractionsHelper => {
     application$,
   )(() => globalCommands);
   const { removeGuildCommands$, enableGuildCommands$, disableGuildCommands$ } =
-    Sync.guild(client, application$, setPermissions)(() => guildCommands);
+    Sync.guild(client, application$)(() => guildCommands);
 
   // Effects
   const effects$ = Rx.merge(

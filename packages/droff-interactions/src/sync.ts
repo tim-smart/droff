@@ -34,11 +34,7 @@ export const global =
   };
 
 export const guild =
-  (
-    client: Client,
-    application$: Rx.Observable<Application>,
-    setPermissions: Commands.SetPermissionsFn,
-  ) =>
+  (client: Client, application$: Rx.Observable<Application>) =>
   (guildCommands: () => Map<string, GuildCommand>) => {
     const { fromDispatch } = client;
 
@@ -123,10 +119,7 @@ export const guild =
 
       // Enable the command
       RxO.flatMap(([guild, app, command]) =>
-        client
-          .createGuildApplicationCommand(app.id, guild.id, command)
-          // Set permissions
-          .then((apiCommand) => setPermissions(guild, command, apiCommand)),
+        client.createGuildApplicationCommand(app.id, guild.id, command),
       ),
     );
 

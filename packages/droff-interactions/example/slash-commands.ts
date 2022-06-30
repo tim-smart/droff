@@ -3,7 +3,6 @@ require("dotenv").config();
 import { createClient, Permissions } from "droff";
 import {
   ApplicationCommandOptionType,
-  ApplicationCommandPermissionType,
   InteractionCallbackType,
   InteractionType,
   MessageFlag,
@@ -113,33 +112,11 @@ const disabled$ = ix
   );
 
 // You can set role or user level permissions
-const hasAdmin = H.Perms.has(Permissions.ADMINISTRATOR);
 const admin$ = ix
   .guild({
     name: "admin-only",
     description: "A restricted command",
-    default_permission: false,
-    permissions: (guild) =>
-      Rx.from(client.getGuildRoles(guild.id)).pipe(
-        // Permissions for roles with ADMINISTRATOR enabled
-        RxO.flatMap((roles) =>
-          roles
-            .filter((role) => hasAdmin(role.permissions))
-            .map((role) => ({
-              id: role.id,
-              type: ApplicationCommandPermissionType.ROLE,
-              permission: true,
-            }))
-            .values(),
-        ),
-
-        // Add permissions for the guild owner
-        RxO.startWith({
-          id: guild.owner_id,
-          type: ApplicationCommandPermissionType.USER,
-          permission: true,
-        }),
-      ),
+    default_member_permissions: "0",
   })
   .pipe(
     RxO.flatMap(({ respond }) =>

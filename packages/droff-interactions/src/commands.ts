@@ -13,7 +13,6 @@ import * as F from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { Map } from "immutable";
 import * as Rx from "rxjs";
-import * as RxO from "rxjs/operators";
 import { GuildCommand } from "./factory";
 
 export const enabled =
@@ -62,30 +61,3 @@ export const editOriginal =
       interaction.token,
       { data },
     );
-
-export const setPermissions =
-  (rest: RESTClient) =>
-  (guild: Guild, command: GuildCommand, apiCommand: ApplicationCommand) =>
-    F.pipe(
-      O.fromNullable(command.permissions),
-      O.fold(
-        () => Promise.resolve(apiCommand),
-        (permissions) =>
-          F.pipe(
-            permissions(guild),
-            RxO.toArray(),
-            RxO.flatMap((permissions) =>
-              rest.editApplicationCommandPermissions(
-                apiCommand.application_id,
-                guild.id,
-                apiCommand.id,
-                { permissions },
-              ),
-            ),
-            RxO.map(() => apiCommand),
-            Rx.lastValueFrom,
-          ),
-      ),
-    );
-
-export type SetPermissionsFn = ReturnType<typeof setPermissions>;

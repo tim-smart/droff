@@ -266,6 +266,10 @@ export interface ApplicationCommandOption {
   min_value?: number;
   /** If the option is an INTEGER or NUMBER type, the maximum value permitted */
   max_value?: number;
+  /** For option type STRING, the minimum allowed length (minimum of 0, maximum of 6000) */
+  min_length?: number;
+  /** For option type STRING, the maximum allowed length (minimum of 1, maximum of 6000) */
+  max_length?: number;
   /** If autocomplete interactions are enabled for this STRING, INTEGER, or NUMBER type option */
   autocomplete?: boolean;
 }
@@ -552,7 +556,7 @@ export interface AutoModerationActionExecutionEvent {
 export interface AutoModerationRule {
   /** the id of this rule */
   id: Snowflake;
-  /** the guild which this rule belongs to */
+  /** the id of the guild which this rule belongs to */
   guild_id: Snowflake;
   /** the rule name */
   name: string;
@@ -597,8 +601,8 @@ export interface BulkDeleteMessageParams {
   messages: Snowflake[];
 }
 export interface BulkOverwriteGuildApplicationCommandParams {
-  /** ID of command, if known */
-  id: Snowflake;
+  /** ID of the command, if known */
+  id?: Snowflake;
   /** Name of command, 1-32 characters */
   name: string;
   /** Localization dictionary for the name field. Values follow the same restrictions as name */
@@ -682,7 +686,7 @@ export interface Channel {
   rtc_region?: string | null;
   /** the camera video quality mode of the voice channel, 1 when not present */
   video_quality_mode?: VideoQualityMode;
-  /** an approximate count of messages in a thread, stops counting at 50 */
+  /** number of messages (not including the initial message or deleted messages) in a thread (if the thread was created before July 1, 2022, it stops counting at 50) */
   message_count?: number;
   /** an approximate count of users in a thread, stops counting at 50 */
   member_count?: number;
@@ -696,6 +700,8 @@ export interface Channel {
   permissions?: string;
   /** channel flags combined as a bitfield */
   flags?: number;
+  /** number of messages ever sent in a thread, it's similar to message_count on message creation, but will not decrement the number when a message is deleted */
+  total_message_sent?: number;
 }
 export type ChannelCreateEvent = Channel;
 export type ChannelDeleteEvent = Channel;
@@ -772,7 +778,7 @@ export interface Connection {
   id: string;
   /** the username of the connection account */
   name: string;
-  /** the service of the connection (twitch, youtube) */
+  /** the service of this connection */
   type: string;
   /** whether the connection is revoked */
   revoked?: boolean;
@@ -795,7 +801,7 @@ export interface CreateAutoModerationRuleParams {
   /** the trigger type */
   trigger_type: TriggerType;
   /** the trigger metadata */
-  trigger_metadata?: TriggerType;
+  trigger_metadata?: TriggerMetadatum;
   /** the actions which will execute when the rule is triggered */
   actions: AutoModerationAction[];
   /** whether the rule is enabled (False by default) */
@@ -2279,8 +2285,6 @@ export interface EditMessageParams {
   content: string;
   /** Embedded rich content (up to 6000 characters) */
   embeds: Embed[];
-  /** Embedded rich content, deprecated in favor of embeds */
-  embed: Embed;
   /** Edit the flags of a message (only SUPPRESS_EMBEDS can currently be set/unset) */
   flags: number;
   /** Allowed mentions for the message */
@@ -3088,7 +3092,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     guildId: string,
     options?: O,
   ) => Promise<ListActiveGuildThreadResponse>;
-  /** Get a list of all rules currently configured for guild. Returns a list of auto moderation rule objects for the given guild. */
+  /** Get a list of all rules currently configured for the guild. Returns a list of auto moderation rule objects for the given guild. */
   listAutoModerationRulesForGuild: (
     guildId: string,
     options?: O,
@@ -3836,7 +3840,7 @@ export interface GuildCreateExtra {
   /** true if this is considered a large guild */
   large: boolean;
   /** true if this guild is unavailable due to an outage */
-  unavailable: boolean;
+  unavailable?: boolean;
   /** total number of members in this guild */
   member_count: number;
   /** states of members currently in voice channels; lacks the guild_id key */
@@ -3870,8 +3874,6 @@ export enum GuildFeature {
   AUTO_MODERATION = "AUTO_MODERATION",
   /** guild has access to set a guild banner image */
   BANNER = "BANNER",
-  /** guild has access to use commerce features (i.e. create store channels) */
-  COMMERCE = "COMMERCE",
   /** guild can enable welcome screen, Membership Screening, stage channels and discovery, and receives community updates */
   COMMUNITY = "COMMUNITY",
   /** guild is able to be discovered in the directory */
@@ -4275,31 +4277,33 @@ export interface IntegrationUpdateEventAdditional {
   guild_id: Snowflake;
 }
 export interface Interaction {
-  /** id of the interaction */
+  /** ID of the interaction */
   id: Snowflake;
-  /** id of the application this interaction is for */
+  /** ID of the application this interaction is for */
   application_id: Snowflake;
-  /** the type of interaction */
+  /** Type of interaction */
   type: InteractionType;
-  /** the interaction data payload */
+  /** Interaction data payload */
   data?: InteractionDatum;
-  /** the guild it was sent from */
+  /** Guild that the interaction was sent from */
   guild_id?: Snowflake;
-  /** the channel it was sent from */
+  /** Channel that the interaction was sent from */
   channel_id?: Snowflake;
-  /** guild member data for the invoking user, including permissions */
+  /** Guild member data for the invoking user, including permissions */
   member?: GuildMember;
-  /** user object for the invoking user, if invoked in a DM */
+  /** User object for the invoking user, if invoked in a DM */
   user?: User;
-  /** a continuation token for responding to the interaction */
+  /** Continuation token for responding to the interaction */
   token: string;
-  /** read-only property, always 1 */
+  /** Read-only property, always 1 */
   version: number;
-  /** for components, the message they were attached to */
+  /** For components, the message they were attached to */
   message?: Message;
-  /** the selected language of the invoking user */
+  /** Bitwise set of permissions the app or bot has within the channel the interaction was sent from */
+  app_permissions?: string;
+  /** Selected language of the invoking user */
   locale?: string;
-  /** the guild's preferred locale, if invoked in a guild */
+  /** Guild's preferred locale, if invoked in a guild */
   guild_locale?: string;
 }
 export interface InteractionCallbackAutocomplete {
@@ -4646,6 +4650,8 @@ export interface Message {
   sticker_items?: StickerItem[];
   /** Deprecated the stickers sent with the message */
   stickers?: Sticker[];
+  /** A generally increasing integer (there may be gaps or duplicates) that represents the approximate position of the message in a thread, it can be used to estimate the relative position of the messsage in a thread in company with total_message_sent on parent thread */
+  position?: number;
 }
 export interface MessageActivity {
   /** type of message activity */
@@ -4713,15 +4719,15 @@ export const MessageFlag = {
   FAILED_TO_MENTION_SOME_ROLES_IN_THREAD: 1 << 8,
 } as const;
 export interface MessageInteraction {
-  /** id of the interaction */
+  /** ID of the interaction */
   id: Snowflake;
-  /** the type of interaction */
+  /** Type of interaction */
   type: InteractionType;
-  /** the name of the application command */
+  /** Name of the application command, including subcommands and subcommand groups */
   name: string;
-  /** the user who invoked the interaction */
+  /** User who invoked the interaction */
   user: User;
-  /** the member who invoked the interaction in the guild */
+  /** Member who invoked the interaction in the guild */
   member?: GuildMember;
 }
 export interface MessageReactionAddEvent {
@@ -4823,7 +4829,7 @@ export interface ModifyAutoModerationRuleParams {
   /** the event type */
   event_type: EventType;
   /** the trigger metadata */
-  trigger_metadata?: TriggerType;
+  trigger_metadata?: TriggerMetadatum;
   /** the actions which will execute when the rule is triggered */
   actions: AutoModerationAction[];
   /** whether the rule is enabled */
@@ -4937,7 +4943,7 @@ export interface ModifyGuildMemberParams {
   /** id of channel to move user to (if they are connected to voice) */
   channel_id: Snowflake;
   /** when the user's timeout will expire and the user will be able to communicate in the guild again (up to 28 days in the future), set to null to remove timeout. Will throw a 403 error if the user has the ADMINISTRATOR permission or is the owner of the guild */
-  communication_disabled_until?: string | null;
+  communication_disabled_until: string;
 }
 export interface ModifyGuildMfaLevelParams {
   /** MFA level */
@@ -5608,6 +5614,8 @@ export interface TriggerMetadatum {
   keyword_filter: string[];
   /** KEYWORD_PRESET */
   presets: KeywordPresetType[];
+  /** KEYWORD_PRESET */
+  allow_list: string[];
 }
 export enum TriggerType {
   /** check if content contains words from a user defined list of keywords */

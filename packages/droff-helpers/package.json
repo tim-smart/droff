@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "ts-node": "^10.0.0",
-    "typedoc": "^0.22.12",
+    "typedoc": "^0.23.10",
     "typescript": "^4.3.2"
   },
   "gitHead": "5e8a67cf5564babf2b559fc48591b86d00f4c1ac"

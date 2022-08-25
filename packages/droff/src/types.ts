@@ -340,7 +340,7 @@ export interface Attachment {
   id: Snowflake;
   /** name of file attached */
   filename: string;
-  /** description for the file */
+  /** description for the file (max 1024 characters) */
   description?: string;
   /** the attachment's media type */
   content_type?: string;
@@ -694,7 +694,7 @@ export interface Channel {
   thread_metadata?: ThreadMetadatum;
   /** thread member object for the current user, if they have joined the thread, only included on certain API endpoints */
   member?: ThreadMember;
-  /** default duration that the clients (not the API) will use for newly created threads, in minutes, to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
+  /** default duration, copied onto newly created threads, in minutes, threads will stop showing in the channel list after the specified period of inactivity, can be set to: 60, 1440, 4320, 10080 */
   default_auto_archive_duration?: number;
   /** computed permissions for the invoking user in the channel, including overwrites, only included when part of the resolved data received on a slash command interaction */
   permissions?: string;
@@ -738,14 +738,14 @@ export enum ChannelType {
   GROUP_DM = 3,
   /** an organizational category that contains up to 50 channels */
   GUILD_CATEGORY = 4,
-  /** a channel that users can follow and crosspost into their own server */
-  GUILD_NEWS = 5,
-  /** a temporary sub-channel within a GUILD_NEWS channel */
-  GUILD_NEWS_THREAD = 10,
+  /** a channel that users can follow and crosspost into their own server (formerly news channels) */
+  GUILD_ANNOUNCEMENT = 5,
+  /** a temporary sub-channel within a GUILD_ANNOUNCEMENT channel */
+  ANNOUNCEMENT_THREAD = 10,
   /** a temporary sub-channel within a GUILD_TEXT channel */
-  GUILD_PUBLIC_THREAD = 11,
+  PUBLIC_THREAD = 11,
   /** a temporary sub-channel within a GUILD_TEXT channel that is only viewable by those invited and those with the MANAGE_THREADS permission */
-  GUILD_PRIVATE_THREAD = 12,
+  PRIVATE_THREAD = 12,
   /** a voice channel for hosting events with an audience */
   GUILD_STAGE_VOICE = 13,
   /** the channel in a hub containing the listed servers */
@@ -1501,7 +1501,7 @@ export function createRoutes<O = any>(
         params,
         options,
       }),
-    followNewsChannel: (channelId, params, options) =>
+    followAnnouncementChannel: (channelId, params, options) =>
       fetch({
         method: "POST",
         url: `/channels/${channelId}/followers`,
@@ -2607,7 +2607,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<CreateWebhookParams>,
     options?: O,
   ) => Promise<Webhook>;
-  /** Crosspost a message in a News Channel to following channels. This endpoint requires the SEND_MESSAGES permission, if the current user sent the message, or additionally the MANAGE_MESSAGES permission, for all other messages, to be present for the current user. */
+  /** Crosspost a message in an Announcement Channel to following channels. This endpoint requires the SEND_MESSAGES permission, if the current user sent the message, or additionally the MANAGE_MESSAGES permission, for all other messages, to be present for the current user. */
   crosspostMessage: (
     channelId: string,
     messageId: string,
@@ -2822,10 +2822,10 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<ExecuteWebhookParams>,
     options?: O,
   ) => Promise<any>;
-  /** Follow a News Channel to send messages to a target channel. Requires the MANAGE_WEBHOOKS permission in the target channel. Returns a followed channel object. */
-  followNewsChannel: (
+  /** Follow an Announcement Channel to send messages to a target channel. Requires the MANAGE_WEBHOOKS permission in the target channel. Returns a followed channel object. */
+  followAnnouncementChannel: (
     channelId: string,
-    params?: Partial<FollowNewsChannelParams>,
+    params?: Partial<FollowAnnouncementChannelParams>,
     options?: O,
   ) => Promise<FollowedChannel>;
   /** Fetches permissions for a specific command for your application in a guild. Returns a guild application command permissions object. */
@@ -3121,7 +3121,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<ListPrivateArchivedThreadParams>,
     options?: O,
   ) => Promise<ListPrivateArchivedThreadResponse>;
-  /** Returns archived threads in the channel that are public. When called on a GUILD_TEXT channel, returns threads of type GUILD_PUBLIC_THREAD. When called on a GUILD_NEWS channel returns threads of type GUILD_NEWS_THREAD. Threads are ordered by archive_timestamp, in descending order. Requires the READ_MESSAGE_HISTORY permission. */
+  /** Returns archived threads in the channel that are public. When called on a GUILD_TEXT channel, returns threads of type PUBLIC_THREAD. When called on a GUILD_ANNOUNCEMENT channel returns threads of type ANNOUNCEMENT_THREAD. Threads are ordered by archive_timestamp, in descending order. Requires the READ_MESSAGE_HISTORY permission. */
   listPublicArchivedThreads: (
     channelId: string,
     params?: Partial<ListPublicArchivedThreadParams>,
@@ -3386,15 +3386,15 @@ export enum ExplicitContentFilterLevel {
   /** media content sent by all members will be scanned */
   ALL_MEMBERS = 2,
 }
+export interface FollowAnnouncementChannelParams {
+  /** id of target channel */
+  webhook_channel_id: Snowflake;
+}
 export interface FollowedChannel {
   /** source channel id */
   channel_id: Snowflake;
   /** created target webhook id */
   webhook_id: Snowflake;
-}
-export interface FollowNewsChannelParams {
-  /** id of target channel */
-  webhook_channel_id: Snowflake;
 }
 export interface ForumThreadMessageParam {
   /** Message contents (up to 2000 characters) */
@@ -3659,13 +3659,13 @@ export interface GetGuildApplicationCommandParams {
 }
 export interface GetGuildAuditLogParams {
   /** Entries from a specific user ID */
-  user_id: Snowflake;
+  user_id?: Snowflake;
   /** Entries for a specific audit log event */
-  action_type: AuditLogEvent;
+  action_type?: AuditLogEvent;
   /** Entries that preceded a specific audit log entry ID */
-  before: Snowflake;
+  before?: Snowflake;
   /** Maximum number of entries (between 1-100) to return, defaults to 50 */
-  limit: number;
+  limit?: number;
 }
 export interface GetGuildBanParams {
   /** number of users to return (up to maximum 1000) */
@@ -3888,7 +3888,7 @@ export enum GuildFeature {
   MONETIZATION_ENABLED = "MONETIZATION_ENABLED",
   /** guild has increased custom sticker slots */
   MORE_STICKERS = "MORE_STICKERS",
-  /** guild has access to create news channels */
+  /** guild has access to create announcement channels */
   NEWS = "NEWS",
   /** guild is partnered */
   PARTNERED = "PARTNERED",
@@ -4848,7 +4848,7 @@ export interface ModifyChannelGroupDmParams {
 export interface ModifyChannelGuildChannelParams {
   /** 1-100 character channel name */
   name: string;
-  /** the type of channel; only conversion between text and news is supported and only in guilds with the "NEWS" feature */
+  /** the type of channel; only conversion between text and announcement is supported and only in guilds with the "NEWS" feature */
   type: ChannelType;
   /** the position of the channel in the left-hand listing */
   position?: number | null;
@@ -4882,7 +4882,7 @@ export interface ModifyChannelThreadParams {
   name: string;
   /** whether the thread is archived */
   archived: boolean;
-  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
+  /** the thread will stop showing in the channel list after auto_archive_duration minutes of inactivity, can be set to: 60, 1440, 4320, 10080 */
   auto_archive_duration: number;
   /** whether the thread is locked; when a thread is locked, only users with MANAGE_THREADS can unarchive it */
   locked: boolean;
@@ -5379,7 +5379,7 @@ export type StageInstanceUpdateEvent = StageInstance;
 export interface StartThreadFromMessageParams {
   /** 1-100 character channel name */
   name: string;
-  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
+  /** the thread will stop showing in the channel list after auto_archive_duration minutes of inactivity, can be set to: 60, 1440, 4320, 10080 */
   auto_archive_duration?: number;
   /** amount of seconds a user has to wait before sending another message (0-21600) */
   rate_limit_per_user?: number | null;
@@ -5417,7 +5417,7 @@ export interface StartThreadInForumChannelParams {
 export interface StartThreadWithoutMessageParams {
   /** 1-100 character channel name */
   name: string;
-  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
+  /** the thread will stop showing in the channel list after auto_archive_duration minutes of inactivity, can be set to: 60, 1440, 4320, 10080 */
   auto_archive_duration?: number;
   /** the type of thread to create */
   type?: ChannelType;
@@ -5599,7 +5599,7 @@ export interface ThreadMemberUpdateEventExtra {
 export interface ThreadMetadatum {
   /** whether the thread is archived */
   archived: boolean;
-  /** duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080 */
+  /** the thread will stop showing in the channel list after auto_archive_duration minutes of inactivity, can be set to: 60, 1440, 4320, 10080 */
   auto_archive_duration: number;
   /** timestamp when the thread's archive status was last changed, used for calculating recent activity */
   archive_timestamp: string;
@@ -5624,8 +5624,6 @@ export interface TriggerMetadatum {
 export enum TriggerType {
   /** check if content contains words from a user defined list of keywords */
   KEYWORD = 1,
-  /** check if content contains any harmful links */
-  HARMFUL_LINK = 2,
   /** check if content represents generic spam */
   SPAM = 3,
   /** check if content contains words from internal pre-defined wordsets */

@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.35.0](https://github.com/tim-smart/droff/compare/droff@0.34.2...droff@0.35.0) (2022-08-26)
+
+### chore
+
+- update api types ([3939737](https://github.com/tim-smart/droff/commit/3939737cde03648717a46a8bf5747e9053c7af8c))
+
+### BREAKING CHANGES
+
+- renames some of the channel type constants
+
 ## [0.34.2](https://github.com/tim-smart/droff/compare/droff@0.34.1...droff@0.34.2) (2022-08-12)
 
 **Note:** Version bump only for package droff

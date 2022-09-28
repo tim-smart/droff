@@ -6,7 +6,7 @@ import * as Store from "../rate-limits/store";
 import * as MemoryStore from "../rate-limits/stores/memory";
 import { Routes } from "../rest/client";
 import {
-  GatewayEvent,
+  ReceiveEvent,
   GatewayIntents,
   GatewayOpcode,
   GatewayPayload,
@@ -143,7 +143,7 @@ export const createFromPayloads = (
   incoming$: Rx.Observable<GatewayPayload>,
 ): Client => {
   const raw$ = incoming$.pipe(RxO.share());
-  const dispatch$ = raw$.pipe(opCode<GatewayEvent>(GatewayOpcode.DISPATCH));
+  const dispatch$ = raw$.pipe(opCode<ReceiveEvent>(GatewayOpcode.DISPATCH));
   const dispatchWithShard$ = Rx.EMPTY;
   const shards$ = Rx.EMPTY;
   const shardsReady$ = Rx.of(undefined);

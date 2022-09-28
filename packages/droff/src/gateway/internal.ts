@@ -5,7 +5,7 @@ import * as OS from "os";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import {
-  GatewayEvent,
+  ReceiveEvent,
   GatewayPayload,
   HelloEvent,
   InvalidSessionEvent,
@@ -93,7 +93,7 @@ const latest = <T, V>(
   );
 
 export const latestSequenceNumber = (
-  dispatch$: Rx.Observable<GatewayPayload<GatewayEvent>>,
+  dispatch$: Rx.Observable<GatewayPayload<ReceiveEvent>>,
 ) => latest(dispatch$, (p) => O.fromNullable(p.s), O.none);
 
 export const latestReady = (

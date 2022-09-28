@@ -19,59 +19,59 @@ export enum ActionType {
   TIMEOUT = 3,
 }
 export interface Activity {
-  /** the activity's name */
+  /** Activity's name */
   name: string;
-  /** activity type */
+  /** Activity type */
   type: ActivityType;
-  /** stream url, is validated when type is 1 */
+  /** Stream URL, is validated when type is 1 */
   url?: string | null;
-  /** unix timestamp (in milliseconds) of when the activity was added to the user's session */
+  /** Unix timestamp (in milliseconds) of when the activity was added to the user's session */
   created_at: number;
-  /** unix timestamps for start and/or end of the game */
+  /** Unix timestamps for start and/or end of the game */
   timestamps?: ActivityTimestamp;
-  /** application id for the game */
+  /** Application ID for the game */
   application_id?: Snowflake;
-  /** what the player is currently doing */
+  /** What the player is currently doing */
   details?: string | null;
-  /** the user's current party status */
+  /** User's current party status */
   state?: string | null;
-  /** the emoji used for a custom status */
+  /** Emoji used for a custom status */
   emoji?: ActivityEmoji | null;
-  /** information for the current party of the player */
+  /** Information for the current party of the player */
   party?: ActivityParty;
-  /** images for the presence and their hover texts */
+  /** Images for the presence and their hover texts */
   assets?: ActivityAsset;
-  /** secrets for Rich Presence joining and spectating */
+  /** Secrets for Rich Presence joining and spectating */
   secrets?: ActivitySecret;
-  /** whether or not the activity is an instanced game session */
+  /** Whether or not the activity is an instanced game session */
   instance?: boolean;
-  /** activity flags ORd together, describes what the payload includes */
+  /** Activity flags ORd together, describes what the payload includes */
   flags?: number;
-  /** the custom buttons shown in the Rich Presence (max 2) */
+  /** Custom buttons shown in the Rich Presence (max 2) */
   buttons?: ActivityButton[];
 }
 export interface ActivityAsset {
-  /** see Activity Asset Image */
+  /** See Activity Asset Image */
   large_image?: string;
-  /** text displayed when hovering over the large image of the activity */
+  /** Text displayed when hovering over the large image of the activity */
   large_text?: string;
-  /** see Activity Asset Image */
+  /** See Activity Asset Image */
   small_image?: string;
-  /** text displayed when hovering over the small image of the activity */
+  /** Text displayed when hovering over the small image of the activity */
   small_text?: string;
 }
 export interface ActivityButton {
-  /** the text shown on the button (1-32 characters) */
+  /** Text shown on the button (1-32 characters) */
   label: string;
-  /** the url opened when clicking the button (1-512 characters) */
+  /** URL opened when clicking the button (1-512 characters) */
   url: string;
 }
 export interface ActivityEmoji {
-  /** the name of the emoji */
+  /** Name of the emoji */
   name: string;
-  /** the id of the emoji */
+  /** ID of the emoji */
   id?: Snowflake;
-  /** whether this emoji is animated */
+  /** Whether the emoji is animated */
   animated?: boolean;
 }
 export const ActivityFlag = {
@@ -86,23 +86,23 @@ export const ActivityFlag = {
   EMBEDDED: 1 << 8,
 } as const;
 export interface ActivityParty {
-  /** the id of the party */
+  /** ID of the party */
   id?: string;
-  /** used to show the party's current and maximum size */
+  /** Used to show the party's current and maximum size */
   size?: number[];
 }
 export interface ActivitySecret {
-  /** the secret for joining a party */
+  /** Secret for joining a party */
   join?: string;
-  /** the secret for spectating a game */
+  /** Secret for spectating a game */
   spectate?: string;
-  /** the secret for a specific instanced match */
+  /** Secret for a specific instanced match */
   match?: string;
 }
 export interface ActivityTimestamp {
-  /** unix time (in milliseconds) of when the activity started */
+  /** Unix time (in milliseconds) of when the activity started */
   start?: number;
-  /** unix time (in milliseconds) of when the activity ends */
+  /** Unix time (in milliseconds) of when the activity ends */
   end?: number;
 }
 export enum ActivityType {
@@ -334,6 +334,8 @@ export const ApplicationFlag = {
   GATEWAY_MESSAGE_CONTENT: 1 << 18,
   /** Intent required for bots in under 100 servers to receive message content, found in Bot Settings */
   GATEWAY_MESSAGE_CONTENT_LIMITED: 1 << 19,
+  /** Indicates if an app has registered global application commands */
+  APPLICATION_COMMAND_BADGE: 1 << 23,
 } as const;
 export interface Attachment {
   /** attachment id */
@@ -360,6 +362,10 @@ export interface Attachment {
 export interface AuditEntryInfo {
   /** ID of the app whose permissions were targeted */
   application_id: Snowflake;
+  /** Name of the Auto Moderation rule that was triggered */
+  auto_moderation_rule_name: string;
+  /** Trigger type of the Auto Moderation rule that was triggered */
+  auto_moderation_rule_trigger_type: string;
   /** Channel in which the entities were targeted */
   channel_id: Snowflake;
   /** Number of entities that were targeted */
@@ -378,6 +384,8 @@ export interface AuditEntryInfo {
   type: string;
 }
 export interface AuditLog {
+  /** List of application commands referenced in the audit log */
+  application_commands: ApplicationCommand[];
   /** List of audit log entries, sorted from most to least recent */
   audit_log_entries: AuditLogEntry[];
   /** List of auto moderation rules referenced in the audit log */
@@ -520,8 +528,12 @@ export enum AuditLogEvent {
   AUTO_MODERATION_RULE_UPDATE = 141,
   /** Auto Moderation rule was deleted */
   AUTO_MODERATION_RULE_DELETE = 142,
-  /** Message was blocked by AutoMod (according to a rule) */
+  /** Message was blocked by AutoMod */
   AUTO_MODERATION_BLOCK_MESSAGE = 143,
+  /** Message was flagged by AutoMod */
+  AUTO_MODERATION_FLAG_TO_CHANNEL = 144,
+  /** Member was timed out by AutoMod */
+  AUTO_MODERATION_USER_COMMUNICATION_DISABLED = 145,
 }
 export interface AutoModerationAction {
   /** the type of action */
@@ -530,27 +542,27 @@ export interface AutoModerationAction {
   metadata?: ActionMetadatum;
 }
 export interface AutoModerationActionExecutionEvent {
-  /** the id of the guild in which action was executed */
+  /** ID of the guild in which action was executed */
   guild_id: Snowflake;
-  /** the action which was executed */
+  /** Action which was executed */
   action: AutoModerationAction;
-  /** the id of the rule which action belongs to */
+  /** ID of the rule which action belongs to */
   rule_id: Snowflake;
-  /** the trigger type of rule which was triggered */
+  /** Trigger type of rule which was triggered */
   rule_trigger_type: TriggerType;
-  /** the id of the user which generated the content which triggered the rule */
+  /** ID of the user which generated the content which triggered the rule */
   user_id: Snowflake;
-  /** the id of the channel in which user content was posted */
+  /** ID of the channel in which user content was posted */
   channel_id?: Snowflake;
-  /** the id of any user message which content belongs to * */
+  /** ID of any user message which content belongs to * */
   message_id?: Snowflake;
-  /** the id of any system auto moderation messages posted as a result of this action ** */
+  /** ID of any system auto moderation messages posted as a result of this action ** */
   alert_system_message_id?: Snowflake;
-  /** the user generated text content */
+  /** User-generated text content */
   content: string;
-  /** the word or phrase configured in the rule that triggered the rule */
+  /** Word or phrase configured in the rule that triggered the rule */
   matched_keyword?: string | null;
-  /** the substring in content that triggered the rule */
+  /** Substring in content that triggered the rule */
   matched_content?: string | null;
 }
 export interface AutoModerationRule {
@@ -658,7 +670,7 @@ export interface Channel {
   permission_overwrites?: Overwrite[];
   /** the name of the channel (1-100 characters) */
   name?: string | null;
-  /** the channel topic (0-1024 characters) */
+  /** the channel topic (0-4096 characters for GUILD_FORUM channels, 0-1024 characters for all others) */
   topic?: string | null;
   /** whether the channel is nsfw */
   nsfw?: boolean;
@@ -702,12 +714,22 @@ export interface Channel {
   flags?: number;
   /** number of messages ever sent in a thread, it's similar to message_count on message creation, but will not decrement the number when a message is deleted */
   total_message_sent?: number;
+  /** the set of tags that can be used in a GUILD_FORUM channel */
+  available_tags?: ForumTag[];
+  /** the IDs of the set of tags that have been applied to a thread in a GUILD_FORUM channel */
+  applied_tags?: Snowflake[];
+  /** the emoji to show in the add reaction button on a thread in a GUILD_FORUM channel */
+  default_reaction_emoji?: DefaultReaction | null;
+  /** the initial rate_limit_per_user to set on newly created threads in a channel. this field is copied to the thread at creation time and does not live update. */
+  default_thread_rate_limit_per_user?: number;
 }
 export type ChannelCreateEvent = Channel;
 export type ChannelDeleteEvent = Channel;
 export const ChannelFlag = {
-  /** this thread is pinned to the top of its parent forum channel */
+  /** this thread is pinned to the top of its parent GUILD_FORUM channel */
   PINNED: 1 << 1,
+  /** whether a tag is required to be specified when creating a thread in a GUILD_FORUM channel. Tags are specified in the applied_tags field. */
+  REQUIRE_TAG: 1 << 4,
 } as const;
 export interface ChannelMention {
   /** id of the channel */
@@ -720,11 +742,11 @@ export interface ChannelMention {
   name: string;
 }
 export interface ChannelPinsUpdateEvent {
-  /** the id of the guild */
+  /** ID of the guild */
   guild_id?: Snowflake;
-  /** the id of the channel */
+  /** ID of the channel */
   channel_id: Snowflake;
-  /** the time at which the most recent pinned message was pinned */
+  /** Time at which the most recent pinned message was pinned */
   last_pin_timestamp?: string | null;
 }
 export enum ChannelType {
@@ -750,16 +772,16 @@ export enum ChannelType {
   GUILD_STAGE_VOICE = 13,
   /** the channel in a hub containing the listed servers */
   GUILD_DIRECTORY = 14,
-  /** (still in development) a channel that can only contain threads */
+  /** Channel that can only contain threads */
   GUILD_FORUM = 15,
 }
 export type ChannelUpdateEvent = Channel;
 export interface ClientStatus {
-  /** the user's status set for an active desktop (Windows, Linux, Mac) application session */
+  /** User's status set for an active desktop (Windows, Linux, Mac) application session */
   desktop?: string;
-  /** the user's status set for an active mobile (iOS, Android) application session */
+  /** User's status set for an active mobile (iOS, Android) application session */
   mobile?: string;
-  /** the user's status set for an active web (browser, bot account) application session */
+  /** User's status set for an active web (browser, bot account) application session */
   web?: string;
 }
 export type Component = ActionRow | Button | TextInput | SelectMenu;
@@ -790,6 +812,8 @@ export interface Connection {
   friend_sync: boolean;
   /** whether activities related to this connection will be shown in presence updates */
   show_activity: boolean;
+  /** whether this connection has a corresponding third party OAuth2 token */
+  two_way_link: boolean;
   /** visibility of this connection */
   visibility: VisibilityType;
 }
@@ -876,10 +900,10 @@ export interface CreateGuildApplicationCommandParams {
   type?: ApplicationCommandType;
 }
 export interface CreateGuildBanParams {
-  /** number of days to delete messages for (0-7) */
+  /** number of days to delete messages for (0-7) (deprecated) */
   delete_message_days?: number;
-  /** reason for the ban (deprecated) */
-  reason?: string;
+  /** number of seconds to delete messages for, between 0 and 604800 (7 days) */
+  delete_message_seconds?: number;
 }
 export interface CreateGuildChannelParams {
   /** channel name (1-100 characters) */
@@ -942,7 +966,7 @@ export interface CreateGuildParams {
   channels?: Channel[];
   /** id for afk channel */
   afk_channel_id?: Snowflake;
-  /** afk timeout in seconds */
+  /** afk timeout in seconds, can be set to: 60, 300, 900, 1800, 3600 */
   afk_timeout?: number;
   /** the id of the channel where guild notices such as welcome messages and boost events are posted */
   system_channel_id?: Snowflake;
@@ -1004,6 +1028,8 @@ export interface CreateGuildTemplateParams {
 export interface CreateMessageParams {
   /** Message contents (up to 2000 characters) */
   content?: string;
+  /** Can be used to verify a message was sent (up to 25 characters). Value will appear in the Message Create event. */
+  nonce?: string;
   /** true if this is a TTS message */
   tts?: boolean;
   /** Embedded rich content (up to 6000 characters) */
@@ -1554,6 +1580,18 @@ export function createRoutes<O = any>(
       fetch({
         method: "GET",
         url: `/channels/${channelId}/webhooks`,
+        options,
+      }),
+    getCurrentAuthorizationInformation: (options) =>
+      fetch({
+        method: "GET",
+        url: `/oauth2/@me`,
+        options,
+      }),
+    getCurrentBotApplicationInformation: (options) =>
+      fetch({
+        method: "GET",
+        url: `/oauth2/applications/@me`,
         options,
       }),
     getCurrentUser: (options) =>
@@ -2230,6 +2268,12 @@ export enum DefaultMessageNotificationLevel {
   /** members will receive notifications only for messages that @mention them by default */
   ONLY_MENTIONS = 1,
 }
+export interface DefaultReaction {
+  /** the id of a guild's custom emoji */
+  emoji_id?: Snowflake | null;
+  /** the unicode character of the emoji */
+  emoji_name?: string | null;
+}
 export interface DeleteWebhookMessageParams {
   /** id of the thread the message is in */
   thread_id: Snowflake;
@@ -2486,7 +2530,7 @@ export interface Endpoints<O> {
     params?: Partial<BulkOverwriteGuildApplicationCommandParams>,
     options?: O,
   ) => Promise<ApplicationCommand[]>;
-  /** Create a new rule. Returns an auto moderation rule on success. */
+  /** Create a new rule. Returns an auto moderation rule on success. Fires an Auto Moderation Rule Create Gateway event. */
   createAutoModerationRule: (
     guildId: string,
     params?: Partial<CreateAutoModerationRuleParams>,
@@ -2558,13 +2602,13 @@ export interface Endpoints<O> {
     params?: Partial<CreateGuildRoleParams>,
     options?: O,
   ) => Promise<Role>;
-  /** Create a guild scheduled event in the guild. Returns a guild scheduled event object on success. */
+  /** Create a guild scheduled event in the guild. Returns a guild scheduled event object on success. Fires a Guild Scheduled Event Create Gateway event. */
   createGuildScheduledEvent: (
     guildId: string,
     params?: Partial<CreateGuildScheduledEventParams>,
     options?: O,
   ) => Promise<GuildScheduledEvent>;
-  /** Create a new sticker for the guild. Send a multipart/form-data body. Requires the MANAGE_EMOJIS_AND_STICKERS permission. Returns the new sticker object on success. */
+  /** Create a new sticker for the guild. Send a multipart/form-data body. Requires the MANAGE_EMOJIS_AND_STICKERS permission. Returns the new sticker object on success. Fires a Guild Stickers Update Gateway event. */
   createGuildSticker: (
     guildId: string,
     params?: Partial<CreateGuildStickerParams>,
@@ -2588,7 +2632,7 @@ export interface Endpoints<O> {
     params?: Partial<CreateMessageParams>,
     options?: O,
   ) => Promise<Message>;
-  /** Create a reaction for the message. This endpoint requires the READ_MESSAGE_HISTORY permission to be present on the current user. Additionally, if nobody else has reacted to the message using this emoji, this endpoint requires the ADD_REACTIONS permission to be present on the current user. Returns a 204 empty response on success.
+  /** Create a reaction for the message. This endpoint requires the READ_MESSAGE_HISTORY permission to be present on the current user. Additionally, if nobody else has reacted to the message using this emoji, this endpoint requires the ADD_REACTIONS permission to be present on the current user. Returns a 204 empty response on success. Fires a Message Reaction Add Gateway event.
 The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
   createReaction: (
     channelId: string,
@@ -2596,12 +2640,12 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     emoji: string,
     options?: O,
   ) => Promise<any>;
-  /** Creates a new Stage instance associated to a Stage channel. Returns that Stage instance. */
+  /** Creates a new Stage instance associated to a Stage channel. Returns that Stage instance. Fires a Stage Instance Create Gateway event. */
   createStageInstance: (
     params?: Partial<CreateStageInstanceParams>,
     options?: O,
   ) => Promise<StageInstance>;
-  /** Creates a new webhook and returns a webhook object on success. Requires the MANAGE_WEBHOOKS permission. */
+  /** Creates a new webhook and returns a webhook object on success. Requires the MANAGE_WEBHOOKS permission. Fires a Webhooks Update Gateway event. */
   createWebhook: (
     channelId: string,
     params?: Partial<CreateWebhookParams>,
@@ -2627,13 +2671,13 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     emoji: string,
     options?: O,
   ) => Promise<any>;
-  /** Delete a rule. Returns a 204 on success. */
+  /** Delete a rule. Returns a 204 on success. Fires an Auto Moderation Rule Delete Gateway event. */
   deleteAutoModerationRule: (
     guildId: string,
     autoModerationRuleId: string,
     options?: O,
   ) => Promise<any>;
-  /** Delete a channel permission overwrite for a user or role in a channel. Only usable for guild channels. Requires the MANAGE_ROLES permission. Returns a 204 empty response on success. For more information about permissions, see permissions */
+  /** Delete a channel permission overwrite for a user or role in a channel. Only usable for guild channels. Requires the MANAGE_ROLES permission. Returns a 204 empty response on success. Fires a Channel Update Gateway event. For more information about permissions, see permissions */
   deleteChannelPermission: (
     channelId: string,
     overwriteId: string,
@@ -2669,7 +2713,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     emojiId: string,
     options?: O,
   ) => Promise<any>;
-  /** Delete the attached integration object for the guild. Deletes any associated webhooks and kicks the associated bot if there is one. Requires the MANAGE_GUILD permission. Returns a 204 empty response on success. Fires a Guild Integrations Update Gateway event. */
+  /** Delete the attached integration object for the guild. Deletes any associated webhooks and kicks the associated bot if there is one. Requires the MANAGE_GUILD permission. Returns a 204 empty response on success. Fires Guild Integrations Update and Integration Delete Gateway events. */
   deleteGuildIntegration: (
     guildId: string,
     integrationId: string,
@@ -2681,13 +2725,13 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     roleId: string,
     options?: O,
   ) => Promise<any>;
-  /** Delete a guild scheduled event. Returns a 204 on success. */
+  /** Delete a guild scheduled event. Returns a 204 on success. Fires a Guild Scheduled Event Delete Gateway event. */
   deleteGuildScheduledEvent: (
     guildId: string,
     guildScheduledEventId: string,
     options?: O,
   ) => Promise<any>;
-  /** Delete the given sticker. Requires the MANAGE_EMOJIS_AND_STICKERS permission. Returns 204 No Content on success. */
+  /** Delete the given sticker. Requires the MANAGE_EMOJIS_AND_STICKERS permission. Returns 204 No Content on success. Fires a Guild Stickers Update Gateway event. */
   deleteGuildSticker: (
     guildId: string,
     stickerId: string,
@@ -2699,7 +2743,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     templateCode: string,
     options?: O,
   ) => Promise<GuildTemplate>;
-  /** Delete an invite. Requires the MANAGE_CHANNELS permission on the channel this invite belongs to, or MANAGE_GUILD to remove any invite across the guild. Returns an invite object on success. Fires a Invite Delete Gateway event. */
+  /** Delete an invite. Requires the MANAGE_CHANNELS permission on the channel this invite belongs to, or MANAGE_GUILD to remove any invite across the guild. Returns an invite object on success. Fires an Invite Delete Gateway event. */
   deleteInvite: (inviteCode: string, options?: O) => Promise<Invite>;
   /** Delete a message. If operating on a guild channel and trying to delete a message that was not sent by the current user, this endpoint requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. Fires a Message Delete Gateway event. */
   deleteMessage: (
@@ -2713,7 +2757,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     interactionToken: string,
     options?: O,
   ) => Promise<any>;
-  /** Delete a reaction the current user has made for the message. Returns a 204 empty response on success.
+  /** Delete a reaction the current user has made for the message. Returns a 204 empty response on success. Fires a Message Reaction Remove Gateway event.
 The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
   deleteOwnReaction: (
     channelId: string,
@@ -2721,9 +2765,9 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     emoji: string,
     options?: O,
   ) => Promise<any>;
-  /** Deletes the Stage instance. Returns 204 No Content. */
+  /** Deletes the Stage instance. Returns 204 No Content. Fires a Stage Instance Delete Gateway event. */
   deleteStageInstance: (channelId: string, options?: O) => Promise<any>;
-  /** Deletes another user's reaction. This endpoint requires the MANAGE_MESSAGES permission to be present on the current user. Returns a 204 empty response on success.
+  /** Deletes another user's reaction. This endpoint requires the MANAGE_MESSAGES permission to be present on the current user. Returns a 204 empty response on success. Fires a Message Reaction Remove Gateway event.
 The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the format name:id with the emoji name and emoji id. */
   deleteUserReaction: (
     channelId: string,
@@ -2732,7 +2776,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     userId: string,
     options?: O,
   ) => Promise<any>;
-  /** Delete a webhook permanently. Requires the MANAGE_WEBHOOKS permission. Returns a 204 No Content response on success. */
+  /** Delete a webhook permanently. Requires the MANAGE_WEBHOOKS permission. Returns a 204 No Content response on success. Fires a Webhooks Update Gateway event. */
   deleteWebhook: (webhookId: string, options?: O) => Promise<any>;
   /** Deletes a message that was created by the webhook. Returns a 204 No Content response on success. */
   deleteWebhookMessage: (
@@ -2755,7 +2799,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<EditApplicationCommandPermissionParams>,
     options?: O,
   ) => Promise<GuildApplicationCommandPermission>;
-  /** Edit the channel permission overwrites for a user or role in a channel. Only usable for guild channels. Requires the MANAGE_ROLES permission. Only permissions your bot has in the guild or parent channel (if applicable) can be allowed/denied (unless your bot has a MANAGE_ROLES overwrite in the channel). Returns a 204 empty response on success. For more information about permissions, see permissions. */
+  /** Edit the channel permission overwrites for a user or role in a channel. Only usable for guild channels. Requires the MANAGE_ROLES permission. Only permissions your bot has in the guild or parent channel (if applicable) can be allowed/denied (unless your bot has a MANAGE_ROLES overwrite in the channel). Returns a 204 empty response on success. Fires a Channel Update Gateway event. For more information about permissions, see permissions. */
   editChannelPermissions: (
     channelId: string,
     overwriteId: string,
@@ -2822,7 +2866,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<ExecuteWebhookParams>,
     options?: O,
   ) => Promise<any>;
-  /** Follow an Announcement Channel to send messages to a target channel. Requires the MANAGE_WEBHOOKS permission in the target channel. Returns a followed channel object. */
+  /** Follow an Announcement Channel to send messages to a target channel. Requires the MANAGE_WEBHOOKS permission in the target channel. Returns a followed channel object. Fires a Webhooks Update Gateway event for the target channel. */
   followAnnouncementChannel: (
     channelId: string,
     params?: Partial<FollowAnnouncementChannelParams>,
@@ -2859,6 +2903,12 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   ) => Promise<Message[]>;
   /** Returns a list of channel webhook objects. Requires the MANAGE_WEBHOOKS permission. */
   getChannelWebhooks: (channelId: string, options?: O) => Promise<Webhook[]>;
+  /** Returns info about the current authorization. Requires authentication with a bearer token. */
+  getCurrentAuthorizationInformation: (
+    options?: O,
+  ) => Promise<GetCurrentAuthorizationInformationResponse>;
+  /** Returns the bot's application object. */
+  getCurrentBotApplicationInformation: (options?: O) => Promise<Application>;
   /** Returns the user object of the requester's account. For OAuth2, this requires the identify scope, which will return the object without an email, and optionally the email scope, which returns the object with an email. */
   getCurrentUser: (options?: O) => Promise<User>;
   /** Returns a guild member object for the current user. Requires the guilds.members.read OAuth2 scope. */
@@ -3140,7 +3190,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   ) => Promise<ThreadMember[]>;
   /** Returns an array of voice region objects that can be used when setting a voice or stage channel's rtc_region. */
   listVoiceRegions: (options?: O) => Promise<VoiceRegion[]>;
-  /** Modify an existing rule. Returns an auto moderation rule on success. */
+  /** Modify an existing rule. Returns an auto moderation rule on success. Fires an Auto Moderation Rule Update Gateway event. */
   modifyAutoModerationRule: (
     guildId: string,
     autoModerationRuleId: string,
@@ -3159,7 +3209,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<ModifyCurrentMemberParams>,
     options?: O,
   ) => Promise<any>;
-  /** Modify the requester's user account settings. Returns a user object on success. */
+  /** Modify the requester's user account settings. Returns a user object on success. Fires a User Update Gateway event. */
   modifyCurrentUser: (
     params?: Partial<ModifyCurrentUserParams>,
     options?: O,
@@ -3169,7 +3219,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<ModifyCurrentUserNickParams>,
     options?: O,
   ) => Promise<any>;
-  /** Updates the current user's voice state. Returns 204 No Content on success. */
+  /** Updates the current user's voice state. Returns 204 No Content on success. Fires a Voice State Update Gateway event. */
   modifyCurrentUserVoiceState: (
     guildId: string,
     params?: Partial<ModifyCurrentUserVoiceStateParams>,
@@ -3220,14 +3270,14 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<ModifyGuildRolePositionParams>,
     options?: O,
   ) => Promise<Role[]>;
-  /** Modify a guild scheduled event. Returns the modified guild scheduled event object on success. */
+  /** Modify a guild scheduled event. Returns the modified guild scheduled event object on success. Fires a Guild Scheduled Event Update Gateway event. */
   modifyGuildScheduledEvent: (
     guildId: string,
     guildScheduledEventId: string,
     params?: Partial<ModifyGuildScheduledEventParams>,
     options?: O,
   ) => Promise<GuildScheduledEvent>;
-  /** Modify the given sticker. Requires the MANAGE_EMOJIS_AND_STICKERS permission. Returns the updated sticker object on success. */
+  /** Modify the given sticker. Requires the MANAGE_EMOJIS_AND_STICKERS permission. Returns the updated sticker object on success. Fires a Guild Stickers Update Gateway event. */
   modifyGuildSticker: (
     guildId: string,
     stickerId: string,
@@ -3252,20 +3302,20 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     guildId: string,
     options?: O,
   ) => Promise<GuildWidgetSetting>;
-  /** Updates fields of an existing Stage instance. Returns the updated Stage instance. */
+  /** Updates fields of an existing Stage instance. Returns the updated Stage instance. Fires a Stage Instance Update Gateway event. */
   modifyStageInstance: (
     channelId: string,
     params?: Partial<ModifyStageInstanceParams>,
     options?: O,
   ) => Promise<StageInstance>;
-  /** Updates another user's voice state. */
+  /** Updates another user's voice state. Fires a Voice State Update Gateway event. */
   modifyUserVoiceState: (
     guildId: string,
     userId: string,
     params?: Partial<ModifyUserVoiceStateParams>,
     options?: O,
   ) => Promise<any>;
-  /** Modify a webhook. Requires the MANAGE_WEBHOOKS permission. Returns the updated webhook object on success. */
+  /** Modify a webhook. Requires the MANAGE_WEBHOOKS permission. Returns the updated webhook object on success. Fires a Webhooks Update Gateway event. */
   modifyWebhook: (
     webhookId: string,
     params?: Partial<ModifyWebhookParams>,
@@ -3277,7 +3327,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     webhookToken: string,
     options?: O,
   ) => Promise<any>;
-  /** Pin a message in a channel. Requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. */
+  /** Pin a message in a channel. Requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. Fires a Channel Pins Update Gateway event. */
   pinMessage: (
     channelId: string,
     messageId: string,
@@ -3341,7 +3391,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   ) => Promise<GuildTemplate>;
   /** Post a typing indicator for the specified channel. Generally bots should not implement this route. However, if a bot is responding to a command and expects the computation to take a few seconds, this endpoint may be called to let the user know that the bot is processing their message. Returns a 204 empty response on success. Fires a Typing Start Gateway event. */
   triggerTypingIndicator: (channelId: string, options?: O) => Promise<any>;
-  /** Unpin a message in a channel. Requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. */
+  /** Unpin a message in a channel. Requires the MANAGE_MESSAGES permission. Returns a 204 empty response on success. Fires a Channel Pins Update Gateway event. */
   unpinMessage: (
     channelId: string,
     messageId: string,
@@ -3396,6 +3446,18 @@ export interface FollowedChannel {
   /** created target webhook id */
   webhook_id: Snowflake;
 }
+export interface ForumTag {
+  /** the id of the tag */
+  id: Snowflake;
+  /** the name of the tag (0-20 characters) */
+  name: string;
+  /** whether this tag can only be added to or removed from threads by a member with the MANAGE_THREADS permission */
+  moderated: boolean;
+  /** the id of a guild's custom emoji * */
+  emoji_id?: Snowflake | null;
+  /** the unicode character of the emoji * */
+  emoji_name?: string | null;
+}
 export interface ForumThreadMessageParam {
   /** Message contents (up to 2000 characters) */
   content?: string;
@@ -3415,150 +3477,6 @@ export interface ForumThreadMessageParam {
   attachments?: Attachment[];
   /** Message flags combined as a bitfield (only SUPPRESS_EMBEDS can be set) */
   flags?: number;
-}
-export type GatewayCommand =
-  | Identify
-  | Resume
-  | Heartbeat
-  | RequestGuildMember
-  | UpdateVoiceState
-  | UpdatePresence;
-export interface GatewayCommands {
-  IDENTIFY: Identify;
-  RESUME: Resume;
-  HEARTBEAT: Heartbeat;
-  REQUEST_GUILD_MEMBERS: RequestGuildMember;
-  UPDATE_VOICE_STATE: UpdateVoiceState;
-  UPDATE_PRESENCE: UpdatePresence;
-}
-export type GatewayEvent =
-  | HelloEvent
-  | ReadyEvent
-  | ResumedEvent
-  | ReconnectEvent
-  | InvalidSessionEvent
-  | ApplicationCommandPermissionsUpdateEvent
-  | AutoModerationRuleCreateEvent
-  | AutoModerationRuleUpdateEvent
-  | AutoModerationRuleDeleteEvent
-  | AutoModerationActionExecutionEvent
-  | ChannelCreateEvent
-  | ChannelUpdateEvent
-  | ChannelDeleteEvent
-  | ChannelPinsUpdateEvent
-  | ThreadCreateEvent
-  | ThreadUpdateEvent
-  | ThreadDeleteEvent
-  | ThreadListSyncEvent
-  | ThreadMemberUpdateEvent
-  | ThreadMembersUpdateEvent
-  | GuildCreateEvent
-  | GuildUpdateEvent
-  | GuildDeleteEvent
-  | GuildBanAddEvent
-  | GuildBanRemoveEvent
-  | GuildEmojisUpdateEvent
-  | GuildStickersUpdateEvent
-  | GuildIntegrationsUpdateEvent
-  | GuildMemberAddEvent
-  | GuildMemberRemoveEvent
-  | GuildMemberUpdateEvent
-  | GuildMembersChunkEvent
-  | GuildRoleCreateEvent
-  | GuildRoleUpdateEvent
-  | GuildRoleDeleteEvent
-  | GuildScheduledEventCreateEvent
-  | GuildScheduledEventUpdateEvent
-  | GuildScheduledEventDeleteEvent
-  | GuildScheduledEventUserAddEvent
-  | GuildScheduledEventUserRemoveEvent
-  | IntegrationCreateEvent
-  | IntegrationUpdateEvent
-  | IntegrationDeleteEvent
-  | InteractionCreateEvent
-  | InviteCreateEvent
-  | InviteDeleteEvent
-  | MessageCreateEvent
-  | MessageUpdateEvent
-  | MessageDeleteEvent
-  | MessageDeleteBulkEvent
-  | MessageReactionAddEvent
-  | MessageReactionRemoveEvent
-  | MessageReactionRemoveAllEvent
-  | MessageReactionRemoveEmojiEvent
-  | PresenceUpdateEvent
-  | StageInstanceCreateEvent
-  | StageInstanceDeleteEvent
-  | StageInstanceUpdateEvent
-  | TypingStartEvent
-  | UserUpdateEvent
-  | VoiceStateUpdateEvent
-  | VoiceServerUpdateEvent
-  | WebhooksUpdateEvent;
-export interface GatewayEvents {
-  HELLO: HelloEvent;
-  READY: ReadyEvent;
-  RESUMED: ResumedEvent;
-  RECONNECT: ReconnectEvent;
-  INVALID_SESSION: InvalidSessionEvent;
-  APPLICATION_COMMAND_PERMISSIONS_UPDATE: ApplicationCommandPermissionsUpdateEvent;
-  AUTO_MODERATION_RULE_CREATE: AutoModerationRuleCreateEvent;
-  AUTO_MODERATION_RULE_UPDATE: AutoModerationRuleUpdateEvent;
-  AUTO_MODERATION_RULE_DELETE: AutoModerationRuleDeleteEvent;
-  AUTO_MODERATION_ACTION_EXECUTION: AutoModerationActionExecutionEvent;
-  CHANNEL_CREATE: ChannelCreateEvent;
-  CHANNEL_UPDATE: ChannelUpdateEvent;
-  CHANNEL_DELETE: ChannelDeleteEvent;
-  CHANNEL_PINS_UPDATE: ChannelPinsUpdateEvent;
-  THREAD_CREATE: ThreadCreateEvent;
-  THREAD_UPDATE: ThreadUpdateEvent;
-  THREAD_DELETE: ThreadDeleteEvent;
-  THREAD_LIST_SYNC: ThreadListSyncEvent;
-  THREAD_MEMBER_UPDATE: ThreadMemberUpdateEvent;
-  THREAD_MEMBERS_UPDATE: ThreadMembersUpdateEvent;
-  GUILD_CREATE: GuildCreateEvent;
-  GUILD_UPDATE: GuildUpdateEvent;
-  GUILD_DELETE: GuildDeleteEvent;
-  GUILD_BAN_ADD: GuildBanAddEvent;
-  GUILD_BAN_REMOVE: GuildBanRemoveEvent;
-  GUILD_EMOJIS_UPDATE: GuildEmojisUpdateEvent;
-  GUILD_STICKERS_UPDATE: GuildStickersUpdateEvent;
-  GUILD_INTEGRATIONS_UPDATE: GuildIntegrationsUpdateEvent;
-  GUILD_MEMBER_ADD: GuildMemberAddEvent;
-  GUILD_MEMBER_REMOVE: GuildMemberRemoveEvent;
-  GUILD_MEMBER_UPDATE: GuildMemberUpdateEvent;
-  GUILD_MEMBERS_CHUNK: GuildMembersChunkEvent;
-  GUILD_ROLE_CREATE: GuildRoleCreateEvent;
-  GUILD_ROLE_UPDATE: GuildRoleUpdateEvent;
-  GUILD_ROLE_DELETE: GuildRoleDeleteEvent;
-  GUILD_SCHEDULED_EVENT_CREATE: GuildScheduledEventCreateEvent;
-  GUILD_SCHEDULED_EVENT_UPDATE: GuildScheduledEventUpdateEvent;
-  GUILD_SCHEDULED_EVENT_DELETE: GuildScheduledEventDeleteEvent;
-  GUILD_SCHEDULED_EVENT_USER_ADD: GuildScheduledEventUserAddEvent;
-  GUILD_SCHEDULED_EVENT_USER_REMOVE: GuildScheduledEventUserRemoveEvent;
-  INTEGRATION_CREATE: IntegrationCreateEvent;
-  INTEGRATION_UPDATE: IntegrationUpdateEvent;
-  INTEGRATION_DELETE: IntegrationDeleteEvent;
-  INTERACTION_CREATE: InteractionCreateEvent;
-  INVITE_CREATE: InviteCreateEvent;
-  INVITE_DELETE: InviteDeleteEvent;
-  MESSAGE_CREATE: MessageCreateEvent;
-  MESSAGE_UPDATE: MessageUpdateEvent;
-  MESSAGE_DELETE: MessageDeleteEvent;
-  MESSAGE_DELETE_BULK: MessageDeleteBulkEvent;
-  MESSAGE_REACTION_ADD: MessageReactionAddEvent;
-  MESSAGE_REACTION_REMOVE: MessageReactionRemoveEvent;
-  MESSAGE_REACTION_REMOVE_ALL: MessageReactionRemoveAllEvent;
-  MESSAGE_REACTION_REMOVE_EMOJI: MessageReactionRemoveEmojiEvent;
-  PRESENCE_UPDATE: PresenceUpdateEvent;
-  STAGE_INSTANCE_CREATE: StageInstanceCreateEvent;
-  STAGE_INSTANCE_DELETE: StageInstanceDeleteEvent;
-  STAGE_INSTANCE_UPDATE: StageInstanceUpdateEvent;
-  TYPING_START: TypingStartEvent;
-  USER_UPDATE: UserUpdateEvent;
-  VOICE_STATE_UPDATE: VoiceStateUpdateEvent;
-  VOICE_SERVER_UPDATE: VoiceServerUpdateEvent;
-  WEBHOOKS_UPDATE: WebhooksUpdateEvent;
 }
 export const GatewayIntents = {
   GUILDS: 1 << 0,
@@ -3620,7 +3538,7 @@ export interface GatewayUrlQueryStringParam {
   v: number;
   /** The encoding of received gateway packets */
   encoding: string;
-  /** The (optional) compression of gateway packets */
+  /** The optional transport compression of gateway packets */
   compress?: string;
 }
 export interface GetChannelMessageParams {
@@ -3633,6 +3551,16 @@ export interface GetChannelMessageParams {
   /** Max number of messages to return (1-100) */
   limit?: number;
 }
+export interface GetCurrentAuthorizationInformationResponse {
+  /** the current application */
+  application: Application;
+  /** the scopes the user has authorized the application for */
+  scopes: string[];
+  /** when the access token expires */
+  expires: string;
+  /** the user who has authorized, if the user has authorized with the identify scope */
+  user?: User;
+}
 export interface GetCurrentUserGuildParams {
   /** get guilds before this guild ID */
   before: Snowflake;
@@ -3642,9 +3570,9 @@ export interface GetCurrentUserGuildParams {
   limit: number;
 }
 export interface GetGatewayBotResponse {
-  /** The WSS URL that can be used for connecting to the gateway */
+  /** WSS URL that can be used for connecting to the Gateway */
   url: string;
-  /** The recommended number of shards to use when connecting */
+  /** Recommended number of shards to use when connecting */
   shards: number;
   /** Information on the current session start limit */
   session_start_limit: SessionStartLimit;
@@ -3750,7 +3678,7 @@ export interface Guild {
   region?: string | null;
   /** id of afk channel */
   afk_channel_id?: Snowflake | null;
-  /** afk timeout in seconds */
+  /** afk timeout in seconds, can be set to: 60, 300, 900, 1800, 3600 */
   afk_timeout: number;
   /** true if the server widget is enabled */
   widget_enabled?: boolean;
@@ -3822,47 +3750,47 @@ export interface GuildApplicationCommandPermission {
   permissions: ApplicationCommandPermission[];
 }
 export interface GuildBanAddEvent {
-  /** id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
-  /** the banned user */
+  /** User who was banned */
   user: User;
 }
 export interface GuildBanRemoveEvent {
-  /** id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
-  /** the unbanned user */
+  /** User who was unbanned */
   user: User;
 }
 export type GuildCreateEvent = Guild & GuildCreateExtra;
 export interface GuildCreateExtra {
-  /** when this guild was joined at */
+  /** When this guild was joined at */
   joined_at: string;
   /** true if this is considered a large guild */
   large: boolean;
   /** true if this guild is unavailable due to an outage */
   unavailable?: boolean;
-  /** total number of members in this guild */
+  /** Total number of members in this guild */
   member_count: number;
-  /** states of members currently in voice channels; lacks the guild_id key */
+  /** States of members currently in voice channels; lacks the guild_id key */
   voice_states: VoiceState[];
-  /** users in the guild */
+  /** Users in the guild */
   members: GuildMember[];
-  /** channels in the guild */
+  /** Channels in the guild */
   channels: Channel[];
-  /** all active threads in the guild that current user has permission to view */
+  /** All active threads in the guild that current user has permission to view */
   threads: Channel[];
-  /** presences of the members in the guild, will only include non-offline members if the size is greater than large threshold */
+  /** Presences of the members in the guild, will only include non-offline members if the size is greater than large threshold */
   presences: PresenceUpdateEvent[];
   /** Stage instances in the guild */
   stage_instances: StageInstance[];
-  /** the scheduled events in the guild */
+  /** Scheduled events in the guild */
   guild_scheduled_events: GuildScheduledEvent[];
 }
 export type GuildDeleteEvent = UnavailableGuild;
 export interface GuildEmojisUpdateEvent {
-  /** id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
-  /** array of emojis */
+  /** Array of emojis */
   emojis: Emoji[];
 }
 export enum GuildFeature {
@@ -3880,6 +3808,8 @@ export enum GuildFeature {
   DISCOVERABLE = "DISCOVERABLE",
   /** guild is able to be featured in the directory */
   FEATURABLE = "FEATURABLE",
+  /** guild has paused invites, preventing new users from joining */
+  INVITES_DISABLED = "INVITES_DISABLED",
   /** guild has access to set an invite splash background */
   INVITE_SPLASH = "INVITE_SPLASH",
   /** guild has enabled Membership Screening */
@@ -3910,7 +3840,7 @@ export enum GuildFeature {
   WELCOME_SCREEN_ENABLED = "WELCOME_SCREEN_ENABLED",
 }
 export interface GuildIntegrationsUpdateEvent {
-  /** id of the guild whose integrations were updated */
+  /** ID of the guild whose integrations were updated */
   guild_id: Snowflake;
 }
 export interface GuildMember {
@@ -3939,53 +3869,53 @@ export interface GuildMember {
 }
 export type GuildMemberAddEvent = GuildMember & GuildMemberAddExtra;
 export interface GuildMemberAddExtra {
-  /** id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
 }
 export interface GuildMemberRemoveEvent {
-  /** the id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
-  /** the user who was removed */
+  /** User who was removed */
   user: User;
 }
 export interface GuildMembersChunkEvent {
-  /** the id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
-  /** set of guild members */
+  /** Set of guild members */
   members: GuildMember[];
-  /** the chunk index in the expected chunks for this response (0 <= chunk_index < chunk_count) */
+  /** Chunk index in the expected chunks for this response (0 <= chunk_index < chunk_count) */
   chunk_index: number;
-  /** the total number of expected chunks for this response */
+  /** Total number of expected chunks for this response */
   chunk_count: number;
-  /** if passing an invalid id to REQUEST_GUILD_MEMBERS, it will be returned here */
+  /** When passing an invalid ID to REQUEST_GUILD_MEMBERS, it will be returned here */
   not_found?: any[];
-  /** if passing true to REQUEST_GUILD_MEMBERS, presences of the returned members will be here */
+  /** When passing true to REQUEST_GUILD_MEMBERS, presences of the returned members will be here */
   presences?: PresenceUpdateEvent[];
-  /** the nonce used in the Guild Members Request */
+  /** Nonce used in the Guild Members Request */
   nonce?: string;
 }
 export interface GuildMemberUpdateEvent {
-  /** the id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
-  /** user role ids */
+  /** User role ids */
   roles: Snowflake[];
-  /** the user */
+  /** User */
   user: User;
-  /** nickname of the user in the guild */
+  /** Nickname of the user in the guild */
   nick?: string | null;
-  /** the member's guild avatar hash */
+  /** Member's guild avatar hash */
   avatar?: string | null;
-  /** when the user joined the guild */
+  /** When the user joined the guild */
   joined_at?: string | null;
-  /** when the user starting boosting the guild */
+  /** When the user starting boosting the guild */
   premium_since?: string | null;
-  /** whether the user is deafened in voice channels */
+  /** Whether the user is deafened in voice channels */
   deaf?: boolean;
-  /** whether the user is muted in voice channels */
+  /** Whether the user is muted in voice channels */
   mute?: boolean;
-  /** whether the user has not yet passed the guild's Membership Screening requirements */
+  /** Whether the user has not yet passed the guild's Membership Screening requirements */
   pending?: boolean;
-  /** when the user's timeout will expire and the user will be able to communicate in the guild again, null or a time in the past if the user is not timed out */
+  /** When the user's timeout will expire and the user will be able to communicate in the guild again, null or a time in the past if the user is not timed out */
   communication_disabled_until?: string | null;
 }
 export enum GuildNsfwLevel {
@@ -4019,21 +3949,21 @@ export interface GuildPreview {
   stickers: Sticker[];
 }
 export interface GuildRoleCreateEvent {
-  /** the id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
-  /** the role created */
+  /** Role that was created */
   role: Role;
 }
 export interface GuildRoleDeleteEvent {
-  /** id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
-  /** id of the role */
+  /** ID of the role */
   role_id: Snowflake;
 }
 export interface GuildRoleUpdateEvent {
-  /** the id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
-  /** the role updated */
+  /** Role that was updated */
   role: Role;
 }
 export interface GuildScheduledEvent {
@@ -4101,25 +4031,25 @@ export interface GuildScheduledEventUser {
   member?: GuildMember;
 }
 export interface GuildScheduledEventUserAddEvent {
-  /** id of the guild scheduled event */
+  /** ID of the guild scheduled event */
   guild_scheduled_event_id: Snowflake;
-  /** id of the user */
+  /** ID of the user */
   user_id: Snowflake;
-  /** id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
 }
 export interface GuildScheduledEventUserRemoveEvent {
-  /** id of the guild scheduled event */
+  /** ID of the guild scheduled event */
   guild_scheduled_event_id: Snowflake;
-  /** id of the user */
+  /** ID of the user */
   user_id: Snowflake;
-  /** id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
 }
 export interface GuildStickersUpdateEvent {
-  /** id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
-  /** array of stickers */
+  /** Array of stickers */
   stickers: Sticker[];
 }
 export interface GuildTemplate {
@@ -4169,36 +4099,36 @@ export interface GuildWidgetSetting {
 }
 export type Heartbeat = number | null;
 export interface HelloEvent {
-  /** the interval (in milliseconds) the client should heartbeat with */
+  /** Interval (in milliseconds) an app should heartbeat with */
   heartbeat_interval: number;
 }
 export interface Identify {
-  /** authentication token */
+  /** Authentication token */
   token: string;
-  /** connection properties */
+  /** Connection properties */
   properties: IdentifyConnectionProperty;
-  /** whether this connection supports compression of packets */
+  /** Whether this connection supports compression of packets */
   compress?: boolean;
-  /** value between 50 and 250, total number of members where the gateway will stop sending offline members in the guild member list */
+  /** Value between 50 and 250, total number of members where the gateway will stop sending offline members in the guild member list */
   large_threshold?: number;
-  /** used for Guild Sharding */
+  /** Used for Guild Sharding */
   shard?: number[];
-  /** presence structure for initial presence information */
+  /** Presence structure for initial presence information */
   presence?: UpdatePresence;
-  /** the Gateway Intents you wish to receive */
+  /** Gateway Intents you wish to receive */
   intents: number;
 }
 export interface IdentifyConnectionProperty {
-  /** your operating system */
+  /** Your operating system */
   os: string;
-  /** your library name */
+  /** Your library name */
   browser: string;
-  /** your library name */
+  /** Your library name */
   device: string;
 }
 export interface InstallParam {
   /** the scopes to add the application to the server with */
-  scopes: string[];
+  scopes: OAuth2Scope[];
   /** the permissions to request for the bot role */
   permissions: string;
 }
@@ -4233,6 +4163,8 @@ export interface Integration {
   revoked?: boolean;
   /** The bot/OAuth2 application for discord integrations */
   application?: IntegrationApplication;
+  /** the scopes the application has been authorized for */
+  scopes?: OAuth2Scope[];
 }
 export interface IntegrationAccount {
   /** id of the account */
@@ -4255,15 +4187,15 @@ export interface IntegrationApplication {
 export type IntegrationCreateEvent = Integration &
   IntegrationCreateEventAdditional;
 export interface IntegrationCreateEventAdditional {
-  /** id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
 }
 export interface IntegrationDeleteEvent {
-  /** integration id */
+  /** Integration ID */
   id: Snowflake;
-  /** id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
-  /** id of the bot/OAuth2 application for this discord integration */
+  /** ID of the bot/OAuth2 application for this discord integration */
   application_id?: Snowflake;
 }
 export enum IntegrationExpireBehavior {
@@ -4273,7 +4205,7 @@ export enum IntegrationExpireBehavior {
 export type IntegrationUpdateEvent = Integration &
   IntegrationUpdateEventAdditional;
 export interface IntegrationUpdateEventAdditional {
-  /** id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
 }
 export interface Interaction {
@@ -4400,37 +4332,37 @@ export interface Invite {
   guild_scheduled_event?: GuildScheduledEvent;
 }
 export interface InviteCreateEvent {
-  /** the channel the invite is for */
+  /** Channel the invite is for */
   channel_id: Snowflake;
-  /** the unique invite code */
+  /** Unique invite code */
   code: string;
-  /** the time at which the invite was created */
+  /** Time at which the invite was created */
   created_at: string;
-  /** the guild of the invite */
+  /** Guild of the invite */
   guild_id?: Snowflake;
-  /** the user that created the invite */
+  /** User that created the invite */
   inviter?: User;
-  /** how long the invite is valid for (in seconds) */
+  /** How long the invite is valid for (in seconds) */
   max_age: number;
-  /** the maximum number of times the invite can be used */
+  /** Maximum number of times the invite can be used */
   max_uses: number;
-  /** the type of target for this voice channel invite */
+  /** Type of target for this voice channel invite */
   target_type?: InviteTargetType;
-  /** the user whose stream to display for this voice channel stream invite */
+  /** User whose stream to display for this voice channel stream invite */
   target_user?: User;
-  /** the embedded application to open for this voice channel embedded application invite */
+  /** Embedded application to open for this voice channel embedded application invite */
   target_application?: Application;
-  /** whether or not the invite is temporary (invited users will be kicked on disconnect unless they're assigned a role) */
+  /** Whether or not the invite is temporary (invited users will be kicked on disconnect unless they're assigned a role) */
   temporary: boolean;
-  /** how many times the invite has been used (always will be 0) */
+  /** How many times the invite has been used (always will be 0) */
   uses: number;
 }
 export interface InviteDeleteEvent {
-  /** the channel of the invite */
+  /** Channel of the invite */
   channel_id: Snowflake;
-  /** the guild of the invite */
+  /** Guild of the invite */
   guild_id?: Snowflake;
-  /** the unique invite code */
+  /** Unique invite code */
   code: string;
 }
 export interface InviteMetadatum {
@@ -4675,27 +4607,27 @@ export interface MessageComponentDatum {
 }
 export type MessageCreateEvent = Message & MessageCreateExtra;
 export interface MessageCreateExtra {
-  /** id of the guild the message was sent in - unless it is an ephemeral message */
+  /** ID of the guild the message was sent in - unless it is an ephemeral message */
   guild_id?: Snowflake;
-  /** member properties for this message's author. Missing for ephemeral messages and messages from webhooks */
+  /** Member properties for this message's author. Missing for ephemeral messages and messages from webhooks */
   member?: GuildMember;
-  /** users specifically mentioned in the message */
+  /** Users specifically mentioned in the message */
   mentions: User[];
 }
 export interface MessageDeleteBulkEvent {
-  /** the ids of the messages */
+  /** IDs of the messages */
   ids: Snowflake[];
-  /** the id of the channel */
+  /** ID of the channel */
   channel_id: Snowflake;
-  /** the id of the guild */
+  /** ID of the guild */
   guild_id?: Snowflake;
 }
 export interface MessageDeleteEvent {
-  /** the id of the message */
+  /** ID of the message */
   id: Snowflake;
-  /** the id of the channel */
+  /** ID of the channel */
   channel_id: Snowflake;
-  /** the id of the guild */
+  /** ID of the guild */
   guild_id?: Snowflake;
 }
 export const MessageFlag = {
@@ -4731,47 +4663,47 @@ export interface MessageInteraction {
   member?: GuildMember;
 }
 export interface MessageReactionAddEvent {
-  /** the id of the user */
+  /** ID of the user */
   user_id: Snowflake;
-  /** the id of the channel */
+  /** ID of the channel */
   channel_id: Snowflake;
-  /** the id of the message */
+  /** ID of the message */
   message_id: Snowflake;
-  /** the id of the guild */
+  /** ID of the guild */
   guild_id?: Snowflake;
-  /** the member who reacted if this happened in a guild */
+  /** Member who reacted if this happened in a guild */
   member?: GuildMember;
-  /** the emoji used to react - example */
+  /** Emoji used to react - example */
   emoji: Emoji;
 }
 export interface MessageReactionRemoveAllEvent {
-  /** the id of the channel */
+  /** ID of the channel */
   channel_id: Snowflake;
-  /** the id of the message */
+  /** ID of the message */
   message_id: Snowflake;
-  /** the id of the guild */
+  /** ID of the guild */
   guild_id?: Snowflake;
 }
 export interface MessageReactionRemoveEmojiEvent {
-  /** the id of the channel */
+  /** ID of the channel */
   channel_id: Snowflake;
-  /** the id of the guild */
+  /** ID of the guild */
   guild_id?: Snowflake;
-  /** the id of the message */
+  /** ID of the message */
   message_id: Snowflake;
-  /** the emoji that was removed */
+  /** Emoji that was removed */
   emoji: Emoji;
 }
 export interface MessageReactionRemoveEvent {
-  /** the id of the user */
+  /** ID of the user */
   user_id: Snowflake;
-  /** the id of the channel */
+  /** ID of the channel */
   channel_id: Snowflake;
-  /** the id of the message */
+  /** ID of the message */
   message_id: Snowflake;
-  /** the id of the guild */
+  /** ID of the guild */
   guild_id?: Snowflake;
-  /** the emoji used to react - example */
+  /** Emoji used to react - example */
   emoji: Emoji;
 }
 export interface MessageReference {
@@ -4852,7 +4784,7 @@ export interface ModifyChannelGuildChannelParams {
   type: ChannelType;
   /** the position of the channel in the left-hand listing */
   position?: number | null;
-  /** 0-1024 character channel topic */
+  /** 0-1024 character channel topic (0-4096 characters for GUILD_FORUM channels) */
   topic?: string | null;
   /** whether the channel is nsfw */
   nsfw?: boolean | null;
@@ -4872,6 +4804,12 @@ export interface ModifyChannelGuildChannelParams {
   video_quality_mode?: VideoQualityMode | null;
   /** the default duration that the clients use (not the API) for newly created threads in the channel, in minutes, to automatically archive the thread after recent activity */
   default_auto_archive_duration?: number | null;
+  /** the set of tags that can be used in a GUILD_FORUM channel */
+  available_tags?: ForumTag[];
+  /** the emoji to show in the add reaction button on a thread in a GUILD_FORUM channel */
+  default_reaction_emoji?: DefaultReaction | null;
+  /** the initial rate_limit_per_user to set on newly created threads in a channel. this field is copied to the thread at creation time and does not live update. */
+  default_thread_rate_limit_per_user?: number;
 }
 export type ModifyChannelParams =
   | ModifyChannelGroupDmParams
@@ -4892,6 +4830,8 @@ export interface ModifyChannelThreadParams {
   rate_limit_per_user?: number | null;
   /** channel flags combined as a bitfield; PINNED can only be set for threads in forum channels */
   flags?: number;
+  /** the IDs of the set of tags that have been applied to a thread in a GUILD_FORUM channel */
+  applied_tags?: Snowflake[];
 }
 export interface ModifyCurrentMemberParams {
   /** value to set user's nickname to */
@@ -4909,7 +4849,7 @@ export interface ModifyCurrentUserParams {
 }
 export interface ModifyCurrentUserVoiceStateParams {
   /** the id of the channel the user is currently in */
-  channel_id: Snowflake;
+  channel_id?: Snowflake;
   /** toggles the user's suppress state */
   suppress?: boolean;
   /** sets the user's request to speak */
@@ -4962,7 +4902,7 @@ export interface ModifyGuildParams {
   explicit_content_filter?: ExplicitContentFilterLevel | null;
   /** id for afk channel */
   afk_channel_id?: Snowflake | null;
-  /** afk timeout in seconds */
+  /** afk timeout in seconds, can be set to: 60, 300, 900, 1800, 3600 */
   afk_timeout: number;
   /** base64 1024x1024 png/jpeg/gif image for the guild icon (can be animated gif when the server has the ANIMATED_ICON feature) */
   icon?: string | null;
@@ -5077,6 +5017,67 @@ export interface ModifyWebhookParams {
   /** the new channel id this webhook should be moved to */
   channel_id: Snowflake;
 }
+export enum MutableGuildFeature {
+  COMMUNITY = "COMMUNITY",
+  INVITES_DISABLED = "INVITES_DISABLED",
+  DISCOVERABLE = "DISCOVERABLE",
+}
+export enum OAuth2Scope {
+  /** allows your app to fetch data from a user's "Now Playing/Recently Played" list - requires Discord approval */
+  ACTIVITIES_READ = "activities.read",
+  /** allows your app to update a user's activity - requires Discord approval (NOT REQUIRED FOR GAMESDK ACTIVITY MANAGER) */
+  ACTIVITIES_WRITE = "activities.write",
+  /** allows your app to read build data for a user's applications */
+  APPLICATIONS_BUILDS_READ = "applications.builds.read",
+  /** allows your app to upload/update builds for a user's applications - requires Discord approval */
+  APPLICATIONS_BUILDS_UPLOAD = "applications.builds.upload",
+  /** allows your app to use commands in a guild */
+  APPLICATIONS_COMMANDS = "applications.commands",
+  /** allows your app to update its commands using a Bearer token - client credentials grant only */
+  APPLICATIONS_COMMANDS_UPDATE = "applications.commands.update",
+  /** allows your app to update permissions for its commands in a guild a user has permissions to */
+  APPLICATIONS_COMMANDS_PERMISSIONS_UPDATE = "applications.commands.permissions.update",
+  /** allows your app to read entitlements for a user's applications */
+  APPLICATIONS_ENTITLEMENTS = "applications.entitlements",
+  /** allows your app to read and update store data (SKUs, store listings, achievements, etc.) for a user's applications */
+  APPLICATIONS_STORE_UPDATE = "applications.store.update",
+  /** for oauth2 bots, this puts the bot in the user's selected guild by default */
+  BOT = "bot",
+  /** allows /users/@me/connections to return linked third-party accounts */
+  CONNECTIONS = "connections",
+  /** allows your app to see information about the user's DMs and group DMs - requires Discord approval */
+  DM_CHANNELS_READ = "dm_channels.read",
+  /** enables /users/@me to return an email */
+  EMAIL = "email",
+  /** allows your app to join users to a group dm */
+  GDM_JOIN = "gdm.join",
+  /** allows /users/@me/guilds to return basic information about all of a user's guilds */
+  GUILDS = "guilds",
+  /** allows /guilds/{guild.id}/members/{user.id} to be used for joining users to a guild */
+  GUILDS_JOIN = "guilds.join",
+  /** allows /users/@me/guilds/{guild.id}/member to return a user's member information in a guild */
+  GUILDS_MEMBERS_READ = "guilds.members.read",
+  /** allows /users/@me without email */
+  IDENTIFY = "identify",
+  /** for local rpc server api access, this allows you to read messages from all client channels (otherwise restricted to channels/guilds your app creates) */
+  MESSAGES_READ = "messages.read",
+  /** allows your app to know a user's friends and implicit relationships - requires Discord approval */
+  RELATIONSHIPS_READ = "relationships.read",
+  /** for local rpc server access, this allows you to control a user's local Discord client - requires Discord approval */
+  RPC = "rpc",
+  /** for local rpc server access, this allows you to update a user's activity - requires Discord approval */
+  RPC_ACTIVITIES_WRITE = "rpc.activities.write",
+  /** for local rpc server access, this allows you to receive notifications pushed out to the user - requires Discord approval */
+  RPC_NOTIFICATIONS_READ = "rpc.notifications.read",
+  /** for local rpc server access, this allows you to read a user's voice settings and listen for voice events - requires Discord approval */
+  RPC_VOICE_READ = "rpc.voice.read",
+  /** for local rpc server access, this allows you to update a user's voice settings - requires Discord approval */
+  RPC_VOICE_WRITE = "rpc.voice.write",
+  /** allows your app to connect to voice on user's behalf and see all the voice members - requires Discord approval */
+  VOICE = "voice",
+  /** this generates a webhook that is returned in the oauth token response for authorization code grants */
+  WEBHOOK_INCOMING = "webhook.incoming",
+}
 export interface Overwrite {
   /** role or user id */
   id: Snowflake;
@@ -5187,15 +5188,15 @@ export enum PremiumType {
   NITRO = 2,
 }
 export interface PresenceUpdateEvent {
-  /** the user presence is being updated for */
+  /** User whose presence is being updated */
   user: User;
-  /** id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
-  /** either "idle", "dnd", "online", or "offline" */
+  /** Either "idle", "dnd", "online", or "offline" */
   status: string;
-  /** user's current activities */
+  /** User's current activities */
   activities: Activity[];
-  /** user's platform-dependent status */
+  /** User's platform-dependent status */
   client_status: ClientStatus;
 }
 export enum PrivacyLevel {
@@ -5215,22 +5216,151 @@ export interface Reaction {
 export interface ReadyEvent {
   /** API version */
   v: number;
-  /** information about the user including email */
+  /** Information about the user including email */
   user: User;
-  /** the guilds the user is in */
+  /** Guilds the user is in */
   guilds: UnavailableGuild[];
-  /** used for resuming connections */
+  /** Used for resuming connections */
   session_id: string;
-  /** gateway url for resuming connections */
+  /** Gateway URL for resuming connections */
   resume_gateway_url: string;
-  /** the shard information associated with this session, if sent when identifying */
+  /** Shard information associated with this session, if sent when identifying */
   shard?: number[];
-  /** contains id and flags */
+  /** Contains id and flags */
   application: Application;
+}
+export type ReceiveEvent =
+  | HelloEvent
+  | ReadyEvent
+  | ResumedEvent
+  | ReconnectEvent
+  | InvalidSessionEvent
+  | ApplicationCommandPermissionsUpdateEvent
+  | AutoModerationRuleCreateEvent
+  | AutoModerationRuleUpdateEvent
+  | AutoModerationRuleDeleteEvent
+  | AutoModerationActionExecutionEvent
+  | ChannelCreateEvent
+  | ChannelUpdateEvent
+  | ChannelDeleteEvent
+  | ChannelPinsUpdateEvent
+  | ThreadCreateEvent
+  | ThreadUpdateEvent
+  | ThreadDeleteEvent
+  | ThreadListSyncEvent
+  | ThreadMemberUpdateEvent
+  | ThreadMembersUpdateEvent
+  | GuildCreateEvent
+  | GuildUpdateEvent
+  | GuildDeleteEvent
+  | GuildBanAddEvent
+  | GuildBanRemoveEvent
+  | GuildEmojisUpdateEvent
+  | GuildStickersUpdateEvent
+  | GuildIntegrationsUpdateEvent
+  | GuildMemberAddEvent
+  | GuildMemberRemoveEvent
+  | GuildMemberUpdateEvent
+  | GuildMembersChunkEvent
+  | GuildRoleCreateEvent
+  | GuildRoleUpdateEvent
+  | GuildRoleDeleteEvent
+  | GuildScheduledEventCreateEvent
+  | GuildScheduledEventUpdateEvent
+  | GuildScheduledEventDeleteEvent
+  | GuildScheduledEventUserAddEvent
+  | GuildScheduledEventUserRemoveEvent
+  | IntegrationCreateEvent
+  | IntegrationUpdateEvent
+  | IntegrationDeleteEvent
+  | InteractionCreateEvent
+  | InviteCreateEvent
+  | InviteDeleteEvent
+  | MessageCreateEvent
+  | MessageUpdateEvent
+  | MessageDeleteEvent
+  | MessageDeleteBulkEvent
+  | MessageReactionAddEvent
+  | MessageReactionRemoveEvent
+  | MessageReactionRemoveAllEvent
+  | MessageReactionRemoveEmojiEvent
+  | PresenceUpdateEvent
+  | StageInstanceCreateEvent
+  | StageInstanceUpdateEvent
+  | StageInstanceDeleteEvent
+  | TypingStartEvent
+  | UserUpdateEvent
+  | VoiceStateUpdateEvent
+  | VoiceServerUpdateEvent
+  | WebhooksUpdateEvent;
+export interface ReceiveEvents {
+  HELLO: HelloEvent;
+  READY: ReadyEvent;
+  RESUMED: ResumedEvent;
+  RECONNECT: ReconnectEvent;
+  INVALID_SESSION: InvalidSessionEvent;
+  APPLICATION_COMMAND_PERMISSIONS_UPDATE: ApplicationCommandPermissionsUpdateEvent;
+  AUTO_MODERATION_RULE_CREATE: AutoModerationRuleCreateEvent;
+  AUTO_MODERATION_RULE_UPDATE: AutoModerationRuleUpdateEvent;
+  AUTO_MODERATION_RULE_DELETE: AutoModerationRuleDeleteEvent;
+  AUTO_MODERATION_ACTION_EXECUTION: AutoModerationActionExecutionEvent;
+  CHANNEL_CREATE: ChannelCreateEvent;
+  CHANNEL_UPDATE: ChannelUpdateEvent;
+  CHANNEL_DELETE: ChannelDeleteEvent;
+  CHANNEL_PINS_UPDATE: ChannelPinsUpdateEvent;
+  THREAD_CREATE: ThreadCreateEvent;
+  THREAD_UPDATE: ThreadUpdateEvent;
+  THREAD_DELETE: ThreadDeleteEvent;
+  THREAD_LIST_SYNC: ThreadListSyncEvent;
+  THREAD_MEMBER_UPDATE: ThreadMemberUpdateEvent;
+  THREAD_MEMBERS_UPDATE: ThreadMembersUpdateEvent;
+  GUILD_CREATE: GuildCreateEvent;
+  GUILD_UPDATE: GuildUpdateEvent;
+  GUILD_DELETE: GuildDeleteEvent;
+  GUILD_BAN_ADD: GuildBanAddEvent;
+  GUILD_BAN_REMOVE: GuildBanRemoveEvent;
+  GUILD_EMOJIS_UPDATE: GuildEmojisUpdateEvent;
+  GUILD_STICKERS_UPDATE: GuildStickersUpdateEvent;
+  GUILD_INTEGRATIONS_UPDATE: GuildIntegrationsUpdateEvent;
+  GUILD_MEMBER_ADD: GuildMemberAddEvent;
+  GUILD_MEMBER_REMOVE: GuildMemberRemoveEvent;
+  GUILD_MEMBER_UPDATE: GuildMemberUpdateEvent;
+  GUILD_MEMBERS_CHUNK: GuildMembersChunkEvent;
+  GUILD_ROLE_CREATE: GuildRoleCreateEvent;
+  GUILD_ROLE_UPDATE: GuildRoleUpdateEvent;
+  GUILD_ROLE_DELETE: GuildRoleDeleteEvent;
+  GUILD_SCHEDULED_EVENT_CREATE: GuildScheduledEventCreateEvent;
+  GUILD_SCHEDULED_EVENT_UPDATE: GuildScheduledEventUpdateEvent;
+  GUILD_SCHEDULED_EVENT_DELETE: GuildScheduledEventDeleteEvent;
+  GUILD_SCHEDULED_EVENT_USER_ADD: GuildScheduledEventUserAddEvent;
+  GUILD_SCHEDULED_EVENT_USER_REMOVE: GuildScheduledEventUserRemoveEvent;
+  INTEGRATION_CREATE: IntegrationCreateEvent;
+  INTEGRATION_UPDATE: IntegrationUpdateEvent;
+  INTEGRATION_DELETE: IntegrationDeleteEvent;
+  INTERACTION_CREATE: InteractionCreateEvent;
+  INVITE_CREATE: InviteCreateEvent;
+  INVITE_DELETE: InviteDeleteEvent;
+  MESSAGE_CREATE: MessageCreateEvent;
+  MESSAGE_UPDATE: MessageUpdateEvent;
+  MESSAGE_DELETE: MessageDeleteEvent;
+  MESSAGE_DELETE_BULK: MessageDeleteBulkEvent;
+  MESSAGE_REACTION_ADD: MessageReactionAddEvent;
+  MESSAGE_REACTION_REMOVE: MessageReactionRemoveEvent;
+  MESSAGE_REACTION_REMOVE_ALL: MessageReactionRemoveAllEvent;
+  MESSAGE_REACTION_REMOVE_EMOJI: MessageReactionRemoveEmojiEvent;
+  PRESENCE_UPDATE: PresenceUpdateEvent;
+  STAGE_INSTANCE_CREATE: StageInstanceCreateEvent;
+  STAGE_INSTANCE_UPDATE: StageInstanceUpdateEvent;
+  STAGE_INSTANCE_DELETE: StageInstanceDeleteEvent;
+  TYPING_START: TypingStartEvent;
+  USER_UPDATE: UserUpdateEvent;
+  VOICE_STATE_UPDATE: VoiceStateUpdateEvent;
+  VOICE_SERVER_UPDATE: VoiceServerUpdateEvent;
+  WEBHOOKS_UPDATE: WebhooksUpdateEvent;
 }
 export type ReconnectEvent = null;
 export interface RequestGuildMember {
-  /** id of the guild to get members for */
+  /** ID of the guild to get members for */
   guild_id: Snowflake;
   /** string that username starts with, or an empty string to return all members */
   query?: string;
@@ -5257,6 +5387,16 @@ export interface ResolvedDatum {
   /** the ids and attachment objects */
   attachments?: Record<Snowflake, Attachment>;
 }
+export interface Response {
+  /** the current application */
+  application: Application;
+  /** the scopes the user has authorized the application for */
+  scopes: string[];
+  /** when the access token expires */
+  expires: string;
+  /** the user who has authorized, if the user has authorized with the identify scope */
+  user?: User;
+}
 export interface ResponseBody {
   /** the public, archived threads */
   threads: Channel[];
@@ -5266,11 +5406,11 @@ export interface ResponseBody {
   has_more: boolean;
 }
 export interface Resume {
-  /** session token */
+  /** Session token */
   token: string;
-  /** session id */
+  /** Session ID */
   session_id: string;
-  /** last sequence number received */
+  /** Last sequence number received */
   seq: number;
 }
 export type ResumedEvent = null;
@@ -5346,14 +5486,29 @@ export interface SelectOption {
   /** will render this option as selected by default */
   default?: boolean;
 }
+export type SendEvent =
+  | Identify
+  | Resume
+  | Heartbeat
+  | RequestGuildMember
+  | UpdateVoiceState
+  | UpdatePresence;
+export interface SendEvents {
+  IDENTIFY: Identify;
+  RESUME: Resume;
+  HEARTBEAT: Heartbeat;
+  REQUEST_GUILD_MEMBERS: RequestGuildMember;
+  UPDATE_VOICE_STATE: UpdateVoiceState;
+  UPDATE_PRESENCE: UpdatePresence;
+}
 export interface SessionStartLimit {
-  /** The total number of session starts the current user is allowed */
+  /** Total number of session starts the current user is allowed */
   total: number;
-  /** The remaining number of session starts the current user is allowed */
+  /** Remaining number of session starts the current user is allowed */
   remaining: number;
-  /** The number of milliseconds after which the limit resets */
+  /** Number of milliseconds after which the limit resets */
   reset_after: number;
-  /** The number of identify requests allowed per 5 seconds */
+  /** Number of identify requests allowed per 5 seconds */
   max_concurrency: number;
 }
 export type Snowflake = `${bigint}`;
@@ -5413,6 +5568,8 @@ export interface StartThreadInForumChannelParams {
   rate_limit_per_user?: number | null;
   /** contents of the first message in the forum thread */
   message: StartThreadInForumChannelForumThreadMessageParams;
+  /** the IDs of the set of tags that have been applied to a thread in a GUILD_FORUM channel */
+  applied_tags?: Snowflake[];
 }
 export interface StartThreadWithoutMessageParams {
   /** 1-100 character channel name */
@@ -5560,13 +5717,13 @@ export enum TextInputStyle {
 export type ThreadCreateEvent = Channel;
 export type ThreadDeleteEvent = Channel;
 export interface ThreadListSyncEvent {
-  /** the id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
-  /** the parent channel ids whose threads are being synced.  If omitted, then threads were synced for the entire guild.  This array may contain channel_ids that have no active threads as well, so you know to clear that data. */
+  /** Parent channel IDs whose threads are being synced.  If omitted, then threads were synced for the entire guild.  This array may contain channel_ids that have no active threads as well, so you know to clear that data. */
   channel_ids?: Snowflake[];
-  /** all active threads in the given channels that the current user can access */
+  /** All active threads in the given channels that the current user can access */
   threads: Channel[];
-  /** all thread member objects from the synced threads for the current user, indicating which threads the current user has been added to */
+  /** All thread member objects from the synced threads for the current user, indicating which threads the current user has been added to */
   members: ThreadMember[];
 }
 export interface ThreadMember {
@@ -5580,20 +5737,20 @@ export interface ThreadMember {
   flags: number;
 }
 export interface ThreadMembersUpdateEvent {
-  /** the id of the thread */
+  /** ID of the thread */
   id: Snowflake;
-  /** the id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
-  /** the approximate number of members in the thread, capped at 50 */
+  /** Approximate number of members in the thread, capped at 50 */
   member_count: number;
-  /** the users who were added to the thread */
+  /** Users who were added to the thread */
   added_members?: ThreadMember[];
-  /** the id of the users who were removed from the thread */
+  /** ID of the users who were removed from the thread */
   removed_member_ids?: Snowflake[];
 }
 export type ThreadMemberUpdateEvent = ThreadMember;
 export interface ThreadMemberUpdateEventExtra {
-  /** the id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
 }
 export interface ThreadMetadatum {
@@ -5632,15 +5789,15 @@ export enum TriggerType {
   MENTION_SPAM = 5,
 }
 export interface TypingStartEvent {
-  /** id of the channel */
+  /** ID of the channel */
   channel_id: Snowflake;
-  /** id of the guild */
+  /** ID of the guild */
   guild_id?: Snowflake;
-  /** id of the user */
+  /** ID of the user */
   user_id: Snowflake;
-  /** unix time (in seconds) of when the user started typing */
+  /** Unix time (in seconds) of when the user started typing */
   timestamp: number;
-  /** the member who started typing if this happened in a guild */
+  /** Member who started typing if this happened in a guild */
   member?: GuildMember;
 }
 export interface UnavailableGuild {
@@ -5650,23 +5807,23 @@ export interface UnavailableGuild {
   unavailable: boolean;
 }
 export interface UpdatePresence {
-  /** unix time (in milliseconds) of when the client went idle, or null if the client is not idle */
+  /** Unix time (in milliseconds) of when the client went idle, or null if the client is not idle */
   since?: number | null;
-  /** the user's activities */
+  /** User's activities */
   activities: Activity[];
-  /** the user's new status */
+  /** User's new status */
   status: StatusType;
-  /** whether or not the client is afk */
+  /** Whether or not the client is afk */
   afk: boolean;
 }
 export interface UpdateVoiceState {
-  /** id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
-  /** id of the voice channel client wants to join (null if disconnecting) */
+  /** ID of the voice channel client wants to join (null if disconnecting) */
   channel_id?: Snowflake | null;
-  /** is the client muted */
+  /** Whether the client is muted */
   self_mute: boolean;
-  /** is the client deafened */
+  /** Whether the client deafened */
   self_deaf: boolean;
 }
 export interface User {
@@ -5793,11 +5950,11 @@ export interface VoiceRegion {
   custom: boolean;
 }
 export interface VoiceServerUpdateEvent {
-  /** voice connection token */
+  /** Voice connection token */
   token: string;
-  /** the guild this voice server update is for */
+  /** Guild this voice server update is for */
   guild_id: Snowflake;
-  /** the voice server host */
+  /** Voice server host */
   endpoint?: string | null;
 }
 export interface VoiceState {
@@ -5856,9 +6013,9 @@ export interface Webhook {
   url?: string;
 }
 export interface WebhooksUpdateEvent {
-  /** id of the guild */
+  /** ID of the guild */
   guild_id: Snowflake;
-  /** id of the channel */
+  /** ID of the channel */
   channel_id: Snowflake;
 }
 export enum WebhookType {

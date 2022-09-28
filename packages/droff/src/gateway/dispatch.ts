@@ -1,17 +1,17 @@
 import * as O from "fp-ts/Option";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import { GatewayEvents, GatewayPayload } from "../types";
+import { ReceiveEvents, GatewayPayload } from "../types";
 import { memoize } from "../utils/memoize";
 import { Shard } from "./shard";
 
-export type Dispatch = <E extends keyof GatewayEvents>(
+export type Dispatch = <E extends keyof ReceiveEvents>(
   event: E,
-) => Rx.Observable<GatewayEvents[E]>;
+) => Rx.Observable<ReceiveEvents[E]>;
 
-export type DispatchWithShard = <E extends keyof GatewayEvents>(
+export type DispatchWithShard = <E extends keyof ReceiveEvents>(
   event: E,
-) => Rx.Observable<readonly [GatewayEvents[E], Shard]>;
+) => Rx.Observable<readonly [ReceiveEvents[E], Shard]>;
 
 export const listen = (source$: Rx.Observable<any>): Dispatch =>
   memoize((event) =>
@@ -35,9 +35,9 @@ export const listenWithShard = (
 
 export const latestDispatch =
   (fromDispatch: Dispatch) =>
-  <E extends keyof GatewayEvents>(
+  <E extends keyof ReceiveEvents>(
     event: E,
-  ): Rx.Observable<O.Option<GatewayEvents[E]>> =>
+  ): Rx.Observable<O.Option<ReceiveEvents[E]>> =>
     Rx.merge(Rx.of(O.none), fromDispatch(event).pipe(RxO.map(O.some))).pipe(
       RxO.shareReplay({ bufferSize: 1, refCount: true }),
     );

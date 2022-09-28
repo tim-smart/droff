@@ -3,7 +3,7 @@ import * as WS from "./websocket";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import {
-  GatewayEvent,
+  ReceiveEvent,
   GatewayOpcode,
   GatewayPayload,
   Heartbeat,
@@ -33,7 +33,7 @@ export function create(
     encode,
     decode,
   });
-  const dispatch$ = raw$.pipe(opCode<GatewayEvent>(GatewayOpcode.DISPATCH));
+  const dispatch$ = raw$.pipe(opCode<ReceiveEvent>(GatewayOpcode.DISPATCH));
   const heartbeat$ = raw$.pipe(opCode<Heartbeat>(GatewayOpcode.HEARTBEAT));
   const reconnect$ = raw$.pipe(opCode(GatewayOpcode.RECONNECT));
   const invalidSession$ = raw$.pipe(

@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.36.0-alpha.0](https://github.com/tim-smart/droff/compare/droff@0.35.0...droff@0.36.0-alpha.0) (2022-09-28)
+
+### chore
+
+- Update api types ([59f4ae8](https://github.com/tim-smart/droff/commit/59f4ae8c88f98a119cb30dcf261d55efc38f44fd))
+
+### BREAKING CHANGES
+
+- GatewayEvent* renamed to ReceiveEvent*
+
 # [0.35.0](https://github.com/tim-smart/droff/compare/droff@0.34.2...droff@0.35.0) (2022-08-26)
 
 ### chore

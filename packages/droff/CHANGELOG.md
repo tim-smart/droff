@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.36.0-alpha.1](https://github.com/tim-smart/droff/compare/droff@0.36.0-alpha.0...droff@0.36.0-alpha.1) (2022-09-29)
+
+### Bug Fixes
+
+- remove dev dependencies from dependencies ([f052a93](https://github.com/tim-smart/droff/commit/f052a93201c6f392b0a4810361dd6428ccfbc05a))
+
 # [0.36.0-alpha.0](https://github.com/tim-smart/droff/compare/droff@0.35.0...droff@0.36.0-alpha.0) (2022-09-28)
 
 ### chore

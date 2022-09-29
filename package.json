@@ -15,8 +15,7 @@
     "husky": "^7.0.0",
     "lerna": "^5.4.0",
     "lint-staged": ">=10",
-    "prettier": "^2.3.0",
-    "typescript-language-server": "^1.1.2"
+    "prettier": "^2.3.0"
   },
   "lint-staged": {
     "*.{ts,js,json,md}": "prettier --write"

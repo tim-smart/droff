@@ -29,12 +29,10 @@
     "axios": "^0.27.2",
     "fp-ts": "^2.10.5",
     "immutable": "^4.0.0",
-    "lerna": "^5.4.0",
     "queueing-subject": "^1.0.0",
     "rxjs": "^7.1.0",
     "rxjs-iterable": "^0.2.0",
     "tslib": "^2.3.0",
-    "typescript-language-server": "^1.1.2",
     "ws": "^8.2.2"
   },
   "optionalDependencies": {

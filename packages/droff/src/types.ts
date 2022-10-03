@@ -698,7 +698,7 @@ export interface Channel {
   rtc_region?: string | null;
   /** the camera video quality mode of the voice channel, 1 when not present */
   video_quality_mode?: VideoQualityMode;
-  /** number of messages (not including the initial message or deleted messages) in a thread (if the thread was created before July 1, 2022, it stops counting at 50) */
+  /** number of messages (not including the initial message or deleted messages) in a thread. */
   message_count?: number;
   /** an approximate count of users in a thread, stops counting at 50 */
   member_count?: number;
@@ -722,6 +722,8 @@ export interface Channel {
   default_reaction_emoji?: DefaultReaction | null;
   /** the initial rate_limit_per_user to set on newly created threads in a channel. this field is copied to the thread at creation time and does not live update. */
   default_thread_rate_limit_per_user?: number;
+  /** the default sort order type used to order posts in GUILD_FORUM channels. Defaults to null, which indicates a preferred sort order hasn't been set by a channel admin */
+  default_sort_order?: SortOrderType | null;
 }
 export type ChannelCreateEvent = Channel;
 export type ChannelDeleteEvent = Channel;
@@ -932,6 +934,12 @@ export interface CreateGuildChannelParams {
   video_quality_mode: VideoQualityMode;
   /** the default duration that the clients use (not the API) for newly created threads in the channel, in minutes, to automatically archive the thread after recent activity */
   default_auto_archive_duration: number;
+  /** emoji to show in the add reaction button on a thread in a GUILD_FORUM channel */
+  default_reaction_emoji: DefaultReaction;
+  /** set of tags that can be used in a GUILD_FORUM channel */
+  available_tags: ForumTag[];
+  /** the default sort order type used to order posts in GUILD_FORUM channels */
+  default_sort_order: SortOrderType;
 }
 export interface CreateGuildEmojiParams {
   /** name of the emoji */
@@ -3454,7 +3462,7 @@ export interface ForumTag {
   /** whether this tag can only be added to or removed from threads by a member with the MANAGE_THREADS permission */
   moderated: boolean;
   /** the id of a guild's custom emoji * */
-  emoji_id?: Snowflake | null;
+  emoji_id: Snowflake;
   /** the unicode character of the emoji * */
   emoji_name?: string | null;
 }
@@ -4582,7 +4590,7 @@ export interface Message {
   sticker_items?: StickerItem[];
   /** Deprecated the stickers sent with the message */
   stickers?: Sticker[];
-  /** A generally increasing integer (there may be gaps or duplicates) that represents the approximate position of the message in a thread, it can be used to estimate the relative position of the messsage in a thread in company with total_message_sent on parent thread */
+  /** A generally increasing integer (there may be gaps or duplicates) that represents the approximate position of the message in a thread, it can be used to estimate the relative position of the message in a thread in company with total_message_sent on parent thread */
   position?: number;
 }
 export interface MessageActivity {
@@ -4804,12 +4812,16 @@ export interface ModifyChannelGuildChannelParams {
   video_quality_mode?: VideoQualityMode | null;
   /** the default duration that the clients use (not the API) for newly created threads in the channel, in minutes, to automatically archive the thread after recent activity */
   default_auto_archive_duration?: number | null;
+  /** channel flags combined as a bitfield. Currently only REQUIRE_TAG (1 << 4) is supported. */
+  flags?: number;
   /** the set of tags that can be used in a GUILD_FORUM channel */
   available_tags?: ForumTag[];
   /** the emoji to show in the add reaction button on a thread in a GUILD_FORUM channel */
   default_reaction_emoji?: DefaultReaction | null;
   /** the initial rate_limit_per_user to set on newly created threads in a channel. this field is copied to the thread at creation time and does not live update. */
   default_thread_rate_limit_per_user?: number;
+  /** the default sort order type used to order posts in GUILD_FORUM channels */
+  default_sort_order?: SortOrderType | null;
 }
 export type ModifyChannelParams =
   | ModifyChannelGroupDmParams
@@ -5512,6 +5524,12 @@ export interface SessionStartLimit {
   max_concurrency: number;
 }
 export type Snowflake = `${bigint}`;
+export enum SortOrderType {
+  /** Sort forum posts by activity */
+  LATEST_ACTIVITY = 0,
+  /** Sort forum posts by creation time (from most recent to oldest) */
+  CREATION_DATE = 1,
+}
 export interface StageInstance {
   /** The id of this Stage instance */
   id: Snowflake;
@@ -5785,7 +5803,7 @@ export enum TriggerType {
   SPAM = 3,
   /** check if content contains words from internal pre-defined wordsets */
   KEYWORD_PRESET = 4,
-  /** check if content contains more mentions than allowed */
+  /** check if content contains more unique mentions than allowed */
   MENTION_SPAM = 5,
 }
 export interface TypingStartEvent {
@@ -5980,7 +5998,7 @@ export interface VoiceState {
   self_stream?: boolean;
   /** whether this user's camera is enabled */
   self_video: boolean;
-  /** whether this user is muted by the current user */
+  /** whether this user's permission to speak is denied */
   suppress: boolean;
   /** the time at which the user requested to speak */
   request_to_speak_timestamp?: string | null;

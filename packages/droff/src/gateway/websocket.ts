@@ -7,7 +7,7 @@ export const RECONNECT = Symbol();
 export type Payload<T> = T | typeof RECONNECT;
 
 export function create<Rx, Tx>(
-  url: string,
+  url: Rx.BehaviorSubject<string>,
   outgoing$: Rx.Observable<Payload<Tx>>,
   opts: { encode: (data: Tx) => RawData; decode: (data: RawData) => Rx } = {
     encode: F.identity as any,
@@ -18,7 +18,7 @@ export function create<Rx, Tx>(
     let closed = false;
 
     const createWS = () => {
-      const ws = new WebSocket(url);
+      const ws = new WebSocket(url.value);
       let sub: Rx.Subscription;
 
       ws.on("open", () => {

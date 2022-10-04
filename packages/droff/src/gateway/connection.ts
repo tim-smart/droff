@@ -27,7 +27,8 @@ export function create(
   baseURL = "wss://gateway.discord.gg/",
 ) {
   const { encode, decode, encoding } = Codec.create();
-  const url = `${baseURL}?v=${VERSION}&encoding=${encoding}`;
+  const urlParams = `v=${VERSION}&encoding=${encoding}`;
+  const url = new Rx.BehaviorSubject(`${baseURL}?${urlParams}`);
 
   const raw$ = WS.create<GatewayPayload, GatewayPayload>(url, outgoing$, {
     encode,
@@ -45,6 +46,8 @@ export function create(
   );
 
   return {
+    url,
+    urlParams,
     raw$,
     dispatch$,
     heartbeat$,

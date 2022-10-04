@@ -102,11 +102,19 @@ export function create({
     ? Rx.interval(60000).pipe(RxO.tap(sharderHeartbeat))
     : Rx.EMPTY;
 
+  // Resume URL
+  const resumeUrlEffect$ = fromDispatch("READY").pipe(
+    RxO.tap((ready) => {
+      conn.url.next(`${ready.resume_gateway_url}?${conn.urlParams}`);
+    }),
+  );
+
   const effects$ = Rx.merge(
     identifyEffects$,
     heartbeatEffects$,
     reconnectEffects$,
     sharderHeartbeat$,
+    resumeUrlEffect$,
   ).pipe(RxO.ignoreElements(), RxO.share());
 
   return {

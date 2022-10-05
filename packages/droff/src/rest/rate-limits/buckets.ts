@@ -27,10 +27,10 @@ const bucketForRouteFactory = (store: Store.Store) => (route: string) =>
 export const createLimiter = ({
   rateLimitStore: store,
   responses$,
-  delayMargin = 30,
+  delayMargin = 0,
   whenDebug,
 }: LimiterOptions) => {
-  const rateLimit = RL.rateLimit(store);
+  const rateLimitOp = RL.rateLimit(store);
 
   const rateLimits$ = responses$.pipe(
     RxO.map(({ route, rateLimit }) =>
@@ -101,7 +101,7 @@ export const createLimiter = ({
 
           return F.pipe(
             requests$,
-            applyRateLimit(rateLimit, whenDebug, delayMargin),
+            applyRateLimit(rateLimitOp, whenDebug, delayMargin),
           );
         }),
 
@@ -123,6 +123,12 @@ const applyRateLimit =
       RxO.flatMap((item) => {
         const [_, { key, resetAfter, limit }] = item;
 
+        const rateLimiter = rateLimit(
+          `rest.bucket.${key}`,
+          resetAfter + delayMargin,
+          limit,
+        );
+
         return requests$.pipe(
           RxO.startWith(item),
           whenDebug(([request, bucket]) =>
@@ -133,7 +139,7 @@ const applyRateLimit =
               bucket,
             ),
           ),
-          rateLimit(`rest.bucket.${key}`, resetAfter + delayMargin, limit),
+          rateLimiter,
         );
       }),
     );

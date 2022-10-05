@@ -10,7 +10,7 @@ export const routeFromConfig = ({ url, method }: AxiosRequestConfig) => {
 
   // Only keep major ID's
   const routeURL = url
-    .replace(/\/([A-Za-z]+)\/(\d{16,19}|@me)/g, (match, resource) =>
+    .replace(/\/([A-Za-z]+)\/(\d{16,21}|@me)/g, (match, resource) =>
       majorResources.includes(resource) ? match : `/${resource}`,
     )
     // Strip reactions
@@ -26,25 +26,25 @@ export const numberHeader = (headers: any) => (key: string) =>
     O.filter((n) => !isNaN(n)),
   );
 
+export const retryAfter = (headers: any) =>
+  F.pipe(
+    numberHeader(headers)("x-ratelimit-reset-after"),
+    O.map((secs) => secs * 1000),
+  );
+
 export const rateLimitFromHeaders = (headers: any) =>
   F.pipe(
     sequenceT(O.Apply)(
-      numberHeader(headers)("x-ratelimit-reset-after"),
+      retryAfter(headers),
       numberHeader(headers)("x-ratelimit-limit"),
       numberHeader(headers)("x-ratelimit-remaining"),
       O.fromNullable(headers["x-ratelimit-bucket"] as string),
     ),
     O.map(([resetAfter, limit, remaining, bucket]) => ({
       bucket,
-      resetAfter: resetAfter * 1000,
+      resetAfter,
       limit,
       remaining,
     })),
   );
 export type RateLimitDetails = ReturnType<typeof rateLimitFromHeaders>;
-
-export const retryAfter = (headers: any) =>
-  F.pipe(
-    numberHeader(headers)("x-ratelimit-reset-after"),
-    O.map((secs) => secs * 1000),
-  );

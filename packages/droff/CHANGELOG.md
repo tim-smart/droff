@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.37.0](https://github.com/tim-smart/droff/compare/droff@0.36.0...droff@0.37.0) (2022-10-05)
+
+### Features
+
+- use resume_gateway_url for resumes ([016f090](https://github.com/tim-smart/droff/commit/016f0907792c530dcd8a1792e2c3821b5448a567))
+
 # [0.36.0](https://github.com/tim-smart/droff/compare/droff@0.36.0-alpha.1...droff@0.36.0) (2022-10-03)
 
 **Note:** Version bump only for package droff

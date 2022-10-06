@@ -30,7 +30,6 @@ export interface MemoryTTLStoreOpts {
 
 interface CacheItem<T> {
   resource: T;
-  bucket: CacheItem<T>[];
 }
 
 interface TTLBucket<T> {
@@ -38,7 +37,7 @@ interface TTLBucket<T> {
   items: CacheItem<T>[];
 }
 
-export const createNonParent = <T extends Object>({
+export const createNonParent = <T>({
   ttl,
   resolution = 1 * minute,
   strategy = "usage",
@@ -74,6 +73,10 @@ export const createNonParent = <T extends Object>({
     while (buckets.length && buckets[0].expires <= currentExpires) {
       buckets.shift()!;
     }
+
+    if (global.gc) {
+      global.gc();
+    }
   };
 
   const getSync = (resourceId: string) => {
@@ -87,6 +90,7 @@ export const createNonParent = <T extends Object>({
     }
 
     refreshTTL(item);
+
     return item.resource;
   };
 
@@ -96,16 +100,19 @@ export const createNonParent = <T extends Object>({
     getSync,
     get: async (id) => getSync(id),
 
-    refreshTTL: async (id) => refreshTTL(id),
+    refreshTTL: async (id) => {
+      getSync(id);
+    },
 
     set: async (resourceId, resource) => {
-      const exists = items.get(resourceId)?.deref();
-      const needsRefresh = !exists || strategy === "activity";
+      const item = items.get(resourceId)?.deref();
 
-      items.set(resourceId, new WeakRef(resource));
-
-      if (needsRefresh) {
-        refreshTTL(resource);
+      if (item && strategy === "usage") {
+        item.resource = resource;
+      } else {
+        const newItem = { resource };
+        refreshTTL(newItem);
+        items.set(resourceId, new WeakRef(newItem));
       }
     },
 

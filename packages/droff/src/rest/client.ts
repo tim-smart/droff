@@ -93,47 +93,32 @@ interface FormData {
 }
 
 export const routes = (client: AxiosInstance) =>
-  createRoutes<AxiosRequestConfig>(
-    ({ method, url, params = {}, options = {} }) => {
-      const hasBody = method !== "GET" && method !== "DELETE";
-      let hasFormData = false;
+  createRoutes<AxiosRequestConfig>(({ method, url, params, options = {} }) => {
+    const hasBody = method !== "GET" && method !== "DELETE";
+    let hasFormData = false;
 
-      if (typeof options.data?.append === "function") {
-        hasFormData = true;
-        (options.data as FormData).append(
-          "payload_json",
-          JSON.stringify(params),
-        );
-      }
+    if (typeof options.data?.append === "function") {
+      hasFormData = true;
+      (options.data as FormData).append("payload_json", JSON.stringify(params));
+    }
 
-      const qsParams = hasBody
-        ? options.params
-        : {
-            ...(options.params || {}),
-            ...params,
-          };
-      const data =
-        hasFormData || !hasBody
-          ? options.data
-          : {
-              ...(options.data || {}),
-              ...params,
-            };
+    const qsParams = hasBody ? options.params : params ?? options.params;
+    const data =
+      hasFormData || !hasBody ? options.data : params ?? options.data;
 
-      return client
-        .request({
-          ...options,
-          headers: {
-            ...(options.headers || {}),
-            ...(hasFormData ? data.getHeaders() : {}),
-          },
-          method: method as Method,
-          url,
-          params: qsParams,
-          data,
-        })
-        .then((r) => r.data, handleError);
-    },
-  );
+    return client
+      .request({
+        ...options,
+        headers: {
+          ...(options.headers || {}),
+          ...(hasFormData ? data.getHeaders() : {}),
+        },
+        method: method as Method,
+        url,
+        params: qsParams,
+        data,
+      })
+      .then((r) => r.data, handleError);
+  });
 
 export type Routes = ReturnType<typeof routes>;

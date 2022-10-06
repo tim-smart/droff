@@ -28,12 +28,17 @@ export interface MemoryTTLStoreOpts {
   strategy?: "activity" | "usage";
 }
 
-interface TTLBucket {
-  expires: number;
-  ids: Set<string>;
+interface CacheItem<T> {
+  resource: T;
+  bucket: CacheItem<T>[];
 }
 
-export const createNonParent = <T>({
+interface TTLBucket<T> {
+  expires: number;
+  items: CacheItem<T>[];
+}
+
+export const createNonParent = <T extends Object>({
   ttl,
   resolution = 1 * minute,
   strategy = "usage",
@@ -41,10 +46,10 @@ export const createNonParent = <T>({
   const additionalMilliseconds =
     (Math.floor(ttl / resolution) + 1) * resolution;
 
-  const items = new Map<string, T>();
-  const buckets: TTLBucket[] = [];
+  const items = new Map<string, WeakRef<CacheItem<T>>>();
+  const buckets: TTLBucket<T>[] = [];
 
-  const refreshTTL = (id: string) => {
+  const refreshTTL = (item: CacheItem<T>) => {
     const now = Date.now();
     const remainder = now % resolution;
     const expires = now - remainder + additionalMilliseconds;
@@ -53,17 +58,12 @@ export const createNonParent = <T>({
     if ((currentBucket?.expires || 0) < expires) {
       currentBucket = {
         expires,
-        ids: new Set(),
+        items: [],
       };
       buckets.push(currentBucket);
     }
 
-    currentBucket.ids.add(id);
-
-    // Remove from previous buckets
-    for (let index = 0, length = buckets.length - 1; index < length; index++) {
-      buckets[index].ids.delete(id);
-    }
+    currentBucket.items.push(item);
   };
 
   const sweep = () => {
@@ -72,19 +72,22 @@ export const createNonParent = <T>({
     const currentExpires = now - remainder;
 
     while (buckets.length && buckets[0].expires <= currentExpires) {
-      const bucket = buckets.shift()!;
-      bucket.ids.forEach((id) => {
-        items.delete(id);
-      });
+      buckets.shift()!;
     }
   };
 
   const getSync = (resourceId: string) => {
-    const item = items.get(resourceId);
-    if (!item) return undefined;
+    const ref = items.get(resourceId);
+    if (!ref) return undefined;
 
-    refreshTTL(resourceId);
-    return item;
+    const item = ref.deref();
+    if (!item) {
+      items.delete(resourceId);
+      return undefined;
+    }
+
+    refreshTTL(item);
+    return item.resource;
   };
 
   return {
@@ -96,13 +99,13 @@ export const createNonParent = <T>({
     refreshTTL: async (id) => refreshTTL(id),
 
     set: async (resourceId, resource) => {
-      const exists = items.has(resourceId);
-      const needsRefresh = exists === false || strategy === "activity";
+      const exists = items.get(resourceId)?.deref();
+      const needsRefresh = !exists || strategy === "activity";
 
-      items.set(resourceId, resource);
+      items.set(resourceId, new WeakRef(resource));
 
       if (needsRefresh) {
-        refreshTTL(resourceId);
+        refreshTTL(resource);
       }
     },
 

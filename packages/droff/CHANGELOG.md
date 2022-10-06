@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.38.0](https://github.com/tim-smart/droff/compare/droff@0.37.0...droff@0.38.0) (2022-10-06)
+
+### Bug Fixes
+
+- **droff:** make arrays in axios data work ([45bca0f](https://github.com/tim-smart/droff/commit/45bca0f301474f1b51aacc796058cee56054e465))
+
+### Features
+
+- try out weakref for cache ([6b4338f](https://github.com/tim-smart/droff/commit/6b4338f3fda74cac423900d0440cb96f9aa36625))
+
 # [0.37.0](https://github.com/tim-smart/droff/compare/droff@0.36.0...droff@0.37.0) (2022-10-05)
 
 ### Features

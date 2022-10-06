@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.13.0](https://github.com/tim-smart/droff/compare/droff-interactions@0.12.1...droff-interactions@0.13.0) (2022-10-06)
+
+### Code Refactoring
+
+- **ix:** simplify interactions sync ([6f6e0a3](https://github.com/tim-smart/droff/commit/6f6e0a32e7c58ca775377c444ca36dec545e8d2e))
+
+### BREAKING CHANGES
+
+- **ix:** renamed effects$ to sync$
+
 ## [0.12.1](https://github.com/tim-smart/droff/compare/droff-interactions@0.12.0...droff-interactions@0.12.1) (2022-10-05)
 
 **Note:** Version bump only for package droff-interactions

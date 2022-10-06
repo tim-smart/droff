@@ -7,7 +7,6 @@ import {
   GuildMember,
   Interaction,
   InteractionCallbackMessage,
-  InteractionCallbackType,
   InteractionType,
   Message,
   User,
@@ -79,7 +78,7 @@ export interface InteractionsHelper {
    * It is not required for the commands to function, but you would then have to
    * manually create any commands using the API.
    */
-  effects$: Rx.Observable<void>;
+  sync$: Rx.Observable<void>;
 }
 
 /**
@@ -95,7 +94,7 @@ export interface InteractionsHelper {
  *   description: "A simple ping command",
  * }).pipe(RxO.flatMap(...));
  *
- * Rx.merge(interactions.effects$, ping$).subscribe();
+ * Rx.merge(interactions.sync$, ping$).subscribe();
  * ```
  */
 export const create = (client: Client): InteractionsHelper => {
@@ -133,20 +132,10 @@ export const create = (client: Client): InteractionsHelper => {
 
   // Command creation functions
   let globalCommands = Map<string, CreateGlobalApplicationCommandParams>();
-  const global = (command: GlobalCommand, create = false) => {
+  const global = (command: GlobalCommand) => {
     globalCommands = globalCommands.set(command.name, command);
 
-    const create$ = application$.pipe(
-      RxO.flatMap((app) =>
-        client.createGlobalApplicationCommand(app.id, command),
-      ),
-    );
-
-    return Rx.iif(() => create, create$, Rx.of(0)).pipe(
-      // Switch to emitting the interactions
-      RxO.switchMap(() => applicationCommand$),
-      filterByName(command.name),
-    );
+    return applicationCommand$.pipe(filterByName(command.name));
   };
 
   let guildCommands = Map<string, GuildCommand>();
@@ -159,37 +148,18 @@ export const create = (client: Client): InteractionsHelper => {
     return applicationCommand$.pipe(filterByName(command.name));
   };
 
-  // Respond to pings
-  const pingPong$ = fromDispatch("INTERACTION_CREATE").pipe(
-    RxO.filter((i) => i.type === InteractionType.PING),
-    RxO.flatMap((ping) =>
-      client.createInteractionResponse(ping.id, ping.token, {
-        type: InteractionCallbackType.PONG,
-      }),
-    ),
-  );
-
   // Sync
-  const { removeGlobalCommands$ } = Sync.global(
-    client,
-    application$,
-  )(() => globalCommands);
-  const { removeGuildCommands$, enableGuildCommands$, disableGuildCommands$ } =
-    Sync.guild(client, application$)(() => guildCommands);
+  const globalSync$ = Sync.global(client, application$)(() => globalCommands);
+
+  const guildSync$ = Sync.guild(client, application$)(() => guildCommands);
 
   // Effects
-  const effects$ = Rx.merge(
-    pingPong$,
-    removeGlobalCommands$,
-    removeGuildCommands$,
-    enableGuildCommands$,
-    disableGuildCommands$,
-  ).pipe(RxO.map(() => {}));
+  const sync$ = Rx.merge(globalSync$, guildSync$).pipe(RxO.ignoreElements());
 
   return {
     global,
     guild,
     interaction: interactionCreate,
-    effects$,
+    sync$,
   };
 };

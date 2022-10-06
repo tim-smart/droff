@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-import { createClient, Permissions } from "droff";
+import { createClient } from "droff";
 import {
   ApplicationCommandOptionType,
   InteractionCallbackType,
@@ -184,7 +184,7 @@ const greetingModal$ = ix.interaction(InteractionType.MODAL_SUBMIT).pipe(
 // Subscribe
 Rx.merge(
   client.effects$,
-  ix.effects$,
+  ix.sync$,
 
   hello$,
   countries$,

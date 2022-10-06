@@ -33,4 +33,4 @@ const echo$ = pipe(
 );
 
 // Subscribe
-Rx.merge(client.effects$, I.effects$, echo$).subscribe();
+Rx.merge(client.effects$, I.sync$, echo$).subscribe();

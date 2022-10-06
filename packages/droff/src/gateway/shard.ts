@@ -105,7 +105,7 @@ export function create({
   // Resume URL
   const resumeUrlEffect$ = fromDispatch("READY").pipe(
     RxO.tap((ready) => {
-      conn.url.next(`${ready.resume_gateway_url}?${conn.urlParams}`);
+      conn.setBaseUrl(ready.resume_gateway_url);
     }),
   );
 

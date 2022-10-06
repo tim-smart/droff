@@ -9,8 +9,8 @@ interface Counter {
  * Default rate limit store, that uses `Map`'s to store everything.
  */
 export const create = (): Store => {
-  const buckets = new Map<string, BucketDetails>();
-  const routes = new Map<string, string>();
+  const bucketDetails = new Map<string, BucketDetails>();
+  const routeToBucket = new Map<string, string>();
   const counters = new Map<string, Counter>();
 
   const getCounter = (key: string) => {
@@ -24,20 +24,22 @@ export const create = (): Store => {
   };
 
   return {
-    hasBucket: async (key) => buckets.has(key),
+    hasBucket: async (key) => bucketDetails.has(key),
     putBucket: async (bucket) => {
-      buckets.set(bucket.key, bucket);
+      bucketDetails.set(bucket.key, bucket);
     },
 
-    getBucketForRoute: async (route) => buckets.get(routes.get(route)!),
+    getBucketForRoute: async (route) =>
+      bucketDetails.get(routeToBucket.get(route)!),
+
     putBucketRoute: async (route, bucket) => {
-      routes.set(route, bucket);
+      routeToBucket.set(route, bucket);
     },
 
     incrementCounter: (key, window, limit) => {
       const now = Date.now();
       const perRequest = Math.ceil(window / limit);
-      const counter = getCounter(key) || {
+      const counter = getCounter(key) ?? {
         expires: now,
         count: 0,
       };

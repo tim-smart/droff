@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.13.1](https://github.com/tim-smart/droff/compare/droff-interactions@0.13.0...droff-interactions@0.13.1) (2022-10-07)
+
+### Bug Fixes
+
+- **ix:** remove create parameter from global ([cc81c45](https://github.com/tim-smart/droff/commit/cc81c455baa292490ac309dae2cd3458d9a2522b))
+
 # [0.13.0](https://github.com/tim-smart/droff/compare/droff-interactions@0.12.1...droff-interactions@0.13.0) (2022-10-06)
 
 ### Code Refactoring

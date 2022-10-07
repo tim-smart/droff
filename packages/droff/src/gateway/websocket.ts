@@ -19,8 +19,6 @@ export function create<Rx, Tx>(
 
     const createWS = () => {
       const ws = new WebSocket(url.value);
-      ws.binaryType = "arraybuffer";
-
       let sub: Rx.Subscription;
 
       ws.on("open", () => {

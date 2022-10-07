@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.38.1](https://github.com/tim-smart/droff/compare/droff@0.38.0...droff@0.38.1) (2022-10-07)
+
+### Reverts
+
+- Revert "refactor(droff): use arraybuffer instead of buffer for ws" ([6569f41](https://github.com/tim-smart/droff/commit/6569f410d1975c8962a3bb000f7385208364951b))
+
 # [0.38.0](https://github.com/tim-smart/droff/compare/droff@0.37.0...droff@0.38.0) (2022-10-06)
 
 ### Bug Fixes

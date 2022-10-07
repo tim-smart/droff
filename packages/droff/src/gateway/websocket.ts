@@ -18,7 +18,7 @@ export function create<Rx, Tx>(
     let closed = false;
 
     const createWS = () => {
-      const ws = new WebSocket(url.value);
+      const ws = new WebSocket(url.value, { perMessageDeflate: false });
       let sub: Rx.Subscription;
 
       ws.on("open", () => {

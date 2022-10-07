@@ -56,10 +56,7 @@ export interface InteractionContext {
 
 export interface InteractionsHelper {
   /** Create a global slash command */
-  global: (
-    command: GlobalCommand,
-    create?: boolean,
-  ) => Rx.Observable<InteractionContext>;
+  global: (command: GlobalCommand) => Rx.Observable<InteractionContext>;
   /**
    * Create a guild-level interaction.
    *

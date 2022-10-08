@@ -38,6 +38,7 @@ export interface RESTClient extends RestClient.Routes {
    * the client to function.
    */
   effects$: Rx.Observable<never>;
+  debug$: Rx.Observable<never>;
   request: AxiosInstance["request"];
   get: AxiosInstance["get"];
   post: AxiosInstance["post"];
@@ -47,11 +48,12 @@ export interface RESTClient extends RestClient.Routes {
 }
 
 export function createRestClient(opts: RestClient.Options): RESTClient {
-  const [client, rateLimiting$] = RestClient.create(opts);
+  const { client, rateLimiting$, debug$ } = RestClient.create(opts);
   const routes = RestClient.routes(client);
 
   return {
     effects$: rateLimiting$,
+    debug$,
 
     request: client.request.bind(client),
     delete: client.delete.bind(client),
@@ -83,9 +85,6 @@ export interface Options {
    */
   rateLimitStore?: Store.Store;
 
-  /** Enable debug logging */
-  debug?: boolean;
-
   /** Gateway configuration */
   gateway?: Omit<GatewayClient.Options, "token" | "rateLimitStore">;
 
@@ -96,14 +95,12 @@ export interface Options {
 export function create({
   token,
   rateLimitStore = MemoryStore.create(),
-  debug = false,
   rest: restOptions = {},
   gateway: gatewayOptions = {},
 }: Options): Client {
   const rest = createRestClient({
     token,
     rateLimitStore,
-    debug,
     ...restOptions,
   });
 
@@ -146,15 +143,15 @@ export function create({
     StageInstances.watch$(gateway.fromDispatch),
   );
 
-  if (debug) {
-    rest.effects$ = Rx.merge(
-      rest.effects$,
-      gateway.raw$.pipe(
-        RxO.tap((p) => console.error("[GATEWAY]", p)),
-        RxO.ignoreElements(),
-      ),
-    );
-  }
+  // Debug logging
+  const debug$ = Rx.merge(
+    rest.debug$,
+    gateway.debug$,
+    gateway.raw$.pipe(
+      RxO.tap((p) => console.error("[GATEWAY] [RX]", p)),
+      RxO.ignoreElements(),
+    ),
+  );
 
   return {
     gateway,
@@ -185,6 +182,8 @@ export function create({
     rateLimit: RL.rateLimit(rateLimitStore),
 
     ...rest,
+
+    debug$,
   };
 }
 
@@ -267,4 +266,9 @@ export interface ClientExtras {
    * RxJS rate limit operator, which is backed by the store.
    */
   rateLimit: RL.RateLimitOp;
+
+  /**
+   * Subscribe to this observable to enable debug logging
+   */
+  debug$: Rx.Observable<never>;
 }

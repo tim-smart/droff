@@ -121,6 +121,10 @@ export const create =
       RxO.flatMap((s) => s.dispatch$.pipe(RxO.map((p) => [p, s] as const))),
       RxO.share(),
     );
+    const debug$ = shards$.pipe(
+      RxO.flatMap((s) => s.debug$),
+      RxO.share(),
+    );
 
     const fromDispatch = Dispatch.listen(dispatch$);
     const fromDispatchWithShard = Dispatch.listenWithShard(dispatchWithShard$);
@@ -134,6 +138,7 @@ export const create =
       latestDispatch,
       shards$,
       shardsReady$,
+      debug$,
     };
   };
 
@@ -160,5 +165,6 @@ export const createFromPayloads = (
     latestDispatch,
     shards$,
     shardsReady$,
+    debug$: Rx.NEVER,
   };
 };

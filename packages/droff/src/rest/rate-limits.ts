@@ -15,10 +15,10 @@ import * as Buckets from "./rate-limits/buckets";
 import * as Helpers from "./rate-limits/helpers";
 
 const debugTap =
-  (enabled: boolean) =>
+  (subject: Rx.Subject<() => void>) =>
   <T>(fn: (data: T) => void) =>
   (source$: Rx.Observable<T>) =>
-    enabled ? source$.pipe(RxO.tap(fn)) : source$;
+    source$.pipe(RxO.tap((a) => subject.next(() => fn(a))));
 
 export type Request = {
   route: string;
@@ -38,7 +38,6 @@ export interface Options {
   globalLimit: number;
   globalWindow: number;
   delayMargin?: number;
-  debug: boolean;
   axios: AxiosInstance;
 }
 
@@ -47,10 +46,10 @@ export const interceptors = ({
   globalLimit,
   globalWindow,
   delayMargin,
-  debug,
   axios,
 }: Options) => {
-  const whenDebug = debugTap(debug);
+  const debugSubject = new Rx.Subject<() => void>();
+  const whenDebug = debugTap(debugSubject);
 
   // Interceptor handlers
   const requests$ = new QueueingSubject<Request>();
@@ -78,15 +77,15 @@ export const interceptors = ({
   function error(err: AxiosError) {
     if (!err.response) return Promise.reject(err);
 
-    if (debug) {
+    debugSubject.next(() =>
       console.error(
         "[rate-limits.ts]",
         "Axios error",
-        err.response.status,
+        err.response!.status,
         err.config.method,
         err.config.url,
-      );
-    }
+      ),
+    );
 
     response(err.response);
 
@@ -137,10 +136,16 @@ export const interceptors = ({
     RxO.ignoreElements(),
   );
 
+  const debug$ = debugSubject.pipe(
+    RxO.tap((f) => f()),
+    RxO.ignoreElements(),
+  );
+
   return {
     request,
     response,
     error,
     effects$,
+    debug$,
   };
 };

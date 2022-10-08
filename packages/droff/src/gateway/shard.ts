@@ -45,6 +45,7 @@ export function create({
 
   const outgoing$ = sendSubject.pipe(
     rateLimitOp("gateway.send", sendWindow, sendLimit),
+    RxO.share(),
   );
 
   const conn = Conn.create(outgoing$, baseURL);
@@ -117,6 +118,11 @@ export function create({
     resumeUrlEffect$,
   ).pipe(RxO.ignoreElements(), RxO.share());
 
+  const debug$ = outgoing$.pipe(
+    RxO.tap((p) => console.error("[GATEWAY] [TX]", p)),
+    RxO.ignoreElements(),
+  );
+
   return {
     id: shard,
     conn,
@@ -127,6 +133,7 @@ export function create({
     ready$: latestReady$,
     latency$,
     effects$,
+    debug$,
   };
 }
 

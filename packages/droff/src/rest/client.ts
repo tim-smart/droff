@@ -14,7 +14,7 @@ import Axios, {
 import { createRoutes } from "../types";
 import * as RateLimits from "./rate-limits";
 import * as Store from "../rate-limits/store";
-import { EMPTY } from "rxjs";
+import { EMPTY, NEVER } from "rxjs";
 import * as MemoryStore from "../rate-limits/stores/memory";
 
 const VERSION = 10;
@@ -28,8 +28,6 @@ export interface Options {
   rateLimit?: number;
   /** How much extra delay to add to rate limits */
   rateLimitMargin?: number;
-  /** Turn on debug logging */
-  debug?: boolean;
   /** Change baseURL (if using a proxy) */
   baseURL?: string;
   /** Disable rate limiting */
@@ -40,13 +38,16 @@ export function create({
   token,
   rateLimitStore = MemoryStore.create(),
   rateLimit = 50,
-  debug = false,
   baseURL = `https://discord.com/api/v${VERSION}`,
   rateLimitMargin,
   disableRateLimiter = false,
 }: Options) {
   if (disableRateLimiter) {
-    return [Axios.create({ baseURL }), EMPTY] as const;
+    return {
+      client: Axios.create({ baseURL }),
+      rateLimiting$: EMPTY,
+      debug$: NEVER,
+    } as const;
   }
 
   const client = Axios.create({
@@ -63,19 +64,19 @@ export function create({
     response,
     error,
     effects$: rateLimiting$,
+    debug$,
   } = RateLimits.interceptors({
     rateLimitStore,
     globalLimit: rateLimit,
     globalWindow: 1000,
     delayMargin: rateLimitMargin,
-    debug,
     axios: client,
   });
 
   client.interceptors.request.use(request);
   client.interceptors.response.use(response, error);
 
-  return [client, rateLimiting$] as const;
+  return { client, rateLimiting$, debug$ } as const;
 }
 
 const handleError = (err: AxiosError) => {

@@ -98,7 +98,7 @@ export const create = (client: Client): InteractionsHelper => {
   const { fromDispatch } = client;
   const application$ = client.fromDispatch("READY").pipe(
     RxO.map((e) => e.application),
-    RxO.shareReplay(1),
+    RxO.shareReplay({ bufferSize: 1, refCount: true }),
   );
 
   // Response helpers

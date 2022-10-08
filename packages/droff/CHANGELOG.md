@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.39.0](https://github.com/tim-smart/droff/compare/droff@0.38.1...droff@0.39.0) (2022-10-08)
+
+### Features
+
+- add latency info to debug logging ([737c324](https://github.com/tim-smart/droff/commit/737c32439d39ea5acc25a10098def1a712020745))
+- **droff:** move debug into observable ([23cd38d](https://github.com/tim-smart/droff/commit/23cd38d7e5919f591cac838383ddcab715092a9a))
+
 ## [0.38.1](https://github.com/tim-smart/droff/compare/droff@0.38.0...droff@0.38.1) (2022-10-07)
 
 ### Reverts

@@ -36,4 +36,4 @@ const pings$ = client.fromDispatch("MESSAGE_CREATE").pipe(
 );
 
 // Subscribe
-Rx.merge(client.effects$, pings$).subscribe();
+Rx.merge(client.effects$, client.debug$, pings$).subscribe();

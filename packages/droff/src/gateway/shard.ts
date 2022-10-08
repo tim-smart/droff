@@ -118,10 +118,14 @@ export function create({
     resumeUrlEffect$,
   ).pipe(RxO.ignoreElements(), RxO.share());
 
-  const debug$ = outgoing$.pipe(
-    RxO.tap((p) => console.error("[GATEWAY] [TX]", p)),
-    RxO.ignoreElements(),
-  );
+  const debug$ = Rx.merge(
+    outgoing$.pipe(RxO.tap((p) => console.error("[GATEWAY] [TX]", p))),
+    latency$.pipe(
+      RxO.tap((ms) =>
+        console.error(`[GATEWAY] [LATENCY] [SHARD-${shard.join("-")}] ${ms}ms`),
+      ),
+    ),
+  ).pipe(RxO.ignoreElements());
 
   return {
     id: shard,

@@ -29,6 +29,7 @@ export const numberHeader = (headers: any) => (key: string) =>
 export const retryAfter = (headers: any) =>
   F.pipe(
     numberHeader(headers)("x-ratelimit-reset-after"),
+    O.alt(() => numberHeader(headers)("retry-after")),
     O.map((secs) => secs * 1000),
   );
 

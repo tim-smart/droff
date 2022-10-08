@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.39.1](https://github.com/tim-smart/droff/compare/droff@0.39.0...droff@0.39.1) (2022-10-08)
+
+### Bug Fixes
+
+- **droff:** fallback to standard retry-after header ([e9b89f3](https://github.com/tim-smart/droff/commit/e9b89f36e26540c331688cf8a3c4f650e631c1f0))
+
 # [0.39.0](https://github.com/tim-smart/droff/compare/droff@0.38.1...droff@0.39.0) (2022-10-08)
 
 ### Features

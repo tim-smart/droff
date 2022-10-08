@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.5](https://github.com/tim-smart/droff/compare/droff-redis@0.8.4...droff-redis@0.8.5) (2022-10-08)
+
+**Note:** Version bump only for package droff-redis
+
 ## [0.8.4](https://github.com/tim-smart/droff/compare/droff-redis@0.8.3...droff-redis@0.8.4) (2022-10-08)
 
 **Note:** Version bump only for package droff-redis

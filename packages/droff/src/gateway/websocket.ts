@@ -7,7 +7,7 @@ export const RECONNECT = Symbol();
 export type Payload<T> = T | typeof RECONNECT;
 
 export function create<Rx, Tx>(
-  url: Rx.BehaviorSubject<string>,
+  url: Rx.BehaviorSubject<URL>,
   outgoing$: Rx.Observable<Payload<Tx>>,
   opts: { encode: (data: Tx) => RawData; decode: (data: RawData) => Rx } = {
     encode: F.identity as any,

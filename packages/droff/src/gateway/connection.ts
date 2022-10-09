@@ -28,9 +28,15 @@ export function create(
 ) {
   const { encode, decode, encoding } = Codec.create();
 
-  const urlParams = `v=${VERSION}&encoding=${encoding}`;
-  const url = new Rx.BehaviorSubject(`${baseURL}?${urlParams}`);
-  const setBaseUrl = (baseUrl: string) => url.next(`${baseUrl}?${urlParams}`);
+  const createUrl = (baseUrl: string) => {
+    const url = new URL(baseUrl);
+    url.searchParams.set("v", VERSION.toString());
+    url.searchParams.set("encoding", encoding);
+    return url;
+  };
+
+  const url = new Rx.BehaviorSubject(createUrl(baseURL));
+  const setBaseUrl = (baseUrl: string) => url.next(createUrl(baseUrl));
 
   const raw$ = WS.create<GatewayPayload, GatewayPayload>(url, outgoing$, {
     encode,

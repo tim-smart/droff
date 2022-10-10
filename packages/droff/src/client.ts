@@ -178,6 +178,7 @@ export function create({
     dispatch$: gateway.dispatch$,
     fromDispatch: gateway.fromDispatch,
     fromDispatchWithShard: gateway.fromDispatchWithShard,
+    latestDispatch: gateway.latestDispatch,
 
     rateLimit: RL.rateLimit(rateLimitStore),
 
@@ -195,6 +196,8 @@ export interface ClientExtras {
   dispatch$: GatewayClient.Client["dispatch$"];
   /** Helper function to listen to an individual dispatch event */
   fromDispatch: GatewayClient.Client["fromDispatch"];
+  /** Helper function to listen to an individual dispatch event */
+  latestDispatch: GatewayClient.Client["latestDispatch"];
   /**
    * Helper function to listen to an individual dispatch event, along with
    * the shard

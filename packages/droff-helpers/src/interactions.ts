@@ -90,6 +90,29 @@ export const options = (
   );
 
 /**
+ * A lens for accessing nested options in a interaction.
+ */
+export const optionsWithNested = (
+  interaction: Interaction,
+): ApplicationCommandInteractionDataOption[] => {
+  const optsFromOption = (
+    opt: ApplicationCommandInteractionDataOption,
+  ): ApplicationCommandInteractionDataOption[] =>
+    F.pipe(
+      O.fromNullable(opt.options),
+      O.map((opts) => [...opts, ...opts.flatMap(optsFromOption)]),
+      O.fold(() => [], F.identity),
+    );
+
+  return F.pipe(
+    getCommandOrAutocompleteData(interaction),
+    O.chainNullableK((d) => d.options),
+    O.map((opts) => opts.flatMap(optsFromOption)),
+    O.getOrElseW(() => []),
+  );
+};
+
+/**
  * Return the interaction options as a name / value map.
  */
 export const transformOptions = (

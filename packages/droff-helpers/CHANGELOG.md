@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.11.1](https://github.com/tim-smart/droff/compare/droff-helpers@0.11.0...droff-helpers@0.11.1) (2022-10-10)
+
+**Note:** Version bump only for package droff-helpers
+
 # [0.11.0](https://github.com/tim-smart/droff/compare/droff-helpers@0.10.6...droff-helpers@0.11.0) (2022-10-10)
 
 ### Features

@@ -18,7 +18,7 @@ export const targetUser = (interaction: Interaction): O.Option<User> =>
 
 export const focusedOption = (interaction: Interaction) =>
   pipe(
-    H.options(interaction),
+    H.optionsWithNested(interaction),
     Arr.findFirst(({ focused }) => focused === true),
   );
 

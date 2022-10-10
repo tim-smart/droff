@@ -1,4 +1,5 @@
 import * as F from "fp-ts/function";
+import { performance } from "perf_hooks";
 import { QueueingSubject } from "queueing-subject";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
@@ -75,7 +76,7 @@ export function create({
   );
 
   const latency$ = heartbeatDiff$.pipe(
-    RxO.map((diff) => [diff, Date.now()] as const),
+    RxO.map((diff) => [diff, performance.now()] as const),
     RxO.pairwise(),
     RxO.filter(([[a], [b]]) => a === 1 && b === 0),
     RxO.map(([[, a], [, b]]) => b - a),

@@ -1,7 +1,12 @@
-import { ActionRow, Component } from "droff/types";
+import {
+  ActionRow,
+  ApplicationCommandInteractionDataOption,
+  Component,
+} from "droff/types";
 import { pipe } from "fp-ts/lib/function";
 import { Map } from "immutable";
 import { Observable } from "rxjs";
+import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { InteractionContext } from "./factory";
 import * as O from "fp-ts/lib/Option";
@@ -15,6 +20,25 @@ export const filterByName = (name: string) =>
       O.isSome,
     ),
   );
+
+export type InteractionContextWithSubCommand = readonly [
+  InteractionContext,
+  ApplicationCommandInteractionDataOption,
+];
+
+export const withSubCommand = (name: string) => {
+  const find = H.findSubCommand(name);
+  return RxO.flatMap((ctx: InteractionContext) =>
+    pipe(
+      find(ctx.interaction),
+      O.fold(
+        () => Rx.EMPTY,
+        (subCommand) =>
+          Rx.of([ctx, subCommand] as InteractionContextWithSubCommand),
+      ),
+    ),
+  );
+};
 
 export const filterBySelector =
   (selector: (data: InteractionContext) => string | undefined) =>

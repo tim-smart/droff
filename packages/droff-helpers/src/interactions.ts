@@ -103,7 +103,7 @@ export const optionsWithNested = (
   return F.pipe(
     getCommandOrAutocompleteData(interaction),
     O.chainNullableK((d) => d.options),
-    O.map((opts) => opts.flatMap(optsFromOption)),
+    O.map((opts) => [...opts, ...opts.flatMap(optsFromOption)]),
     O.getOrElseW(() => []),
   );
 };

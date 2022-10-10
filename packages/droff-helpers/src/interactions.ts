@@ -51,14 +51,10 @@ export const getModalData = getData(InteractionType.MODAL_SUBMIT);
  */
 export const findSubCommand = (name: string) => (interaction: Interaction) =>
   F.pipe(
-    getCommandOrAutocompleteData(interaction),
-    O.chainNullableK((d) => d.options),
-    O.chain(
-      Arr.findFirst(
-        (o: ApplicationCommandInteractionDataOption) =>
-          o.type === ApplicationCommandOptionType.SUB_COMMAND &&
-          o.name === name,
-      ),
+    optionsWithNested(interaction),
+    Arr.findFirst(
+      (o) =>
+        o.type === ApplicationCommandOptionType.SUB_COMMAND && o.name === name,
     ),
   );
 
@@ -126,14 +122,14 @@ export const transformOptions = (
 /**
  * Return the interaction options as a name / value map.
  */
-export const optionsMap = F.flow(options, transformOptions);
+export const optionsMap = F.flow(optionsWithNested, transformOptions);
 
 /**
  * Try find a matching option from the interaction.
  */
 export const getOption = (name: string) =>
   F.flow(
-    options,
+    optionsWithNested,
     Arr.findFirst((o) => o.name === name),
   );
 

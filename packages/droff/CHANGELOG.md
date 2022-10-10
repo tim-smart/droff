@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.40.0](https://github.com/tim-smart/droff/compare/droff@0.39.1...droff@0.40.0) (2022-10-10)
+
+### Features
+
+- expose latestDispatch in client ([14f9996](https://github.com/tim-smart/droff/commit/14f99964b7665066b0daa4b7d6765d92b9df24d3))
+
 ## [0.39.1](https://github.com/tim-smart/droff/compare/droff@0.39.0...droff@0.39.1) (2022-10-08)
 
 ### Bug Fixes

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.13.5](https://github.com/tim-smart/droff/compare/droff-interactions@0.13.4...droff-interactions@0.13.5) (2022-10-10)
+
+### Bug Fixes
+
+- **ix:** Use getCurrentBotApplicationInformation instead of gateway ([7596f16](https://github.com/tim-smart/droff/commit/7596f16e978c76f334386b547981200208f48c76))
+
 ## [0.13.4](https://github.com/tim-smart/droff/compare/droff-interactions@0.13.3...droff-interactions@0.13.4) (2022-10-08)
 
 **Note:** Version bump only for package droff-interactions

@@ -128,7 +128,7 @@ export const create =
 
     const fromDispatch = Dispatch.listen(dispatch$);
     const fromDispatchWithShard = Dispatch.listenWithShard(dispatchWithShard$);
-    const latestDispatch = Dispatch.latestDispatch(fromDispatch);
+    const latestDispatch = Dispatch.latest(fromDispatch);
 
     return {
       raw$,
@@ -155,7 +155,7 @@ export const createFromPayloads = (
 
   const fromDispatch = Dispatch.listen(dispatch$);
   const fromDispatchWithShard = Dispatch.listenWithShard(dispatchWithShard$);
-  const latestDispatch = Dispatch.latestDispatch(fromDispatch);
+  const latestDispatch = Dispatch.latest(fromDispatch);
 
   return {
     raw$,

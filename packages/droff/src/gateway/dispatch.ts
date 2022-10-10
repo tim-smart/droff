@@ -1,4 +1,3 @@
-import * as O from "fp-ts/Option";
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
 import { ReceiveEvents, GatewayPayload } from "../types";
@@ -33,11 +32,9 @@ export const listenWithShard = (
     ),
   );
 
-export const latestDispatch =
-  (fromDispatch: Dispatch) =>
-  <E extends keyof ReceiveEvents>(
-    event: E,
-  ): Rx.Observable<O.Option<ReceiveEvents[E]>> =>
-    Rx.merge(Rx.of(O.none), fromDispatch(event).pipe(RxO.map(O.some))).pipe(
-      RxO.shareReplay({ bufferSize: 1, refCount: true }),
-    );
+export const latest = (fromDispatch: Dispatch): Dispatch =>
+  memoize((event) =>
+    fromDispatch(event as keyof ReceiveEvents).pipe(
+      RxO.shareReplay({ bufferSize: 1, refCount: true }) as any,
+    ),
+  );

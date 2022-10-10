@@ -101,7 +101,8 @@ export const latestReady = (
   invalidSession$: Rx.Observable<GatewayPayload<InvalidSessionEvent>>,
 ): Rx.Observable<O.Option<ReadyEvent>> =>
   Rx.merge(
-    Dispatch.latestDispatch(fromDispatch)("READY"),
+    Rx.of(O.none),
+    fromDispatch("READY").pipe(RxO.map(O.some)),
     invalidSession$.pipe(
       RxO.flatMap((data) => (data.d ? Rx.EMPTY : Rx.of(O.none))),
     ),

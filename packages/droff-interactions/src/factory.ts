@@ -96,10 +96,9 @@ export interface InteractionsHelper {
  */
 export const create = (client: Client): InteractionsHelper => {
   const { fromDispatch } = client;
-  const application$ = client.fromDispatch("READY").pipe(
-    RxO.map((e) => e.application),
-    RxO.shareReplay({ bufferSize: 1, refCount: true }),
-  );
+  const application$ = Rx.defer(() =>
+    client.getCurrentBotApplicationInformation(),
+  ).pipe(RxO.shareReplay(1));
 
   // Response helpers
   const respond = Commands.respond(client);

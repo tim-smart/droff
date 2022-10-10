@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.11.0](https://github.com/tim-smart/droff/compare/droff-helpers@0.10.6...droff-helpers@0.11.0) (2022-10-10)
+
+### Features
+
+- **helpers:** add optionsWithNested for interactions ([ce5f17b](https://github.com/tim-smart/droff/commit/ce5f17bd7cbfa7127db08c5b926dc5c5b9aba892))
+
 ## [0.10.6](https://github.com/tim-smart/droff/compare/droff-helpers@0.10.5...droff-helpers@0.10.6) (2022-10-10)
 
 **Note:** Version bump only for package droff-helpers

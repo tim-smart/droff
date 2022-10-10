@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.14.0](https://github.com/tim-smart/droff/compare/droff-interactions@0.13.5...droff-interactions@0.14.0) (2022-10-10)
+
+### Features
+
+- ix and latency ([a6f4641](https://github.com/tim-smart/droff/commit/a6f4641f9fb4392ed433d54f54bf42bc4b8539e2))
+
 ## [0.13.5](https://github.com/tim-smart/droff/compare/droff-interactions@0.13.4...droff-interactions@0.13.5) (2022-10-10)
 
 ### Bug Fixes

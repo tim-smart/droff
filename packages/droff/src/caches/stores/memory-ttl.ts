@@ -25,7 +25,7 @@ export interface MemoryTTLStoreOpts {
    *
    * Defaults to "usage"
    */
-  strategy?: "activity" | "usage";
+  strategy?: "activity" | "usage" | "expiry";
 }
 
 interface CacheItem<T> {
@@ -89,7 +89,9 @@ export const createNonParent = <T>({
       return undefined;
     }
 
-    refreshTTL(item);
+    if (strategy !== "expiry") {
+      refreshTTL(item);
+    }
 
     return item.resource;
   };
@@ -107,7 +109,7 @@ export const createNonParent = <T>({
     set: async (resourceId, resource) => {
       const item = items.get(resourceId)?.deref();
 
-      if (item && strategy === "usage") {
+      if (item && strategy !== "activity") {
         item.resource = resource;
       } else {
         const newItem = { resource };

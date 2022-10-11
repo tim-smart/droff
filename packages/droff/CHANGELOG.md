@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.42.0](https://github.com/tim-smart/droff/compare/droff@0.41.0...droff@0.42.0) (2022-10-11)
+
+### Features
+
+- cache expiry strategy ([22c7d78](https://github.com/tim-smart/droff/commit/22c7d7888af7c66358086168de5e180e6f7fe114))
+
 # [0.41.0](https://github.com/tim-smart/droff/compare/droff@0.40.0...droff@0.41.0) (2022-10-10)
 
 ### Features

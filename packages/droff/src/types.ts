@@ -637,17 +637,17 @@ export interface BulkOverwriteGuildApplicationCommandParams {
 export interface Button {
   /** 2 for a button */
   type: number;
-  /** one of button styles */
+  /** A button style */
   style: ButtonStyle;
-  /** text that appears on the button, max 80 characters */
+  /** Text that appears on the button; max 80 characters */
   label?: string;
   /** name, id, and animated */
   emoji?: Emoji;
-  /** a developer-defined identifier for the button, max 100 characters */
+  /** Developer-defined identifier for the button; max 100 characters */
   custom_id?: string;
-  /** a url for link-style buttons */
+  /** URL for link-style buttons */
   url?: string;
-  /** whether the button is disabled (default false) */
+  /** Whether the button is disabled (defaults to false) */
   disabled?: boolean;
 }
 export enum ButtonStyle {
@@ -788,14 +788,22 @@ export interface ClientStatus {
 }
 export type Component = ActionRow | Button | TextInput | SelectMenu;
 export enum ComponentType {
-  /** A container for other components */
+  /** Container for other components */
   ACTION_ROW = 1,
-  /** A button object */
+  /** Button object */
   BUTTON = 2,
-  /** A select menu for picking from choices */
-  SELECT_MENU = 3,
-  /** A text input object */
+  /** Select menu for picking from defined text options */
+  STRING_SELECT = 3,
+  /** Text input object */
   TEXT_INPUT = 4,
+  /** Select menu for users */
+  USER_SELECT = 5,
+  /** Select menu for roles */
+  ROLE_SELECT = 6,
+  /** Select menu for mentionables (users and roles) */
+  MENTIONABLE_SELECT = 7,
+  /** Select menu for channels */
+  CHANNEL_SELECT = 8,
 }
 export interface Connection {
   /** id of the connection account */
@@ -5410,12 +5418,10 @@ export interface Response {
   user?: User;
 }
 export interface ResponseBody {
-  /** the public, archived threads */
+  /** the active threads */
   threads: Channel[];
   /** a thread member object for each returned thread the current user has joined */
   members: ThreadMember[];
-  /** whether there are potentially additional threads that could be returned on a subsequent call */
-  has_more: boolean;
 }
 export interface Resume {
   /** Session token */
@@ -5471,31 +5477,33 @@ export interface SearchGuildMemberParams {
   limit: number;
 }
 export interface SelectMenu {
-  /** 3 for a select menu */
-  type: number;
-  /** a developer-defined identifier for the select menu, max 100 characters */
+  /** Type of select menu component (text: 3, user: 5, role: 6, mentionable: 7, channels: 8) */
+  type: ComponentType;
+  /** ID for the select menu; max 100 characters */
   custom_id: string;
-  /** the choices in the select, max 25 */
-  options: SelectOption[];
-  /** custom placeholder text if nothing is selected, max 150 characters */
+  /** Specified choices in a select menu (only required and available for string selects (type 3); max 25 */
+  options?: SelectOption[];
+  /** List of channel types to include in the channel select component (type 8) */
+  channel_types?: ChannelType[];
+  /** Placeholder text if nothing is selected; max 150 characters */
   placeholder?: string;
-  /** the minimum number of items that must be chosen; default 1, min 0, max 25 */
+  /** Minimum number of items that must be chosen (defaults to 1); min 0, max 25 */
   min_values?: number;
-  /** the maximum number of items that can be chosen; default 1, max 25 */
+  /** Maximum number of items that can be chosen (defaults to 1); max 25 */
   max_values?: number;
-  /** disable the select, default false */
+  /** Whether select menu is disabled (defaults to false) */
   disabled?: boolean;
 }
 export interface SelectOption {
-  /** the user-facing name of the option, max 100 characters */
+  /** User-facing name of the option; max 100 characters */
   label: string;
-  /** the dev-defined value of the option, max 100 characters */
+  /** Dev-defined value of the option; max 100 characters */
   value: string;
-  /** an additional description of the option, max 100 characters */
+  /** Additional description of the option; max 100 characters */
   description?: string;
   /** id, name, and animated */
   emoji?: Emoji;
-  /** will render this option as selected by default */
+  /** Will show this option as selected by default */
   default?: boolean;
 }
 export type SendEvent =
@@ -5709,27 +5717,27 @@ export interface TeamMember {
 export interface TextInput {
   /** 4 for a text input */
   type: number;
-  /** a developer-defined identifier for the input, max 100 characters */
+  /** Developer-defined identifier for the input; max 100 characters */
   custom_id: string;
-  /** the Text Input Style */
+  /** The Text Input Style */
   style: TextInputStyle;
-  /** the label for this component, max 45 characters */
+  /** Label for this component; max 45 characters */
   label: string;
-  /** the minimum input length for a text input, min 0, max 4000 */
+  /** Minimum input length for a text input; min 0, max 4000 */
   min_length?: number;
-  /** the maximum input length for a text input, min 1, max 4000 */
+  /** Maximum input length for a text input; min 1, max 4000 */
   max_length?: number;
-  /** whether this component is required to be filled, default true */
+  /** Whether this component is required to be filled (defaults to true) */
   required?: boolean;
-  /** a pre-filled value for this component, max 4000 characters */
+  /** Pre-filled value for this component; max 4000 characters */
   value?: string;
-  /** custom placeholder text if the input is empty, max 100 characters */
+  /** Custom placeholder text if the input is empty; max 100 characters */
   placeholder?: string;
 }
 export enum TextInputStyle {
-  /** A single-line input */
+  /** Single-line input */
   SHORT = 1,
-  /** A multi-line input */
+  /** Multi-line input */
   PARAGRAPH = 2,
 }
 export type ThreadCreateEvent = Channel;

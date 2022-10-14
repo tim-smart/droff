@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.12.0](https://github.com/tim-smart/droff/compare/droff-helpers@0.11.3...droff-helpers@0.12.0) (2022-10-14)
+
+### Features
+
+- **helpers:** add new select menu types ([04e778b](https://github.com/tim-smart/droff/commit/04e778b5f2c529baf5f27a48c9b72cc36fd7fa32))
+
 ## [0.11.3](https://github.com/tim-smart/droff/compare/droff-helpers@0.11.2...droff-helpers@0.11.3) (2022-10-11)
 
 **Note:** Version bump only for package droff-helpers

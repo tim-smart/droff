@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.43.0](https://github.com/tim-smart/droff/compare/droff@0.42.0...droff@0.43.0) (2022-10-14)
+
+### chore
+
+- update api types ([ac7d405](https://github.com/tim-smart/droff/commit/ac7d4056bd2bbead0ae4e0ad6af3d14d6975e440))
+
+### BREAKING CHANGES
+
+- select menu types have changed
+
 # [0.42.0](https://github.com/tim-smart/droff/compare/droff@0.41.0...droff@0.42.0) (2022-10-11)
 
 ### Features

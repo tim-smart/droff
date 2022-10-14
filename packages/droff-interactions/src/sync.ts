@@ -20,7 +20,9 @@ export const global =
 export const guild =
   (client: Client, application$: Rx.Observable<Application>) =>
   (guildCommands: () => Map<string, GuildCommand>) => {
-    const { fromDispatch } = client;
+    if (guildCommands().size === 0) {
+      return Rx.EMPTY;
+    }
 
     const updateGuild$ = (guild: Guild) =>
       Rx.from(guildCommands().values()).pipe(
@@ -41,8 +43,8 @@ export const guild =
       );
 
     return Rx.merge(
-      fromDispatch("GUILD_CREATE"),
-      fromDispatch("GUILD_UPDATE"),
+      client.fromDispatch("GUILD_CREATE"),
+      client.fromDispatch("GUILD_UPDATE"),
     ).pipe(
       RxO.groupBy((g) => g.id, {
         duration: ($) => $.pipe(RxO.debounceTime(30000)),

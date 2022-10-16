@@ -870,8 +870,8 @@ export interface CreateGlobalApplicationCommandParams {
   name: string;
   /** Localization dictionary for the name field. Values follow the same restrictions as name */
   name_localizations?: Locale | null;
-  /** 1-100 character description */
-  description: string;
+  /** 1-100 character description for CHAT_INPUT commands */
+  description?: string;
   /** Localization dictionary for the description field. Values follow the same restrictions as description */
   description_localizations?: Locale | null;
   /** the parameters for the command */
@@ -896,8 +896,8 @@ export interface CreateGuildApplicationCommandParams {
   name: string;
   /** Localization dictionary for the name field. Values follow the same restrictions as name */
   name_localizations?: Locale | null;
-  /** 1-100 character description */
-  description: string;
+  /** 1-100 character description for CHAT_INPUT commands */
+  description?: string;
   /** Localization dictionary for the description field. Values follow the same restrictions as description */
   description_localizations?: Locale | null;
   /** Parameters for the command */
@@ -990,7 +990,7 @@ export interface CreateGuildParams {
   system_channel_flags?: number;
 }
 export interface CreateGuildRoleParams {
-  /** name of the role */
+  /** name of the role, max 100 characters */
   name: string;
   /** bitwise value of the enabled/disabled permissions */
   permissions: string;
@@ -2642,7 +2642,7 @@ export interface Endpoints<O> {
     interactionToken: string,
     params?: Partial<InteractionResponse>,
     options?: O,
-  ) => Promise<any>;
+  ) => Promise<InteractionResponse>;
   createMessage: (
     channelId: string,
     params?: Partial<CreateMessageParams>,
@@ -4952,7 +4952,7 @@ export interface ModifyGuildParams {
   premium_progress_bar_enabled: boolean;
 }
 export interface ModifyGuildRoleParams {
-  /** name of the role */
+  /** name of the role, max 100 characters */
   name: string;
   /** bitwise value of the enabled/disabled permissions */
   permissions: string;
@@ -5418,10 +5418,12 @@ export interface Response {
   user?: User;
 }
 export interface ResponseBody {
-  /** the active threads */
+  /** the public, archived threads */
   threads: Channel[];
   /** a thread member object for each returned thread the current user has joined */
   members: ThreadMember[];
+  /** whether there are potentially additional threads that could be returned on a subsequent call */
+  has_more: boolean;
 }
 export interface Resume {
   /** Session token */

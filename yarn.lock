@@ -1064,10 +1064,10 @@
   resolved "https://registry.yarnpkg.com/@redis/time-series/-/time-series-1.0.3.tgz#4cfca8e564228c0bddcdf4418cba60c20b224ac4"
   integrity sha512-OFp0q4SGrTH0Mruf6oFsHGea58u8vS/iI5+NpYdicaM+7BgqBZH8FFvNZ8rYYLrUO/QRqMq72NpXmxLVNcdmjA==
 
-"@tim-smart/discord-api-docs-parser@^0.3.9":
-  version "0.3.9"
-  resolved "https://registry.yarnpkg.com/@tim-smart/discord-api-docs-parser/-/discord-api-docs-parser-0.3.9.tgz#de63c6a662717fa471cd639600fe5ef8a1efb505"
-  integrity sha512-sHghbKKVf9SPhiEUlzG/01Btsie/OULFbrLoELK3vezKMdgdyjcHKyqLd5q7syYAkzpZX10YmVNsvUnVPAAWlg==
+"@tim-smart/discord-api-docs-parser@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@tim-smart/discord-api-docs-parser/-/discord-api-docs-parser-0.4.0.tgz#eae5e9743c991c367662bd26391036e6c7923df2"
+  integrity sha512-ocnPc11Ziz9/WA4lJYqdH1rfbAg3gHfM20TdFIUQZ+AEkTMwYcWxODVXIK9Onoy9MxPP/VDbrF3Yow+LrqxitA==
   dependencies:
     cheerio "^1.0.0-rc.9"
     fp-ts "^2.10.5"

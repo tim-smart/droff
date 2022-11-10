@@ -766,7 +766,7 @@ export enum ChannelType {
   GUILD_ANNOUNCEMENT = 5,
   /** a temporary sub-channel within a GUILD_ANNOUNCEMENT channel */
   ANNOUNCEMENT_THREAD = 10,
-  /** a temporary sub-channel within a GUILD_TEXT channel */
+  /** a temporary sub-channel within a GUILD_TEXT or GUILD_FORUM channel */
   PUBLIC_THREAD = 11,
   /** a temporary sub-channel within a GUILD_TEXT channel that is only viewable by those invited and those with the MANAGE_THREADS permission */
   PRIVATE_THREAD = 12,
@@ -2701,7 +2701,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   ) => Promise<any>;
   /** Delete a channel, or close a private message. Requires the MANAGE_CHANNELS permission for the guild, or MANAGE_THREADS if the channel is a thread. Deleting a category does not delete its child channels; they will have their parent_id removed and a Channel Update Gateway event will fire for each of them. Returns a channel object on success. Fires a Channel Delete Gateway event (or Thread Delete if the channel was a thread). */
   deletecloseChannel: (channelId: string, options?: O) => Promise<Channel>;
-  /** Deletes a followup message for an Interaction. Returns 204 No Content on success. Does not support ephemeral followups. */
+  /** Deletes a followup message for an Interaction. Returns 204 No Content on success. */
   deleteFollowupMessage: (
     applicationId: string,
     interactionToken: string,
@@ -2767,7 +2767,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     messageId: string,
     options?: O,
   ) => Promise<any>;
-  /** Deletes the initial Interaction response. Returns 204 No Content on success. Does not support ephemeral followups. */
+  /** Deletes the initial Interaction response. Returns 204 No Content on success. */
   deleteOriginalInteractionResponse: (
     applicationId: string,
     interactionToken: string,
@@ -3820,6 +3820,8 @@ export enum GuildFeature {
   BANNER = "BANNER",
   /** guild can enable welcome screen, Membership Screening, stage channels and discovery, and receives community updates */
   COMMUNITY = "COMMUNITY",
+  /** guild has been set as a support server on the App Directory */
+  DEVELOPER_SUPPORT_SERVER = "DEVELOPER_SUPPORT_SERVER",
   /** guild is able to be discovered in the directory */
   DISCOVERABLE = "DISCOVERABLE",
   /** guild is able to be featured in the directory */
@@ -4822,7 +4824,7 @@ export interface ModifyChannelGuildChannelParams {
   default_auto_archive_duration?: number | null;
   /** channel flags combined as a bitfield. Currently only REQUIRE_TAG (1 << 4) is supported. */
   flags?: number;
-  /** the set of tags that can be used in a GUILD_FORUM channel */
+  /** the set of tags that can be used in a GUILD_FORUM channel; limited to 20 */
   available_tags?: ForumTag[];
   /** the emoji to show in the add reaction button on a thread in a GUILD_FORUM channel */
   default_reaction_emoji?: DefaultReaction | null;
@@ -4850,7 +4852,7 @@ export interface ModifyChannelThreadParams {
   rate_limit_per_user?: number | null;
   /** channel flags combined as a bitfield; PINNED can only be set for threads in forum channels */
   flags?: number;
-  /** the IDs of the set of tags that have been applied to a thread in a GUILD_FORUM channel */
+  /** the IDs of the set of tags that have been applied to a thread in a GUILD_FORUM channel; limited to 5 */
   applied_tags?: Snowflake[];
 }
 export interface ModifyCurrentMemberParams {
@@ -5206,6 +5208,7 @@ export enum PremiumType {
   NONE = 0,
   NITRO_CLASSIC = 1,
   NITRO = 2,
+  NITRO_BASIC = 3,
 }
 export interface PresenceUpdateEvent {
   /** User whose presence is being updated */
@@ -5799,6 +5802,8 @@ export type ThreadUpdateEvent = Channel;
 export interface TriggerMetadatum {
   /** KEYWORD */
   keyword_filter: string[];
+  /** KEYWORD */
+  regex_patterns: string[];
   /** KEYWORD_PRESET */
   presets: KeywordPresetType[];
   /** KEYWORD_PRESET */
@@ -5915,6 +5920,8 @@ export const UserFlag = {
   CERTIFIED_MODERATOR: 1 << 18,
   /** Bot uses only HTTP interactions and is shown in the online member list */
   BOT_HTTP_INTERACTIONS: 1 << 19,
+  /** User is an Active Developer */
+  ACTIVE_DEVELOPER: 1 << 22,
 } as const;
 export type UserUpdateEvent = User;
 export enum VerificationLevel {

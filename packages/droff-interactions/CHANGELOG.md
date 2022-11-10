@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.14.7](https://github.com/tim-smart/droff/compare/droff-interactions@0.14.6...droff-interactions@0.14.7) (2022-11-10)
+
+**Note:** Version bump only for package droff-interactions
+
 ## [0.14.6](https://github.com/tim-smart/droff/compare/droff-interactions@0.14.5...droff-interactions@0.14.6) (2022-10-16)
 
 **Note:** Version bump only for package droff-interactions

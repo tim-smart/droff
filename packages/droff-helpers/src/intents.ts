@@ -10,7 +10,9 @@ export const ALL = Flags.all(GatewayIntents);
  * Privileged intents
  */
 export const PRIVILEGED =
-  GatewayIntents.GUILD_PRESENCES | GatewayIntents.GUILD_MEMBERS;
+  GatewayIntents.GUILD_PRESENCES |
+  GatewayIntents.GUILD_MEMBERS |
+  GatewayIntents.MESSAGE_CONTENT;
 
 /**
  * Un-privileged intents

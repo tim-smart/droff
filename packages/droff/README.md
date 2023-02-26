@@ -11,7 +11,7 @@ Simple Discord client powered by RxJS and Axios
 
 - API documentation: https://tim-smart.github.io/droff/droff/
 
-> **Note:** Looking for a Discord library that is more functional in nature?  
+> **Note**: Looking for a Discord library that is more functional in nature?  
 > Check out: https://github.com/tim-smart/dfx
 
 ## Goals

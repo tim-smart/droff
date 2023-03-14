@@ -3,6 +3,8 @@ export interface ActionMetadatum {
   channel_id: Snowflake;
   /** TIMEOUT */
   duration_seconds: number;
+  /** BLOCK_MESSAGE */
+  custom_message?: string;
 }
 export interface ActionRow {
   /** component type */
@@ -11,7 +13,7 @@ export interface ActionRow {
   components: Component[];
 }
 export enum ActionType {
-  /** blocks the content of a message according to the rule */
+  /** blocks a member's message and prevents it from being posted. A custom explanation can be specified and shown to members whenever their message is blocked. */
   BLOCK_MESSAGE = 1,
   /** logs user content to a specified channel */
   SEND_ALERT_MESSAGE = 2,
@@ -186,6 +188,8 @@ export interface Application {
   install_params?: InstallParam;
   /** the application's default custom authorization link, if enabled */
   custom_install_url?: string;
+  /** the application's role connection verification entry point, which when configured will render the app as a verification method in the guild role verification configuration */
+  role_connections_verification_url?: string;
 }
 export interface ApplicationCommand {
   /** Unique ID of command */
@@ -194,7 +198,7 @@ export interface ApplicationCommand {
   type?: ApplicationCommandType;
   /** ID of the parent application */
   application_id: Snowflake;
-  /** guild id of the command, if not global */
+  /** Guild ID of the command, if not global */
   guild_id?: Snowflake;
   /** Name of command, 1-32 characters */
   name: string;
@@ -212,6 +216,8 @@ export interface ApplicationCommand {
   dm_permission?: boolean;
   /** Not recommended for use as field will soon be deprecated. Indicates whether the command is enabled by default when the app is added to a guild, defaults to true */
   default_permission?: boolean | null;
+  /** Indicates whether the command is age-restricted, defaults to false */
+  nsfw?: boolean;
   /** Autoincrementing version identifier updated during substantial record changes */
   version: Snowflake;
 }
@@ -337,6 +343,46 @@ export const ApplicationFlag = {
   /** Indicates if an app has registered global application commands */
   APPLICATION_COMMAND_BADGE: 1 << 23,
 } as const;
+export interface ApplicationRoleConnection {
+  /** the vanity name of the platform a bot has connected (max 50 characters) */
+  platform_name?: string | null;
+  /** the username on the platform a bot has connected (max 100 characters) */
+  platform_username?: string | null;
+  /** object mapping application role connection metadata keys to their string-ified value (max 100 characters) for the user on the platform a bot has connected */
+  metadata: ApplicationRoleConnectionMetadatum;
+}
+export enum ApplicationRoleConnectionMetadataType {
+  /** the metadata value (integer) is less than or equal to the guild's configured value (integer) */
+  INTEGER_LESS_THAN_OR_EQUAL = 1,
+  /** the metadata value (integer) is greater than or equal to the guild's configured value (integer) */
+  INTEGER_GREATER_THAN_OR_EQUAL = 2,
+  /** the metadata value (integer) is equal to the guild's configured value (integer) */
+  INTEGER_EQUAL = 3,
+  /** the metadata value (integer) is not equal to the guild's configured value (integer) */
+  INTEGER_NOT_EQUAL = 4,
+  /** the metadata value (ISO8601 string) is less than or equal to the guild's configured value (integer; days before current date) */
+  DATETIME_LESS_THAN_OR_EQUAL = 5,
+  /** the metadata value (ISO8601 string) is greater than or equal to the guild's configured value (integer; days before current date) */
+  DATETIME_GREATER_THAN_OR_EQUAL = 6,
+  /** the metadata value (integer) is equal to the guild's configured value (integer; 1) */
+  BOOLEAN_EQUAL = 7,
+  /** the metadata value (integer) is not equal to the guild's configured value (integer; 1) */
+  BOOLEAN_NOT_EQUAL = 8,
+}
+export interface ApplicationRoleConnectionMetadatum {
+  /** type of metadata value */
+  type: ApplicationRoleConnectionMetadataType;
+  /** dictionary key for the metadata field (must be a-z, 0-9, or _ characters; 1-50 characters) */
+  key: string;
+  /** name of the metadata field (1-100 characters) */
+  name: string;
+  /** translations of the name */
+  name_localizations?: Locale;
+  /** description of the metadata field (1-200 characters) */
+  description: string;
+  /** translations of the description */
+  description_localizations?: Locale;
+}
 export interface Attachment {
   /** attachment id */
   id: Snowflake;
@@ -528,11 +574,11 @@ export enum AuditLogEvent {
   AUTO_MODERATION_RULE_UPDATE = 141,
   /** Auto Moderation rule was deleted */
   AUTO_MODERATION_RULE_DELETE = 142,
-  /** Message was blocked by AutoMod */
+  /** Message was blocked by Auto Moderation */
   AUTO_MODERATION_BLOCK_MESSAGE = 143,
-  /** Message was flagged by AutoMod */
+  /** Message was flagged by Auto Moderation */
   AUTO_MODERATION_FLAG_TO_CHANNEL = 144,
-  /** Member was timed out by AutoMod */
+  /** Member was timed out by Auto Moderation */
   AUTO_MODERATION_USER_COMMUNICATION_DISABLED = 145,
 }
 export interface AutoModerationAction {
@@ -629,10 +675,12 @@ export interface BulkOverwriteGuildApplicationCommandParams {
   default_member_permissions?: string | null;
   /** Indicates whether the command is available in DMs with the app, only for globally-scoped commands. By default, commands are visible. */
   dm_permission?: boolean | null;
-  /** Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. */
+  /** Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. Defaults to true */
   default_permission?: boolean;
   /** Type of command, defaults 1 if not set */
   type?: ApplicationCommandType;
+  /** Indicates whether the command is age-restricted */
+  nsfw?: boolean;
 }
 export interface Button {
   /** 2 for a button */
@@ -690,6 +738,8 @@ export interface Channel {
   owner_id?: Snowflake;
   /** application id of the group DM creator if it is bot-created */
   application_id?: Snowflake;
+  /** for group DM channels: whether the channel is managed by an application via the gdm.join OAuth2 scope */
+  managed?: boolean;
   /** for guild channels: id of the parent category for a channel (each parent category can contain up to 50 channels), for threads: id of the text channel this thread was created */
   parent_id?: Snowflake | null;
   /** when the last pinned message was pinned. This may be null in events such as GUILD_CREATE when a message is not pinned. */
@@ -724,6 +774,8 @@ export interface Channel {
   default_thread_rate_limit_per_user?: number;
   /** the default sort order type used to order posts in GUILD_FORUM channels. Defaults to null, which indicates a preferred sort order hasn't been set by a channel admin */
   default_sort_order?: SortOrderType | null;
+  /** the default forum layout view used to display posts in GUILD_FORUM channels. Defaults to 0, which indicates a layout view has not been set by a channel admin */
+  default_forum_layout?: ForumLayoutType;
 }
 export type ChannelCreateEvent = Channel;
 export type ChannelDeleteEvent = Channel;
@@ -880,10 +932,12 @@ export interface CreateGlobalApplicationCommandParams {
   default_member_permissions?: string | null;
   /** Indicates whether the command is available in DMs with the app, only for globally-scoped commands. By default, commands are visible. */
   dm_permission?: boolean | null;
-  /** Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. */
+  /** Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. Defaults to true */
   default_permission?: boolean;
   /** Type of command, defaults 1 if not set */
   type?: ApplicationCommandType;
+  /** Indicates whether the command is age-restricted */
+  nsfw?: boolean;
 }
 export interface CreateGroupDmParams {
   /** access tokens of users that have granted your app the gdm.join scope */
@@ -904,10 +958,12 @@ export interface CreateGuildApplicationCommandParams {
   options?: ApplicationCommandOption[];
   /** Set of permissions represented as a bit set */
   default_member_permissions?: string | null;
-  /** Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. */
+  /** Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. Defaults to true */
   default_permission?: boolean;
   /** Type of command, defaults 1 if not set */
   type?: ApplicationCommandType;
+  /** Indicates whether the command is age-restricted */
+  nsfw?: boolean;
 }
 export interface CreateGuildBanParams {
   /** number of days to delete messages for (0-7) (deprecated) */
@@ -1032,7 +1088,7 @@ export interface CreateGuildStickerParams {
   description: string;
   /** autocomplete/suggestion tags for the sticker (max 200 characters) */
   tags: string;
-  /** the sticker file to upload, must be a PNG, APNG, or Lottie JSON file, max 500 KB */
+  /** the sticker file to upload, must be a PNG, APNG, GIF, or Lottie JSON file, max 512 KB */
   file: string;
 }
 export interface CreateGuildTemplateParams {
@@ -1048,7 +1104,7 @@ export interface CreateMessageParams {
   nonce?: string;
   /** true if this is a TTS message */
   tts?: boolean;
-  /** Embedded rich content (up to 6000 characters) */
+  /** Up to 10 rich embeds (up to 6000 characters) */
   embeds?: Embed[];
   /** Allowed mentions for the message */
   allowed_mentions?: AllowedMention;
@@ -1064,7 +1120,7 @@ export interface CreateMessageParams {
   payload_json?: string;
   /** Attachment objects with filename and description. See Uploading Files */
   attachments?: Attachment[];
-  /** Message flags combined as a bitfield (only SUPPRESS_EMBEDS can be set) */
+  /** Message flags combined as a bitfield (only SUPPRESS_EMBEDS and SUPPRESS_NOTIFICATIONS can be set) */
   flags?: number;
 }
 export function createRoutes<O = any>(
@@ -1561,6 +1617,12 @@ export function createRoutes<O = any>(
         url: `/applications/${applicationId}/guilds/${guildId}/commands/${commandId}/permissions`,
         options,
       }),
+    getApplicationRoleConnectionMetadataRecords: (applicationId, options) =>
+      fetch({
+        method: "GET",
+        url: `/applications/${applicationId}/role-connections/metadata`,
+        options,
+      }),
     getAutoModerationRule: (guildId, autoModerationRuleId, options) =>
       fetch({
         method: "GET",
@@ -1877,16 +1939,23 @@ export function createRoutes<O = any>(
         url: `/stickers/${stickerId}`,
         options,
       }),
-    getThreadMember: (channelId, userId, options) =>
+    getThreadMember: (channelId, userId, params, options) =>
       fetch({
         method: "GET",
         url: `/channels/${channelId}/thread-members/${userId}`,
+        params,
         options,
       }),
     getUser: (userId, options) =>
       fetch({
         method: "GET",
         url: `/users/${userId}`,
+        options,
+      }),
+    getUserApplicationRoleConnection: (applicationId, options) =>
+      fetch({
+        method: "GET",
+        url: `/users/@me/applications/${applicationId}/role-connection`,
         options,
       }),
     getUserConnections: (options) =>
@@ -2010,10 +2079,11 @@ export function createRoutes<O = any>(
         params,
         options,
       }),
-    listThreadMembers: (channelId, options) =>
+    listThreadMembers: (channelId, params, options) =>
       fetch({
         method: "GET",
         url: `/channels/${channelId}/thread-members`,
+        params,
         options,
       }),
     listVoiceRegions: (options) =>
@@ -2260,6 +2330,19 @@ export function createRoutes<O = any>(
         url: `/channels/${channelId}/pins/${messageId}`,
         options,
       }),
+    updateApplicationRoleConnectionMetadataRecords: (applicationId, options) =>
+      fetch({
+        method: "PUT",
+        url: `/applications/${applicationId}/role-connections/metadata`,
+        options,
+      }),
+    updateUserApplicationRoleConnection: (applicationId, params, options) =>
+      fetch({
+        method: "PUT",
+        url: `/users/@me/applications/${applicationId}/role-connection`,
+        params,
+        options,
+      }),
   };
 }
 export interface CreateStageInstanceParams {
@@ -2321,8 +2404,10 @@ export interface EditGlobalApplicationCommandParams {
   default_member_permissions?: string | null;
   /** Indicates whether the command is available in DMs with the app, only for globally-scoped commands. By default, commands are visible. */
   dm_permission?: boolean | null;
-  /** Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. */
+  /** Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. Defaults to true */
   default_permission?: boolean;
+  /** Indicates whether the command is age-restricted */
+  nsfw?: boolean;
 }
 export interface EditGuildApplicationCommandParams {
   /** Name of command, 1-32 characters */
@@ -2337,13 +2422,15 @@ export interface EditGuildApplicationCommandParams {
   options?: ApplicationCommandOption[];
   /** Set of permissions represented as a bit set */
   default_member_permissions?: string | null;
-  /** Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. */
+  /** Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. Defaults to true */
   default_permission?: boolean;
+  /** Indicates whether the command is age-restricted */
+  nsfw?: boolean;
 }
 export interface EditMessageParams {
   /** Message contents (up to 2000 characters) */
   content: string;
-  /** Embedded rich content (up to 6000 characters) */
+  /** Up to 10 rich embeds (up to 6000 characters) */
   embeds: Embed[];
   /** Edit the flags of a message (only SUPPRESS_EMBEDS can currently be set/unset) */
   flags: number;
@@ -2405,7 +2492,7 @@ export interface Embed {
 export interface EmbedAuthor {
   /** name of author */
   name: string;
-  /** url of author */
+  /** url of author (only supports http(s)) */
   url?: string;
   /** url of author icon (only supports http(s) and attachments) */
   icon_url?: string;
@@ -2558,7 +2645,7 @@ export interface Endpoints<O> {
     params?: Partial<CreateChannelInviteParams>,
     options?: O,
   ) => Promise<Invite>;
-  /** Create a new DM channel with a user. Returns a DM channel object. */
+  /** Create a new DM channel with a user. Returns a DM channel object (if one already exists, it will be returned instead). */
   createDm: (params?: Partial<CreateDmParams>, options?: O) => Promise<Channel>;
   /** Create a followup message for an Interaction. Functions the same as Execute Webhook, but wait is always true. The thread_id, avatar_url, and username parameters are not supported when using this endpoint for interaction followups. */
   createFollowupMessage: (
@@ -2571,7 +2658,7 @@ export interface Endpoints<O> {
     params?: Partial<CreateGlobalApplicationCommandParams>,
     options?: O,
   ) => Promise<ApplicationCommand>;
-  /** Create a new group DM channel with multiple users. Returns a DM channel object. This endpoint was intended to be used with the now-deprecated GameBridge SDK. DMs created with this endpoint will not be shown in the Discord client */
+  /** Create a new group DM channel with multiple users. Returns a DM channel object. This endpoint was intended to be used with the now-deprecated GameBridge SDK. Fires a Channel Create Gateway event. */
   createGroupDm: (
     params?: Partial<CreateGroupDmParams>,
     options?: O,
@@ -2895,6 +2982,11 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     commandId: string,
     options?: O,
   ) => Promise<GuildApplicationCommandPermission>;
+  /** Returns a list of application role connection metadata objects for the given application. */
+  getApplicationRoleConnectionMetadataRecords: (
+    applicationId: string,
+    options?: O,
+  ) => Promise<ApplicationRoleConnectionMetadatum[]>;
   /** Get a single rule. Returns an auto moderation rule object. */
   getAutoModerationRule: (
     guildId: string,
@@ -2905,13 +2997,13 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   getChannel: (channelId: string, options?: O) => Promise<Channel>;
   /** Returns a list of invite objects (with invite metadata) for the channel. Only usable for guild channels. Requires the MANAGE_CHANNELS permission. */
   getChannelInvites: (channelId: string, options?: O) => Promise<Invite[]>;
-  /** Returns a specific message in the channel. If operating on a guild channel, this endpoint requires the READ_MESSAGE_HISTORY permission to be present on the current user. Returns a message object on success. */
+  /** Retrieves a specific message in the channel. Returns a message object on success. */
   getChannelMessage: (
     channelId: string,
     messageId: string,
     options?: O,
   ) => Promise<Message>;
-  /** Returns the messages for a channel. If operating on a guild channel, this endpoint requires the VIEW_CHANNEL permission to be present on the current user. If the current user is missing the READ_MESSAGE_HISTORY permission in the channel then this will return no messages (since they cannot read the message history). Returns an array of message objects on success. */
+  /** Retrieves the messages in a channel. Returns an array of message objects on success. */
   getChannelMessages: (
     channelId: string,
     params?: Partial<GetChannelMessageParams>,
@@ -3112,10 +3204,16 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   getThreadMember: (
     channelId: string,
     userId: string,
+    params?: Partial<GetThreadMemberParams>,
     options?: O,
   ) => Promise<ThreadMember>;
   /** Returns a user object for a given user ID. */
   getUser: (userId: string, options?: O) => Promise<User>;
+  /** Returns the application role connection for the user. Requires an OAuth2 access token with role_connections.write scope for the application specified in the path. */
+  getUserApplicationRoleConnection: (
+    applicationId: string,
+    options?: O,
+  ) => Promise<ApplicationRoleConnection>;
   /** Returns a list of connection objects. Requires the connections OAuth2 scope. */
   getUserConnections: (options?: O) => Promise<Connection[]>;
   /** Returns the new webhook object for the given id. */
@@ -3147,9 +3245,9 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     userId: string,
     options?: O,
   ) => Promise<any>;
-  /** Adds the current user to a thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
+  /** Adds the current user to a thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update and a Thread Create Gateway event. */
   joinThread: (channelId: string, options?: O) => Promise<any>;
-  /** Leave a guild. Returns a 204 empty response on success. */
+  /** Leave a guild. Returns a 204 empty response on success. Fires a Guild Delete Gateway event and a Guild Member Remove Gateway event. */
   leaveGuild: (guildId: string, options?: O) => Promise<any>;
   /** Removes the current user from a thread. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
   leaveThread: (channelId: string, options?: O) => Promise<any>;
@@ -3173,7 +3271,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   ) => Promise<GuildMember[]>;
   /** Returns an array of sticker objects for the given guild. Includes user fields if the bot has the MANAGE_EMOJIS_AND_STICKERS permission. */
   listGuildStickers: (guildId: string, options?: O) => Promise<Sticker[]>;
-  /** Returns archived threads in the channel that are of type GUILD_PRIVATE_THREAD, and the user has joined. Threads are ordered by their id, in descending order. Requires the READ_MESSAGE_HISTORY permission. */
+  /** Returns archived threads in the channel that are of type PRIVATE_THREAD, and the user has joined. Threads are ordered by their id, in descending order. Requires the READ_MESSAGE_HISTORY permission. */
   listJoinedPrivateArchivedThreads: (
     channelId: string,
     params?: Partial<ListJoinedPrivateArchivedThreadParams>,
@@ -3181,7 +3279,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
   ) => Promise<ListJoinedPrivateArchivedThreadResponse>;
   /** Returns the list of sticker packs available to Nitro subscribers. */
   listNitroStickerPacks: (options?: O) => Promise<any>;
-  /** Returns archived threads in the channel that are of type GUILD_PRIVATE_THREAD. Threads are ordered by archive_timestamp, in descending order. Requires both the READ_MESSAGE_HISTORY and MANAGE_THREADS permissions. */
+  /** Returns archived threads in the channel that are of type PRIVATE_THREAD. Threads are ordered by archive_timestamp, in descending order. Requires both the READ_MESSAGE_HISTORY and MANAGE_THREADS permissions. */
   listPrivateArchivedThreads: (
     channelId: string,
     params?: Partial<ListPrivateArchivedThreadParams>,
@@ -3199,9 +3297,9 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<ListScheduledEventsForGuildParams>,
     options?: O,
   ) => Promise<GuildScheduledEvent[]>;
-  /** Returns array of thread members objects that are members of the thread. */
   listThreadMembers: (
     channelId: string,
+    params?: Partial<ListThreadMemberParams>,
     options?: O,
   ) => Promise<ThreadMember[]>;
   /** Returns an array of voice region objects that can be used when setting a voice or stage channel's rtc_region. */
@@ -3307,7 +3405,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<ModifyGuildTemplateParams>,
     options?: O,
   ) => Promise<GuildTemplate>;
-  /** Modify the guild's Welcome Screen. Requires the MANAGE_GUILD permission. Returns the updated Welcome Screen object. */
+  /** Modify the guild's Welcome Screen. Requires the MANAGE_GUILD permission. Returns the updated Welcome Screen object. May fire a Guild Update Gateway event. */
   modifyGuildWelcomeScreen: (
     guildId: string,
     params?: Partial<ModifyGuildWelcomeScreenParams>,
@@ -3368,7 +3466,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     roleId: string,
     options?: O,
   ) => Promise<any>;
-  /** Removes another member from a thread. Requires the MANAGE_THREADS permission, or the creator of the thread if it is a GUILD_PRIVATE_THREAD. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
+  /** Removes another member from a thread. Requires the MANAGE_THREADS permission, or the creator of the thread if it is a PRIVATE_THREAD. Also requires the thread is not archived. Returns a 204 empty response on success. Fires a Thread Members Update Gateway event. */
   removeThreadMember: (
     channelId: string,
     userId: string,
@@ -3380,7 +3478,7 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     params?: Partial<SearchGuildMemberParams>,
     options?: O,
   ) => Promise<GuildMember[]>;
-  /** Creates a new thread from an existing message. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. Fires a Thread Create Gateway event. */
+  /** Creates a new thread from an existing message. Returns a channel on success, and a 400 BAD REQUEST on invalid parameters. Fires a Thread Create and a Message Update Gateway event. */
   startThreadFromMessage: (
     channelId: string,
     messageId: string,
@@ -3413,6 +3511,17 @@ The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji
     messageId: string,
     options?: O,
   ) => Promise<any>;
+  /** Updates and returns a list of application role connection metadata objects for the given application. */
+  updateApplicationRoleConnectionMetadataRecords: (
+    applicationId: string,
+    options?: O,
+  ) => Promise<ApplicationRoleConnectionMetadatum[]>;
+  /** Updates and returns the application role connection for the user. Requires an OAuth2 access token with role_connections.write scope for the application specified in the path. */
+  updateUserApplicationRoleConnection: (
+    applicationId: string,
+    params?: Partial<UpdateUserApplicationRoleConnectionParams>,
+    options?: O,
+  ) => Promise<ApplicationRoleConnection>;
 }
 export enum EventType {
   /** when a member sends or edits a message in the guild */
@@ -3462,6 +3571,14 @@ export interface FollowedChannel {
   /** created target webhook id */
   webhook_id: Snowflake;
 }
+export enum ForumLayoutType {
+  /** No default has been set for forum channel */
+  NOT_SET = 0,
+  /** Display posts as a list */
+  LIST_VIEW = 1,
+  /** Display posts as a collection of tiles */
+  GALLERY_VIEW = 2,
+}
 export interface ForumTag {
   /** the id of the tag */
   id: Snowflake;
@@ -3470,14 +3587,14 @@ export interface ForumTag {
   /** whether this tag can only be added to or removed from threads by a member with the MANAGE_THREADS permission */
   moderated: boolean;
   /** the id of a guild's custom emoji * */
-  emoji_id: Snowflake;
+  emoji_id?: Snowflake | null;
   /** the unicode character of the emoji * */
   emoji_name?: string | null;
 }
 export interface ForumThreadMessageParam {
   /** Message contents (up to 2000 characters) */
   content?: string;
-  /** Embedded rich content (up to 6000 characters) */
+  /** Up to 10 rich embeds (up to 6000 characters) */
   embeds?: Embed[];
   /** Allowed mentions for the message */
   allowed_mentions?: AllowedMention;
@@ -3491,13 +3608,13 @@ export interface ForumThreadMessageParam {
   payload_json?: string;
   /** Attachment objects with filename and description. See Uploading Files */
   attachments?: Attachment[];
-  /** Message flags combined as a bitfield (only SUPPRESS_EMBEDS can be set) */
+  /** Message flags combined as a bitfield (only SUPPRESS_EMBEDS and SUPPRESS_NOTIFICATIONS can be set) */
   flags?: number;
 }
 export const GatewayIntents = {
   GUILDS: 1 << 0,
   GUILD_MEMBERS: 1 << 1,
-  GUILD_BANS: 1 << 2,
+  GUILD_MODERATION: 1 << 2,
   GUILD_EMOJIS_AND_STICKERS: 1 << 3,
   GUILD_INTEGRATIONS: 1 << 4,
   GUILD_WEBHOOKS: 1 << 5,
@@ -3606,8 +3723,10 @@ export interface GetGuildAuditLogParams {
   user_id?: Snowflake;
   /** Entries for a specific audit log event */
   action_type?: AuditLogEvent;
-  /** Entries that preceded a specific audit log entry ID */
+  /** Entries with ID less than a specific audit log entry ID */
   before?: Snowflake;
+  /** Entries with ID greater than a specific audit log entry ID */
+  after?: Snowflake;
   /** Maximum number of entries (between 1-100) to return, defaults to 50 */
   limit?: number;
 }
@@ -3660,6 +3779,10 @@ export interface GetReactionParams {
   after?: Snowflake;
   /** Max number of users to return (1-100) */
   limit?: number;
+}
+export interface GetThreadMemberParams {
+  /** Whether to include a guild member object for the thread member */
+  with_member?: boolean;
 }
 export interface GetWebhookMessageParams {
   /** id of the thread the message is in */
@@ -3765,6 +3888,7 @@ export interface GuildApplicationCommandPermission {
   /** Permissions for the command in the guild, max of 100 */
   permissions: ApplicationCommandPermission[];
 }
+export type GuildAuditLogEntryCreateEvent = AuditLogEntry;
 export interface GuildBanAddEvent {
   /** ID of the guild */
   guild_id: Snowflake;
@@ -3814,12 +3938,18 @@ export enum GuildFeature {
   ANIMATED_BANNER = "ANIMATED_BANNER",
   /** guild has access to set an animated guild icon */
   ANIMATED_ICON = "ANIMATED_ICON",
+  /** guild is using the old permissions configuration behavior */
+  APPLICATION_COMMAND_PERMISSIONS_V2 = "APPLICATION_COMMAND_PERMISSIONS_V2",
   /** guild has set up auto moderation rules */
   AUTO_MODERATION = "AUTO_MODERATION",
   /** guild has access to set a guild banner image */
   BANNER = "BANNER",
   /** guild can enable welcome screen, Membership Screening, stage channels and discovery, and receives community updates */
   COMMUNITY = "COMMUNITY",
+  /** guild has enabled monetization */
+  CREATOR_MONETIZABLE_PROVISIONAL = "CREATOR_MONETIZABLE_PROVISIONAL",
+  /** guild has enabled the role subscription promo page */
+  CREATOR_STORE_PAGE = "CREATOR_STORE_PAGE",
   /** guild has been set as a support server on the App Directory */
   DEVELOPER_SUPPORT_SERVER = "DEVELOPER_SUPPORT_SERVER",
   /** guild is able to be discovered in the directory */
@@ -3832,8 +3962,6 @@ export enum GuildFeature {
   INVITE_SPLASH = "INVITE_SPLASH",
   /** guild has enabled Membership Screening */
   MEMBER_VERIFICATION_GATE_ENABLED = "MEMBER_VERIFICATION_GATE_ENABLED",
-  /** guild has enabled monetization */
-  MONETIZATION_ENABLED = "MONETIZATION_ENABLED",
   /** guild has increased custom sticker slots */
   MORE_STICKERS = "MORE_STICKERS",
   /** guild has access to create announcement channels */
@@ -3842,10 +3970,12 @@ export enum GuildFeature {
   PARTNERED = "PARTNERED",
   /** guild can be previewed before joining via Membership Screening or the directory */
   PREVIEW_ENABLED = "PREVIEW_ENABLED",
-  /** guild has access to create private threads */
-  PRIVATE_THREADS = "PRIVATE_THREADS",
   /** guild is able to set role icons */
   ROLE_ICONS = "ROLE_ICONS",
+  /** guild has role subscriptions that can be purchased */
+  ROLE_SUBSCRIPTIONS_AVAILABLE_FOR_PURCHASE = "ROLE_SUBSCRIPTIONS_AVAILABLE_FOR_PURCHASE",
+  /** guild has enabled role subscriptions */
+  ROLE_SUBSCRIPTIONS_ENABLED = "ROLE_SUBSCRIPTIONS_ENABLED",
   /** guild has enabled ticketed events */
   TICKETED_EVENTS_ENABLED = "TICKETED_EVENTS_ENABLED",
   /** guild has access to set a vanity URL */
@@ -3878,6 +4008,8 @@ export interface GuildMember {
   deaf: boolean;
   /** whether the user is muted in voice channels */
   mute: boolean;
+  /** guild member flags represented as a bit set, defaults to 0 */
+  flags: number;
   /** whether the user has not yet passed the guild's Membership Screening requirements */
   pending?: boolean;
   /** total permissions of the member in the channel, including overwrites, returned when in the interaction object */
@@ -3890,6 +4022,16 @@ export interface GuildMemberAddExtra {
   /** ID of the guild */
   guild_id: Snowflake;
 }
+export const GuildMemberFlag = {
+  /** Member has left and rejoined the guild */
+  DID_REJOIN: 1 << 0,
+  /** Member has completed onboarding */
+  COMPLETED_ONBOARDING: 1 << 1,
+  /** Member is exempt from guild verification requirements */
+  BYPASSES_VERIFICATION: 1 << 2,
+  /** Member has started onboarding */
+  STARTED_ONBOARDING: 1 << 3,
+} as const;
 export interface GuildMemberRemoveEvent {
   /** ID of the guild */
   guild_id: Snowflake;
@@ -4155,10 +4297,10 @@ export interface Integration {
   id: Snowflake;
   /** integration name */
   name: string;
-  /** integration type (twitch, youtube, or discord) */
+  /** integration type (twitch, youtube, discord, or guild_subscription) */
   type: string;
   /** is this integration enabled */
-  enabled?: boolean;
+  enabled: boolean;
   /** is this integration syncing */
   syncing?: boolean;
   /** id that this integration uses for "subscribers" */
@@ -4281,7 +4423,7 @@ export interface InteractionCallbackMessage {
   attachments?: Attachment[];
 }
 export interface InteractionCallbackModal {
-  /** a developer-defined identifier for the component, max 100 characters */
+  /** a developer-defined identifier for the modal, max 100 characters */
   custom_id: string;
   /** the title of the popup modal, max 45 characters */
   title: string;
@@ -4410,11 +4552,11 @@ export enum InviteTargetType {
   EMBEDDED_APPLICATION = 2,
 }
 export enum KeywordPresetType {
-  /** Words that may be considered forms of swearing or cursing */
+  /** words that may be considered forms of swearing or cursing */
   PROFANITY = 1,
-  /** Words that refer to sexually explicit behavior or activity */
+  /** words that refer to sexually explicit behavior or activity */
   SEXUAL_CONTENT = 2,
-  /** Personal insults or words that may be considered hate speech */
+  /** personal insults or words that may be considered hate speech */
   SLURS = 3,
 }
 export interface ListActiveGuildThreadResponse {
@@ -4474,6 +4616,14 @@ export interface ListPublicArchivedThreadResponse {
 export interface ListScheduledEventsForGuildParams {
   /** include number of users subscribed to each event */
   with_user_count?: boolean;
+}
+export interface ListThreadMemberParams {
+  /** Whether to include a guild member object for each thread member */
+  with_member?: boolean;
+  /** Get thread members after this user ID */
+  after?: Snowflake;
+  /** Max number of thread members to return (1-100). Defaults to 100. */
+  limit?: number;
 }
 export interface Locale {
   /** Danish */
@@ -4602,6 +4752,8 @@ export interface Message {
   stickers?: Sticker[];
   /** A generally increasing integer (there may be gaps or duplicates) that represents the approximate position of the message in a thread, it can be used to estimate the relative position of the message in a thread in company with total_message_sent on parent thread */
   position?: number;
+  /** data of the role subscription purchase or renewal that prompted this ROLE_SUBSCRIPTION_PURCHASE message */
+  role_subscription_data?: RoleSubscriptionDatum;
 }
 export interface MessageActivity {
   /** type of message activity */
@@ -4667,6 +4819,8 @@ export const MessageFlag = {
   LOADING: 1 << 7,
   /** this message failed to mention some roles and add their members to the thread */
   FAILED_TO_MENTION_SOME_ROLES_IN_THREAD: 1 << 8,
+  /** this message will not trigger push and desktop notifications */
+  SUPPRESS_NOTIFICATIONS: 1 << 12,
 } as const;
 export interface MessageInteraction {
   /** ID of the interaction */
@@ -4759,6 +4913,13 @@ export enum MessageType {
   GUILD_INVITE_REMINDER = 22,
   CONTEXT_MENU_COMMAND = 23,
   AUTO_MODERATION_ACTION = 24,
+  ROLE_SUBSCRIPTION_PURCHASE = 25,
+  INTERACTION_PREMIUM_UPSELL = 26,
+  STAGE_START = 27,
+  STAGE_END = 28,
+  STAGE_SPEAKER = 29,
+  STAGE_TOPIC = 31,
+  GUILD_APPLICATION_PREMIUM_SUBSCRIPTION = 32,
 }
 export type MessageUpdateEvent = MessageCreateEvent;
 export enum MfaLevel {
@@ -4810,7 +4971,7 @@ export interface ModifyChannelGuildChannelParams {
   rate_limit_per_user?: number | null;
   /** the bitrate (in bits) of the voice or stage channel; min 8000 */
   bitrate?: number | null;
-  /** the user limit of the voice channel; 0 refers to no limit, 1 to 99 refers to a user limit */
+  /** the user limit of the voice or stage channel, max 99 for voice channels and 10,000 for stage channels (0 refers to no limit) */
   user_limit?: number | null;
   /** channel or category-specific permissions */
   permission_overwrites?: Overwrite[] | null;
@@ -4832,6 +4993,8 @@ export interface ModifyChannelGuildChannelParams {
   default_thread_rate_limit_per_user?: number;
   /** the default sort order type used to order posts in GUILD_FORUM channels */
   default_sort_order?: SortOrderType | null;
+  /** the default forum layout type used to display posts in GUILD_FORUM channels */
+  default_forum_layout?: ForumLayoutType;
 }
 export type ModifyChannelParams =
   | ModifyChannelGroupDmParams
@@ -4906,6 +5069,8 @@ export interface ModifyGuildMemberParams {
   channel_id: Snowflake;
   /** when the user's timeout will expire and the user will be able to communicate in the guild again (up to 28 days in the future), set to null to remove timeout. Will throw a 403 error if the user has the ADMINISTRATOR permission or is the owner of the guild */
   communication_disabled_until: string;
+  /** guild member flags */
+  flags: number;
 }
 export interface ModifyGuildMfaLevelParams {
   /** MFA level */
@@ -5085,6 +5250,8 @@ export enum OAuth2Scope {
   MESSAGES_READ = "messages.read",
   /** allows your app to know a user's friends and implicit relationships - requires Discord approval */
   RELATIONSHIPS_READ = "relationships.read",
+  /** allows your app to update a user's connection and metadata for the app */
+  ROLE_CONNECTIONS_WRITE = "role_connections.write",
   /** for local rpc server access, this allows you to control a user's local Discord client - requires Discord approval */
   RPC = "rpc",
   /** for local rpc server access, this allows you to update a user's activity - requires Discord approval */
@@ -5276,6 +5443,7 @@ export type ReceiveEvent =
   | GuildCreateEvent
   | GuildUpdateEvent
   | GuildDeleteEvent
+  | GuildAuditLogEntryCreateEvent
   | GuildBanAddEvent
   | GuildBanRemoveEvent
   | GuildEmojisUpdateEvent
@@ -5340,6 +5508,7 @@ export interface ReceiveEvents {
   GUILD_CREATE: GuildCreateEvent;
   GUILD_UPDATE: GuildUpdateEvent;
   GUILD_DELETE: GuildDeleteEvent;
+  GUILD_AUDIT_LOG_ENTRY_CREATE: GuildAuditLogEntryCreateEvent;
   GUILD_BAN_ADD: GuildBanAddEvent;
   GUILD_BAN_REMOVE: GuildBanRemoveEvent;
   GUILD_EMOJIS_UPDATE: GuildEmojisUpdateEvent;
@@ -5461,13 +5630,29 @@ export interface Role {
   /** the tags this role has */
   tags?: RoleTag;
 }
+export interface RoleSubscriptionDatum {
+  /** the id of the sku and listing that the user is subscribed to */
+  role_subscription_listing_id: Snowflake;
+  /** the name of the tier that the user is subscribed to */
+  tier_name: string;
+  /** the cumulative number of months that the user has been subscribed for */
+  total_months_subscribed: number;
+  /** whether this notification is for a renewal rather than a new purchase */
+  is_renewal: boolean;
+}
 export interface RoleTag {
   /** the id of the bot this role belongs to */
   bot_id?: Snowflake;
   /** the id of the integration this role belongs to */
   integration_id?: Snowflake;
-  /** whether this is the guild's premium subscriber role */
+  /** whether this is the guild's Booster role */
   premium_subscriber?: null;
+  /** the id of this role's subscription sku and listing */
+  subscription_listing_id?: Snowflake;
+  /** whether this role is available for purchase */
+  available_for_purchase?: null;
+  /** whether this role is a guild's linked role */
+  guild_connections?: null;
 }
 export type Route<P, O> = {
   method: string;
@@ -5573,7 +5758,7 @@ export interface StartThreadFromMessageParams {
 export interface StartThreadInForumChannelForumThreadMessageParams {
   /** Message contents (up to 2000 characters) */
   content?: string;
-  /** Embedded rich content (up to 6000 characters) */
+  /** Up to 10 rich embeds (up to 6000 characters) */
   embeds?: Embed[];
   /** Allowed mentions for the message */
   allowed_mentions?: AllowedMention;
@@ -5587,7 +5772,7 @@ export interface StartThreadInForumChannelForumThreadMessageParams {
   payload_json?: string;
   /** Attachment objects with filename and description. See Uploading Files */
   attachments?: Attachment[];
-  /** Message flags combined as a bitfield (only SUPPRESS_EMBEDS can be set) */
+  /** Message flags combined as a bitfield (only SUPPRESS_EMBEDS and SUPPRESS_NOTIFICATIONS can be set) */
   flags?: number;
 }
 export interface StartThreadInForumChannelParams {
@@ -5656,6 +5841,7 @@ export enum StickerFormatType {
   PNG = 1,
   APNG = 2,
   LOTTIE = 3,
+  GIF = 4,
 }
 export interface StickerItem {
   /** id of the sticker */
@@ -5696,6 +5882,10 @@ export const SystemChannelFlag = {
   SUPPRESS_GUILD_REMINDER_NOTIFICATIONS: 1 << 2,
   /** Hide member join sticker reply buttons */
   SUPPRESS_JOIN_NOTIFICATION_REPLIES: 1 << 3,
+  /** Suppress role subscription purchase and renewal notifications */
+  SUPPRESS_ROLE_SUBSCRIPTION_PURCHASE_NOTIFICATIONS: 1 << 4,
+  /** Hide role subscription sticker reply buttons */
+  SUPPRESS_ROLE_SUBSCRIPTION_PURCHASE_NOTIFICATION_REPLIES: 1 << 5,
 } as const;
 export interface Team {
   /** a hash of the image of the team's icon */
@@ -5758,14 +5948,16 @@ export interface ThreadListSyncEvent {
   members: ThreadMember[];
 }
 export interface ThreadMember {
-  /** the id of the thread */
+  /** ID of the thread */
   id?: Snowflake;
-  /** the id of the user */
+  /** ID of the user */
   user_id?: Snowflake;
-  /** the time the current user last joined the thread */
+  /** Time the user last joined the thread */
   join_timestamp: string;
-  /** any user-thread settings, currently only used for notifications */
+  /** Any user-thread settings, currently only used for notifications */
   flags: number;
+  /** Additional information about the user */
+  member?: GuildMember;
 }
 export interface ThreadMembersUpdateEvent {
   /** ID of the thread */
@@ -5806,7 +5998,7 @@ export interface TriggerMetadatum {
   regex_patterns: string[];
   /** KEYWORD_PRESET */
   presets: KeywordPresetType[];
-  /** KEYWORD_PRESET */
+  /** KEYWORD, KEYWORD_PRESET */
   allow_list: string[];
   /** MENTION_SPAM */
   mention_total_limit: number;
@@ -5848,6 +6040,14 @@ export interface UpdatePresence {
   status: StatusType;
   /** Whether or not the client is afk */
   afk: boolean;
+}
+export interface UpdateUserApplicationRoleConnectionParams {
+  /** the vanity name of the platform a bot has connected (max 50 characters) */
+  platform_name?: string;
+  /** the username on the platform a bot has connected (max 100 characters) */
+  platform_username?: string;
+  /** object mapping application role connection metadata keys to their string-ified value (max 100 characters) for the user on the platform a bot has connected */
+  metadata?: ApplicationRoleConnectionMetadatum;
 }
 export interface UpdateVoiceState {
   /** ID of the guild */
@@ -5916,7 +6116,7 @@ export const UserFlag = {
   VERIFIED_BOT: 1 << 16,
   /** Early Verified Bot Developer */
   VERIFIED_DEVELOPER: 1 << 17,
-  /** Discord Certified Moderator */
+  /** Moderator Programs Alumni */
   CERTIFIED_MODERATOR: 1 << 18,
   /** Bot uses only HTTP interactions and is shown in the online member list */
   BOT_HTTP_INTERACTIONS: 1 << 19,

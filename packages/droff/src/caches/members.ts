@@ -1,7 +1,6 @@
 import * as Rx from "rxjs";
 import * as RxO from "rxjs/operators";
-import { requestGuildMembers } from "../gateway/commands";
-import { Dispatch, DispatchWithShard } from "../gateway/dispatch";
+import { Dispatch } from "../gateway/dispatch";
 import { GuildMember } from "../types";
 import * as Resources from "./resources";
 
@@ -22,7 +21,7 @@ export const watch$ = (fromDispatch: Dispatch) =>
       ),
     ),
     update$: fromDispatch("GUILD_MEMBER_UPDATE").pipe(
-      RxO.map((member) => [member.guild_id, member as GuildMember]),
+      RxO.map((member) => [member.guild_id, member as unknown as GuildMember]),
     ),
     delete$: fromDispatch("GUILD_MEMBER_REMOVE").pipe(
       RxO.map((member) => [member.guild_id, member.user.id]),

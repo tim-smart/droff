@@ -1,6 +1,6 @@
 {
   "name": "droff-commands",
-  "version": "0.8.12",
+  "version": "0.8.13",
   "description": "Command helpers for the droff discord client",
   "keywords": [
     "discord",
@@ -32,7 +32,7 @@
     "typescript": "^4.3.2"
   },
   "dependencies": {
-    "droff": "^0.43.3",
+    "droff": "^0.43.4",
     "immutable": "^4.0.0",
     "lexure": "^0.17.0",
     "rxjs": "^7.1.0",

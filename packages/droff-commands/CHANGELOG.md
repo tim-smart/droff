@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.13](https://github.com/tim-smart/droff/compare/droff-commands@0.8.12...droff-commands@0.8.13) (2023-03-16)
+
+**Note:** Version bump only for package droff-commands
+
 ## [0.8.12](https://github.com/tim-smart/droff/compare/droff-commands@0.8.11...droff-commands@0.8.12) (2022-12-08)
 
 **Note:** Version bump only for package droff-commands
